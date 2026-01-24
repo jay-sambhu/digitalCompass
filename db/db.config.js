@@ -1,6 +1,7 @@
     const {Sequelize} = require ('sequelize');
 
-    const DATABASE_URL="postgresql://postgres.doftjyooqdlbwzlxboxh:vastu@digita@aws-1-ap-south-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+    const DATABASE_URL="postgresql://postgres.gzsueiiupscooclumpzn:vastu@digita@aws-1-ap-south-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+    
 
     const sequelize = new Sequelize(DATABASE_URL, {
         dialect: 'postgres',
