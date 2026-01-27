@@ -39,7 +39,7 @@ router.put("/user/:id", updateUser);
 // Delete user by ID
 router.delete("/user/:id", deleteUser);
 
-// ===== NEW: Login route =====
+// User login route
 router.post("/login", loginUser);
 
 module.exports = router;
