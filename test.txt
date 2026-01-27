@@ -1,0 +1,70 @@
+=== DIGITALCOMPASS API ENDPOINTS ===
+
+BASE URL: http://localhost:3000
+
+=== USER ENDPOINTS ===
+
+1. CREATE A NEW USER
+   POST http://localhost:3000/api/user
+   Body: {
+     "userName": "johndoe",
+     "name": "John Doe",
+     "email": "john@example.com",
+     "password": "password123"
+   }
+
+2. GET ALL USERS
+   GET http://localhost:3000/api/user
+
+3. GET A SPECIFIC USER
+   GET http://localhost:3000/api/user/1
+
+4. UPDATE USER
+   PUT http://localhost:3000/api/user/1
+   Body: {
+     "username": "johndoe_updated",
+     "name": "John Updated",
+     "email": "john.updated@example.com"
+   }
+
+5. DELETE USER
+   DELETE http://localhost:3000/api/user/1
+
+6. USER LOGIN
+   POST http://localhost:3000/api/user/login
+   Body: {
+     "email": "john@example.com",
+     "password": "password123"
+   }
+
+=== SAMPLE TEST DATA ===
+
+USER 1:
+{
+  "username": "johndoe",
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "password123"
+}
+
+USER 2:
+{
+  "username": "janesmith",
+  "name": "Jane Smith",
+  "email": "jane@example.com",
+  "password": "securepass456"
+}
+
+HOUSE 1:
+{
+  "name": "Downtown Apartment",
+  "address": "123 Main Street, New York",
+  "northAngle": 0
+}
+
+HOUSE 2:
+{
+  "name": "Suburban Home",
+  "address": "456 Oak Avenue, Boston",
+  "northAngle": 90
+}

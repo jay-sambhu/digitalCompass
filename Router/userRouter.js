@@ -6,10 +6,10 @@ const db = require("../models");
 const UserProfile = db.userProfile;
 
 // Create new user
-router.post("/user", SaveUserProfile);
+router.post("/", SaveUserProfile);
 
 // Get all users (exclude passwords)
-router.get("/user", async (req, res) => {
+router.get("/", async (req, res) => {
     try {
         const rows = await UserProfile.findAll({ attributes: { exclude: ['password'] } });
         return res.status(200).json(rows);
@@ -19,7 +19,7 @@ router.get("/user", async (req, res) => {
 });
 
 // Get single user by ID (exclude password)
-router.get("/user/:id", async (req, res) => {
+router.get("/:id", async (req, res) => {
     try {
         const id = req.params.id;
         const row = await UserProfile.findByPk(id, { attributes: { exclude: ['password'] } });
@@ -34,10 +34,10 @@ router.get("/user/:id", async (req, res) => {
 });
 
 // Update user by ID
-router.put("/user/:id", updateUser);
+router.put("/:id", updateUser);
 
 // Delete user by ID
-router.delete("/user/:id", deleteUser);
+router.delete("/:id", deleteUser);
 
 // User login route
 router.post("/login", loginUser);

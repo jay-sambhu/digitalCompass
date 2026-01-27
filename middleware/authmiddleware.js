@@ -1,43 +1,48 @@
-const { User } = require('../models');
-const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const { User } = require('../models');
 const dotenv = require('dotenv');
 
 dotenv.config();
 
-const loginUser = async (req, res) => {
-  const { email, password } = req.body;
+// 1. The PROTECT function (Checks the JWT token)
+const authenticate = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(" ")[1]; // Format: "Bearer <token>"
+
+  if (!token) {
+    return res.status(401).json({ message: "Access denied. No token provided." });
+  }
 
   try {
-    // Check if user exists
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded; // Adds { id, email } to the request object
+    next(); 
+  } catch (error) {
+    res.status(403).json({ message: "Invalid or expired token." });
+  }
+};
+
+// 2. The LOGIN function (Generates the token)
+const loginUser = async (req, res) => {
+  const { email, password } = req.body;
+  try {
     const user = await User.findOne({ where: { email } });
-    if (!user) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
+    if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
-    // Compare password
     const isValid = await bcrypt.compare(password, user.password);
-    if (!isValid) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
+    if (!isValid) return res.status(401).json({ message: "Invalid credentials" });
 
-    // Generate JWT token
     const token = jwt.sign(
       { id: user.id, email: user.email },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
-    // Send response with token and user info
-    return res.json({
-      message: "Login successful",
-      token,
-      user: { id: user.id, name: user.name, email: user.email }
-    });
-
+    return res.json({ message: "Login successful", token });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
 };
 
-module.exports = { loginUser };
+module.exports = { authenticate, loginUser };
