@@ -1,8 +1,9 @@
 const express = require("express");
-const dotenv = require('dotenv');
+const dotenv = require("dotenv");
 dotenv.config();
-const houseRouter = require('./Router/houseRouter');
-const userRouter = require('./Router/userRouter');
+const houseRouter = require("./Router/houseRouter");
+const userRouter = require("./Router/userRouter");
+const compassRouter = require("./Router/compassRouter");
 
 const db = require("./models");
 
@@ -19,14 +20,19 @@ app.get("/", (req, res) => {
 });
 
 //routes
-app.use('/api/user', userRouter);
-app.use('/api/houses', houseRouter);
+app.use("/api/user", userRouter);
+app.use("/api/houses", houseRouter);
+app.use("/api", compassRouter);
+
 
 //database syancing and server start
-db.sequelize.sync().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server started on port ${PORT}`);
+db.sequelize
+  .sync()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server started on port ${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error("Unable to sync database:", error);
   });
-}).catch((error) => {
-  console.error("Unable to sync database:", error);
-});
