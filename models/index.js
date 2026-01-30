@@ -6,6 +6,7 @@ const db = {};
 db.userProfile = require("./userModule")(sequelize, DataTypes);
 db.HouseProject = require("./houseProjectModule")(sequelize,DataTypes);
 db.FloorPlan = require("./floorPlanModule")(sequelize,DataTypes);
+db.houseCompass = require("./houseCompassModel")(sequelize, DataTypes);
 
 db.sequelize = sequelize;
 db.DataTypes = DataTypes;
