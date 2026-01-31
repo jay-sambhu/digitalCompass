@@ -1,5 +1,5 @@
 const db = require("../models");
-const { CommercialBuilding, Floor, Unit } = db;
+const { commercialBuilding: CommercialBuilding, commercialFloor: Floor, commercialUnit: Unit } = db;
 
 // --------------------- BUILDING ---------------------
 
