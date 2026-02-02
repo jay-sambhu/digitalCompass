@@ -10,12 +10,16 @@ import {
   Modal,
   Alert,
   ScrollView,
+  Share,
+  Linking,
+  Switch,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Magnetometer } from "expo-sensors";
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
 import * as MediaLibrary from "expo-media-library";
 import * as Sharing from "expo-sharing";
+import * as Location from "expo-location";
 
 function headingFromMag({ x, y }: { x: number; y: number }) {
   let deg = (Math.atan2(y, x) * 180) / Math.PI;
@@ -39,6 +43,10 @@ export default function IndexScreen() {
   const [debugLogs, setDebugLogs] = useState<Array<{ type: string; message: string; time: string }>>([]);
   const [showDebug, setShowDebug] = useState(false);
   const [activeCompass, setActiveCompass] = useState<number>(0); // Track which compass opened camera
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [showPermissions, setShowPermissions] = useState(false);
+  const [locationPerm, setLocationPerm] = useState<Location.LocationPermissionResponse | null>(null);
+  const [showUserGuide, setShowUserGuide] = useState(false);
 
   const cameraRef = useRef<CameraView>(null);
   const [camPerm, requestCamPerm] = useCameraPermissions();
@@ -222,6 +230,113 @@ export default function IndexScreen() {
     }
   };
 
+  const shareApp = async () => {
+    try {
+      const result = await Share.share({
+        message: "Check out Digital Compass - Vastu Compass App! Download now: https://sanskarvastu.com",
+        title: "Digital Compass App",
+      });
+      
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          console.log("Shared with activity type:", result.activityType);
+        } else {
+          console.log("App shared successfully");
+        }
+      } else if (result.action === Share.dismissedAction) {
+        console.log("Share dismissed");
+      }
+    } catch (error: any) {
+      Alert.alert("Share Error", error.message);
+    }
+  };
+
+  const openWebsite = async (url: string) => {
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert("Error", "Cannot open this URL: " + url);
+      }
+    } catch (error: any) {
+      Alert.alert("Error", "Failed to open website: " + error.message);
+    }
+  };
+
+  const openPermissionsManager = async () => {
+    // Refresh all permissions status
+    const locPerm = await Location.getForegroundPermissionsAsync();
+    setLocationPerm(locPerm);
+    setShowPermissions(true);
+  };
+
+  const handleCameraPermission = async (value: boolean) => {
+    if (value && !camPerm?.granted) {
+      const result = await requestCamPerm();
+      if (!result.granted) {
+        Alert.alert(
+          "Permission Denied",
+          "Camera permission was denied. Please enable it from device settings.",
+          [
+            { text: "Cancel", style: "cancel" },
+            { text: "Open Settings", onPress: () => Linking.openSettings() },
+          ]
+        );
+      }
+    } else if (!value && camPerm?.granted) {
+      openAppSettings();
+    }
+  };
+
+  const handleLocationPermission = async (value: boolean) => {
+    if (value && !locationPerm?.granted) {
+      const result = await Location.requestForegroundPermissionsAsync();
+      setLocationPerm(result);
+      if (!result.granted) {
+        Alert.alert(
+          "Permission Denied",
+          "Location permission was denied. Please enable it from device settings.",
+          [
+            { text: "Cancel", style: "cancel" },
+            { text: "Open Settings", onPress: () => Linking.openSettings() },
+          ]
+        );
+      }
+    } else if (!value && locationPerm?.granted) {
+      openAppSettings();
+    }
+  };
+
+  const handleMediaLibraryPermission = async (value: boolean) => {
+    if (value && !mediaPerm?.granted) {
+      const result = await requestMediaPerm();
+      if (!result.granted) {
+        Alert.alert(
+          "Permission Denied",
+          "Media library permission was denied. Please enable it from device settings.",
+          [
+            { text: "Cancel", style: "cancel" },
+            { text: "Open Settings", onPress: () => Linking.openSettings() },
+          ]
+        );
+      }
+    } else if (!value && mediaPerm?.granted) {
+      openAppSettings();
+    }
+  };
+
+  const openAppSettings = () => {
+    Alert.alert(
+      "Open Settings",
+      "To change permissions, please go to your device settings.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Open Settings", onPress: () => Linking.openSettings() },
+      ]
+    );
+  };
+
   const retakePhoto = () => {
     setCapturedPhoto(null);
   };
@@ -232,65 +347,102 @@ export default function IndexScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Pressable style={styles.heroButton}>
-          <Image
-            source={require("../../assets/compass/icon.png")}
-            style={styles.heroIcon}
-            resizeMode="contain"
-          />
-          <View>
-            <Text style={styles.heroTitle}>Digital Compass</Text>
-            <Text style={styles.heroSubtitle}>{headingText}</Text>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <Pressable onPress={() => setDrawerOpen(true)}>
+            <Text style={styles.menuIcon}>☰</Text>
+          </Pressable>
+          <Text style={styles.appTitle}>Digital Compass</Text>
+          <View style={styles.headerIcons}>
+            <Pressable style={styles.iconBtn}>
+              <Text style={styles.icon}>💡</Text>
+            </Pressable>
+            <Pressable style={styles.iconBtn}>
+              <Text style={styles.icon}>⭐</Text>
+            </Pressable>
+            <Pressable style={styles.iconBtn} onPress={shareApp}>
+              <Text style={styles.icon}>🔗</Text>
+            </Pressable>
           </View>
-        </Pressable>
-        <Pressable
-          style={styles.debugToggle}
-          onPress={() => setShowDebug(!showDebug)}
-        >
-          <Text style={styles.debugToggleText}>🐛</Text>
-        </Pressable>
-      </View>
+        </View>
 
-      <View style={[styles.grid, { paddingHorizontal: gridPadding, gap: gridGap }]}> 
-        {["Compass 1", "Compass 2", "Compass 3", "Compass 4"].map((label, index) => {
-          // Determine which assets to use
-          const dialSource = index === 1 
-            ? require("../../assets/compass2/dial.png")
-            : require("../../assets/compass/dial.png");
-          const needleSource = index === 1
-            ? require("../../assets/compass2/needle.png")
-            : require("../../assets/compass/needle.png");
-          
-          return (
-            <View key={label} style={{ width: tileSize }}>
+        {/* Section Title */}
+        <View style={styles.sectionTitleContainer}>
+          <Text style={styles.sectionTitle}>Select Compasses Type</Text>
+        </View>
+
+        {/* Compass Grid */}
+        <View style={styles.compassGrid}>
+          {["Normal Compass", "16 Zone Vastu\nCompass", "32 Zone Vastu\nCompass", "AppliedVastu\nCharka"].map((label, index) => {
+            // Determine which assets to use
+            const dialSource = index === 1 
+              ? require("../../assets/compass2/dial.png")
+              : require("../../assets/compass/dial.png");
+            const needleSource = index === 1
+              ? require("../../assets/compass2/needle.png")
+              : require("../../assets/compass/needle.png");
+            
+            return (
               <Pressable
-                style={[styles.tile, { width: tileSize, height: tileSize }]}
+                key={label}
+                style={styles.compassCard}
                 onPress={() => index <= 1 ? openCompassCamera(index) : undefined}
                 disabled={index > 1}
               >
-                <Image
-                  source={dialSource}
-                  style={{ width: tileSize, height: tileSize }}
-                  resizeMode="contain"
-                />
-                <Animated.Image
-                  source={needleSource}
-                  style={{
-                    width: needleSize,
-                    height: needleSize,
-                    position: "absolute",
-                    transform: [{ rotate: needleRotate }],
-                  }}
-                  resizeMode="contain"
-                />
+                <View style={styles.compassImageContainer}>
+                  <Image
+                    source={dialSource}
+                    style={styles.compassDial}
+                    resizeMode="contain"
+                  />
+                  <Animated.Image
+                    source={needleSource}
+                    style={[
+                      styles.compassNeedle,
+                      { transform: [{ rotate: needleRotate }] },
+                    ]}
+                    resizeMode="contain"
+                  />
+                </View>
+                <Text style={styles.compassLabel}>{label}</Text>
               </Pressable>
-              <Text style={styles.tileLabel}>{label}</Text>
-            </View>
-          );
-        })}
-      </View>
+            );
+          })}
+        </View>
+
+        {/* Bottom Buttons */}
+        <View style={styles.bottomButtons}>
+          <Pressable style={styles.bottomBtn} onPress={() => setShowUserGuide(true)}>
+            <Text style={styles.bottomBtnText}>User Guide</Text>
+          </Pressable>
+          <Pressable style={styles.bottomBtn} onPress={() => openWebsite('https://sanskarvastu.com/consultancy')}>
+            <Text style={styles.bottomBtnText}>Vastu Consultancy Services</Text>
+          </Pressable>
+        </View>
+
+        <View style={styles.bottomButtons}>
+          <Pressable style={styles.bottomBtn}>
+            <Text style={styles.bottomBtnText}>Vastu Courses</Text>
+          </Pressable>
+          <Pressable style={styles.bottomBtn} onPress={() => openWebsite('https://sanskarvastu.com/contact')}>
+            <Text style={styles.bottomBtnText}>Contact Us</Text>
+          </Pressable>
+        </View>
+
+        {/* Logo */}
+        <View style={styles.logoContainer}>
+          <Image
+            source={require("../../assets/compass/icon.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
+      </ScrollView>
 
       <Modal visible={cameraOpen} animationType="slide" onRequestClose={closeCamera}>
         <View style={styles.cameraContainer}>
@@ -422,6 +574,270 @@ export default function IndexScreen() {
         </View>
       </Modal>
 
+      {/* Drawer Menu */}
+      <Modal
+        visible={drawerOpen}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setDrawerOpen(false)}
+      >
+        <Pressable style={styles.drawerOverlay} onPress={() => setDrawerOpen(false)}>
+          <Pressable style={styles.drawerContainer} onPress={(e) => e.stopPropagation()}>
+            <ScrollView>
+              {/* Logo and Header */}
+              <View style={styles.drawerHeader}>
+                <Image
+                  source={require("../../assets/compass/icon.png")}
+                  style={styles.drawerLogo}
+                  resizeMode="contain"
+                />
+                <Text style={styles.drawerBrand}>sanskarvastu.com</Text>
+                <Text style={styles.drawerVersion}>Version: 3.1.3</Text>
+                <Text style={styles.drawerTitle}>Vastu Compass</Text>
+              </View>
+
+              {/* Menu Items */}
+              <View style={styles.menuList}>
+                <Pressable style={styles.menuItem}>
+                  <Text style={styles.menuIcon}>ℹ️</Text>
+                  <Text style={styles.menuText}>About AppliedVastu</Text>
+                  <Text style={styles.menuArrow}>›</Text>
+                </Pressable>
+
+                <Pressable style={styles.menuItem}>
+                  <Text style={styles.menuIcon}>💻</Text>
+                  <Text style={styles.menuText}>Access Vastu Software</Text>
+                  <Text style={styles.menuArrow}>›</Text>
+                </Pressable>
+
+                <Pressable style={styles.menuItem}>
+                  <Text style={styles.menuIcon}>📱</Text>
+                  <Text style={styles.menuText}>More Apps</Text>
+                  <Text style={styles.menuArrow}>›</Text>
+                </Pressable>
+
+                <Pressable style={styles.menuItem} onPress={shareApp}>
+                  <Text style={styles.menuIcon}>🔗</Text>
+                  <Text style={styles.menuText}>Share</Text>
+                  <Text style={styles.menuArrow}>›</Text>
+                </Pressable>
+
+                <Pressable style={styles.menuItem}>
+                  <Text style={styles.menuIcon}>✉️</Text>
+                  <Text style={styles.menuText}>Send Feedback</Text>
+                  <Text style={styles.menuArrow}>›</Text>
+                </Pressable>
+
+                <Pressable style={styles.menuItem}>
+                  <Text style={styles.menuIcon}>⭐</Text>
+                  <Text style={styles.menuText}>Review Us</Text>
+                  <Text style={styles.menuArrow}>›</Text>
+                </Pressable>
+
+                <Pressable style={styles.menuItem} onPress={openPermissionsManager}>
+                  <Text style={styles.menuIcon}>🔒</Text>
+                  <Text style={styles.menuText}>Manage Permissions</Text>
+                  <Text style={styles.menuArrow}>›</Text>
+                </Pressable>
+
+                <Pressable style={styles.menuItem} onPress={() => { setDrawerOpen(false); setShowUserGuide(true); }}>
+                  <Text style={styles.menuIcon}>❓</Text>
+                  <Text style={styles.menuText}>How to use Vastu Compass</Text>
+                  <Text style={styles.menuArrow}>›</Text>
+                </Pressable>
+
+                <Pressable style={styles.menuItem}>
+                  <Text style={styles.menuIcon}>🎓</Text>
+                  <Text style={styles.menuText}>Join AppliedVastu Course</Text>
+                  <Text style={styles.menuArrow}>›</Text>
+                </Pressable>
+              </View>
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* User Guide Modal */}
+      <Modal visible={showUserGuide} animationType="slide" onRequestClose={() => setShowUserGuide(false)}>
+        <SafeAreaView style={styles.userGuideContainer}>
+          <View style={styles.userGuideHeader}>
+            <Text style={styles.userGuideTitle}>How to Use Digital Compass</Text>
+            <Pressable onPress={() => setShowUserGuide(false)}>
+              <Text style={styles.userGuideClose}>✕</Text>
+            </Pressable>
+          </View>
+          
+          <ScrollView style={styles.userGuideContent} showsVerticalScrollIndicator={false}>
+            {/* Getting Started */}
+            <View style={styles.guideSection}>
+              <Text style={styles.guideSectionTitle}>📍 Getting Started</Text>
+              <Text style={styles.guideText}>
+                Welcome to Digital Compass! This app helps you understand Vastu principles and directions. Before using the app, please grant the necessary permissions for location, camera, and media access.
+              </Text>
+            </View>
+
+            {/* Permissions */}
+            <View style={styles.guideSection}>
+              <Text style={styles.guideSectionTitle}>🔐 Permissions</Text>
+              <Text style={styles.guideSubtitle}>Why we need permissions:</Text>
+              <View style={styles.guideList}>
+                <Text style={styles.guideListItem}>📷 <Text style={styles.guideListText}>Camera: To capture photos with compass overlay</Text></Text>
+                <Text style={styles.guideListItem}>📍 <Text style={styles.guideListText}>Location: To show your coordinates and compass direction</Text></Text>
+                <Text style={styles.guideListItem}>🖼️ <Text style={styles.guideListText}>Media Library: To save captured photos to your gallery</Text></Text>
+              </View>
+              <Text style={styles.guideText}>
+                You can manage permissions anytime from the sidebar menu → Manage Permissions.
+              </Text>
+            </View>
+
+            {/* Compass Types */}
+            <View style={styles.guideSection}>
+              <Text style={styles.guideSectionTitle}>🧭 Compass Types</Text>
+              <View style={styles.guideList}>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}><Text style={{fontWeight: '700'}}>Normal Compass:</Text> Standard 360° compass showing cardinal directions</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}><Text style={{fontWeight: '700'}}>16 Zone Vastu Compass:</Text> Advanced compass divided into 16 zones based on Vastu principles</Text></Text>
+              </View>
+            </View>
+
+            {/* Using Compass */}
+            <View style={styles.guideSection}>
+              <Text style={styles.guideSectionTitle}>📱 Using the Compass</Text>
+              <View style={styles.guideSteps}>
+                <Text style={styles.guideStep}><Text style={{fontWeight: '700'}}>Step 1:</Text> Select a compass type from the home screen</Text>
+                <Text style={styles.guideStep}><Text style={{fontWeight: '700'}}>Step 2:</Text> Click to open the camera with compass overlay</Text>
+                <Text style={styles.guideStep}><Text style={{fontWeight: '700'}}>Step 3:</Text> The compass needle will point to magnetic north</Text>
+                <Text style={styles.guideStep}><Text style={{fontWeight: '700'}}>Step 4:</Text> Use this for Vastu analysis of your property or space</Text>
+              </View>
+            </View>
+
+            {/* Features */}
+            <View style={styles.guideSection}>
+              <Text style={styles.guideSectionTitle}>✨ Key Features</Text>
+              <View style={styles.guideList}>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}><Text style={{fontWeight: '700'}}>Real-time Heading:</Text> Live compass direction updates</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}><Text style={{fontWeight: '700'}}>Geo-Coordinates:</Text> View your location coordinates</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}><Text style={{fontWeight: '700'}}>Magnetic Field:</Text> Monitor magnetic field strength (µT)</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}><Text style={{fontWeight: '700'}}>Photo Capture:</Text> Capture photos with compass overlay</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}><Text style={{fontWeight: '700'}}>Share Feature:</Text> Share app link with friends</Text></Text>
+              </View>
+            </View>
+
+            {/* Tips */}
+            <View style={styles.guideSection}>
+              <Text style={styles.guideSectionTitle}>💡 Tips for Best Results</Text>
+              <View style={styles.guideList}>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}>Hold your phone steady for accurate readings</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}>Keep phone away from metal objects or magnets</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}>Outdoor use gives more accurate results</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}>Allow a few seconds for calibration after opening compass</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}>Move phone in figure-8 pattern if readings seem off</Text></Text>
+              </View>
+            </View>
+
+            {/* Vastu Consultancy */}
+            <View style={styles.guideSection}>
+              <Text style={styles.guideSectionTitle}>🏛️ Need Expert Help?</Text>
+              <Text style={styles.guideText}>
+                For professional Vastu consultation, please visit our Vastu Consultancy Services section or contact us through the app menu.
+              </Text>
+            </View>
+
+            {/* Support */}
+            <View style={styles.guideSection}>
+              <Text style={styles.guideSectionTitle}>📞 Support & Feedback</Text>
+              <Text style={styles.guideText}>
+                Have questions or suggestions? Use the "Send Feedback" option in the sidebar menu to reach us. We'd love to hear from you!
+              </Text>
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
+
+      {/* Permissions Management Modal */}
+      <Modal visible={showPermissions} animationType="slide" onRequestClose={() => setShowPermissions(false)}>
+        <SafeAreaView style={styles.permissionsContainer}>
+          <View style={styles.permissionsHeader}>
+            <Text style={styles.permissionsTitle}>Manage Permissions</Text>
+            <Pressable onPress={() => setShowPermissions(false)}>
+              <Text style={styles.permissionsClose}>✕</Text>
+            </Pressable>
+          </View>
+          
+          <ScrollView style={styles.permissionsList}>
+            <Text style={styles.permissionsSubtitle}>App Permissions Status</Text>
+            
+            {/* Camera Permission */}
+            <View style={styles.permissionItem}>
+              <View style={styles.permissionInfo}>
+                <Text style={styles.permissionIcon}>📷</Text>
+                <View style={styles.permissionTextContainer}>
+                  <Text style={styles.permissionName}>Camera</Text>
+                  <Text style={styles.permissionDesc}>Required for capturing photos with compass overlay</Text>
+                </View>
+              </View>
+              <View style={styles.permissionToggle}>
+                <Switch
+                  value={camPerm?.granted || false}
+                  trackColor={{ false: "#ccc", true: "#4CAF50" }}
+                  thumbColor={camPerm?.granted ? "#fff" : "#f4f3f4"}
+                  onValueChange={handleCameraPermission}
+                />
+              </View>
+            </View>
+
+            {/* Location Permission */}
+            <View style={styles.permissionItem}>
+              <View style={styles.permissionInfo}>
+                <Text style={styles.permissionIcon}>📍</Text>
+                <View style={styles.permissionTextContainer}>
+                  <Text style={styles.permissionName}>Location</Text>
+                  <Text style={styles.permissionDesc}>Required for getting coordinates and compass direction</Text>
+                </View>
+              </View>
+              <View style={styles.permissionToggle}>
+                <Switch
+                  value={locationPerm?.granted || false}
+                  trackColor={{ false: "#ccc", true: "#4CAF50" }}
+                  thumbColor={locationPerm?.granted ? "#fff" : "#f4f3f4"}
+                  onValueChange={handleLocationPermission}
+                />
+              </View>
+            </View>
+
+            {/* Media Library Permission */}
+            <View style={styles.permissionItem}>
+              <View style={styles.permissionInfo}>
+                <Text style={styles.permissionIcon}>🖼️</Text>
+                <View style={styles.permissionTextContainer}>
+                  <Text style={styles.permissionName}>Media Library</Text>
+                  <Text style={styles.permissionDesc}>Required for saving photos to gallery</Text>
+                </View>
+              </View>
+              <View style={styles.permissionToggle}>
+                <Switch
+                  value={mediaPerm?.granted || false}
+                  trackColor={{ false: "#ccc", true: "#4CAF50" }}
+                  thumbColor={mediaPerm?.granted ? "#fff" : "#f4f3f4"}
+                  onValueChange={handleMediaLibraryPermission}
+                />
+              </View>
+            </View>
+
+            <Text style={styles.permissionsNote}>
+              Toggle ON to grant permissions. Toggle OFF opens device settings to revoke permissions.
+            </Text>
+
+            <Pressable style={styles.openSettingsBtn} onPress={openAppSettings}>
+              <Text style={styles.openSettingsBtnText}>Open Device Settings</Text>
+            </Pressable>
+            
+            <Text style={styles.permissionsInfo}>
+              Note: To revoke permissions, use device settings. Granting permissions can be done directly from toggles above.
+            </Text>
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
+
       <Modal visible={showDebug} animationType="slide" onRequestClose={() => setShowDebug(false)}>
         <SafeAreaView style={styles.debugContainer}>
           <View style={styles.debugHeader}>
@@ -464,19 +880,278 @@ export default function IndexScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  header: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 8, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  debugToggle: {
-    width: 44,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 22,
-    backgroundColor: "#f2f6ff",
-    borderWidth: 1,
-    borderColor: "#dbe7ff",
+  container: { 
+    flex: 1, 
+    backgroundColor: "#f5f5f5"
   },
-  debugToggleText: { fontSize: 20 },
+  scrollContent: { 
+    flexGrow: 1,
+    paddingBottom: 20 
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#333",
+  },
+  menuIcon: { fontSize: 24, color: "#fff", fontWeight: "600" },
+  appTitle: { fontSize: 20, fontWeight: "700", color: "#fff" },
+  headerIcons: { flexDirection: "row", gap: 8 },
+  iconBtn: { padding: 4 },
+  icon: { fontSize: 20 },
+  drawerOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-start",
+  },
+  drawerContainer: {
+    width: "70%",
+    height: "100%",
+    backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOffset: { width: 2, height: 0 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  drawerHeader: {
+    alignItems: "center",
+    paddingVertical: 30,
+    paddingHorizontal: 20,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+  },
+  drawerLogo: {
+    width: 80,
+    height: 80,
+    marginBottom: 10,
+  },
+  drawerBrand: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#000",
+    marginBottom: 5,
+  },
+  drawerVersion: {
+    fontSize: 13,
+    color: "#888",
+    marginBottom: 15,
+  },
+  drawerTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#000",
+  },
+  menuList: {
+    paddingVertical: 10,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  menuText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#000",
+  },
+  menuArrow: {
+    fontSize: 24,
+    color: "#ccc",
+  },
+  permissionsContainer: {
+    flex: 1,
+    backgroundColor: "#f5f5f5",
+  },
+  permissionsHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+  },
+  permissionsTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#000",
+  },
+  permissionsClose: {
+    fontSize: 28,
+    color: "#666",
+    fontWeight: "700",
+  },
+  permissionsList: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  permissionsSubtitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#666",
+    marginTop: 20,
+    marginBottom: 16,
+  },
+  permissionItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    padding: 16,
+    marginBottom: 12,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  permissionInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  permissionIcon: {
+    fontSize: 32,
+    marginRight: 12,
+  },
+  permissionTextContainer: {
+    flex: 1,
+  },
+  permissionName: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#000",
+    marginBottom: 4,
+  },
+  permissionDesc: {
+    fontSize: 12,
+    color: "#666",
+    lineHeight: 16,
+  },
+  permissionToggle: {
+    marginLeft: 12,
+  },
+  openSettingsBtn: {
+    backgroundColor: "#2196f3",
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    marginTop: 20,
+    marginBottom: 16,
+  },
+  openSettingsBtnText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  permissionsNote: {
+    fontSize: 12,
+    color: "#888",
+    textAlign: "center",
+    marginTop: 12,
+    marginBottom: 12,
+    paddingHorizontal: 20,
+    lineHeight: 18,
+    fontWeight: "600",
+  },
+  permissionsInfo: {
+    fontSize: 12,
+    color: "#888",
+    textAlign: "center",
+    marginBottom: 20,
+    paddingHorizontal: 20,
+    lineHeight: 18,
+  },
+  userGuideContainer: {
+    flex: 1,
+    backgroundColor: "#f5f5f5",
+  },
+  userGuideHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+  },
+  userGuideTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#000",
+  },
+  userGuideClose: {
+    fontSize: 28,
+    color: "#666",
+    fontWeight: "700",
+  },
+  userGuideContent: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  guideSection: {
+    backgroundColor: "#fff",
+    padding: 16,
+    marginBottom: 12,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  guideSectionTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#2196f3",
+    marginBottom: 12,
+  },
+  guideSubtitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 8,
+  },
+  guideText: {
+    fontSize: 14,
+    color: "#555",
+    lineHeight: 20,
+  },
+  guideList: {
+    marginTop: 8,
+  },
+  guideListItem: {
+    fontSize: 14,
+    color: "#555",
+    marginBottom: 8,
+    lineHeight: 20,
+  },
+  guideListText: {
+    color: "#555",
+    lineHeight: 20,
+  },
+  guideSteps: {
+    marginTop: 8,
+  },
+  guideStep: {
+    fontSize: 14,
+    color: "#555",
+    marginBottom: 10,
+    lineHeight: 20,
+  },
   debugContainer: { flex: 1, backgroundColor: "#1a1a1a" },
   debugHeader: {
     flexDirection: "row",
@@ -516,47 +1191,98 @@ const styles = StyleSheet.create({
   logTime: { fontSize: 11, color: "#999", marginRight: 8, minWidth: 60 },
   logType: { fontSize: 11, fontWeight: "700", color: "#aaa", marginRight: 8, minWidth: 60 },
   logMessage: { fontSize: 12, color: "#ddd", flex: 1, flexWrap: "wrap" },
-  heroButton: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-    padding: 16,
-    borderRadius: 18,
-    backgroundColor: "#f2f6ff",
-    borderWidth: 1,
-    borderColor: "#dbe7ff",
+  sectionTitleContainer: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 12,
+    padding: 12,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: "#888",
   },
-  heroIcon: { width: 72, height: 72 },
-  heroTitle: { fontSize: 22, fontWeight: "800", color: "#0f172a" },
-  heroSubtitle: { marginTop: 4, fontSize: 16, fontWeight: "700", color: "#1d4ed8" },
-  grid: {
-    flex: 1,
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#2196f3",
+    textAlign: "center",
+  },
+  compassGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    alignItems: "flex-start",
+    paddingHorizontal: 16,
+    gap: 12,
     justifyContent: "space-between",
-    paddingTop: 8,
   },
-  tile: {
+  compassCard: {
+    width: "48%",
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 16,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    marginBottom: 12,
+  },
+  compassImageContainer: {
+    width: 120,
+    height: 120,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 18,
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#eef2ff",
-    shadowColor: "#0f172a",
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 12,
-    elevation: 3,
   },
-  tileLabel: {
+  compassDial: {
+    width: 120,
+    height: 120,
+  },
+  compassNeedle: {
+    width: 80,
+    height: 80,
+    position: "absolute",
+  },
+  compassLabel: {
     marginTop: 8,
-    textAlign: "center",
     fontSize: 14,
-    fontWeight: "600",
-    color: "#334155",
+    fontWeight: "700",
+    color: "#000",
+    textAlign: "center",
+  },
+  bottomButtons: {
+    flexDirection: "row",
+    paddingHorizontal: 16,
+    gap: 12,
+    marginTop: 8,
+  },
+  bottomBtn: {
+    flex: 1,
+    backgroundColor: "#fff",
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: "#888",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  bottomBtnText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#000",
+    textAlign: "center",
+  },
+  logoContainer: {
+    alignItems: "center",
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  logo: {
+    width: 150,
+    height: 60,
   },
   cameraContainer: { flex: 1, backgroundColor: "#000" },
   camera: { flex: 1 },
