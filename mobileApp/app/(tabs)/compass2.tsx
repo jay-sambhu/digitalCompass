@@ -40,7 +40,7 @@ function smoothAngle(prev: number, next: number, alpha: number) {
   return normalize360(prev + alpha * diff);
 }
 
-export default function CompassScreen() {
+export default function Compass2Screen() {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const isCompact = width < 360;
@@ -234,21 +234,21 @@ export default function CompassScreen() {
 
       </View>
 
-      {/* Compass display */}
+      {/* Compass display - Using compass2 assets */}
       <View style={styles.compassWrap}>
         {/* small pointer on top */}
         <Text style={styles.topPointer}>▼</Text>
 
-        {/* Dial */}
+        {/* Dial - compass2 version */}
         <Image
-          source={require("../../assets/compass/dial.png")}
+          source={require("../../assets/compass2/dial.png")}
           style={[styles.dial, { width: dialSize, height: dialSize }]}
           resizeMode="contain"
         />
 
-        {/* Needle (rotates) */}
+        {/* Needle (rotates) - compass2 version */}
         <Animated.Image
-          source={require("../../assets/compass/needle.png")}
+          source={require("../../assets/compass2/needle.png")}
           style={[
             styles.needle,
             { width: needleSize, height: needleSize, transform: [{ rotate: needleRotate }] },
@@ -307,7 +307,7 @@ export default function CompassScreen() {
 
       {/* Bottom nav mock */}
       <View style={[styles.bottomNav, { paddingBottom: 14 + insets.bottom }]}>
-        <Pressable style={styles.navItem} onPress={() => router.push("/(tabs)/index")}>
+        <Pressable style={styles.navItem} onPress={() => router.push("/")}>
           <Text style={styles.navIcon}>🏠</Text>
           <Text style={styles.navLabel}>Home Page</Text>
         </Pressable>

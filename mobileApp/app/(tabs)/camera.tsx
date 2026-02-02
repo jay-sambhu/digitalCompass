@@ -12,10 +12,16 @@ export default function CameraScreen() {
   const [mediaPerm, requestMediaPerm] = MediaLibrary.usePermissions();
 
   useEffect(() => {
-    if (!camPerm?.granted) requestCamPerm();
-    // optional: request gallery permission so you can save photos
-    if (!mediaPerm?.granted) requestMediaPerm();
-  }, []);
+    const requestPermissions = async () => {
+      if (camPerm && !camPerm.granted) {
+        await requestCamPerm();
+      }
+      if (mediaPerm && !mediaPerm.granted) {
+        await requestMediaPerm();
+      }
+    };
+    requestPermissions();
+  }, [camPerm?.granted, mediaPerm?.granted, requestCamPerm, requestMediaPerm]);
 
   const takePhoto = async () => {
     try {
