@@ -20,6 +20,7 @@ import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
 import * as MediaLibrary from "expo-media-library";
 import * as Sharing from "expo-sharing";
 import * as Location from "expo-location";
+import ViewShot from "react-native-view-shot";
 
 function headingFromMag({ x, y }: { x: number; y: number }) {
   let deg = (Math.atan2(y, x) * 180) / Math.PI;
@@ -48,12 +49,16 @@ export default function IndexScreen() {
   const [locationPerm, setLocationPerm] = useState<Location.LocationPermissionResponse | null>(null);
   const [showUserGuide, setShowUserGuide] = useState(false);
 
+  const [tempCameraPhoto, setTempCameraPhoto] = useState<string | null>(null);
+  const compositeRef = useRef<ViewShot>(null);
+
   const cameraRef = useRef<CameraView>(null);
   const [camPerm, requestCamPerm] = useCameraPermissions();
   const [mediaPerm, requestMediaPerm] = MediaLibrary.usePermissions();
 
   const prevHeadingRef = useRef(0);
   const rotateAnim = useRef(new Animated.Value(0)).current;
+  const tempRotateAnim = useRef(new Animated.Value(0)).current;
 
   // Capture console logs and errors (without error hook to avoid render errors)
   useEffect(() => {
@@ -163,16 +168,71 @@ export default function IndexScreen() {
 
   const takePhoto = async () => {
     try {
-      if (!cameraRef.current) return;
-      const photo = await cameraRef.current.takePictureAsync({
-        quality: 0.8,
-      });
-      if (photo && photo.uri) {
-        setCapturedPhoto(photo.uri);
-      } else {
-        Alert.alert("Camera error", "Failed to capture photo");
+      if (!cameraRef.current) {
+        Alert.alert("Camera error", "Camera not ready");
+        return;
       }
+
+      // Step 1: Take camera photo
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 1,
+        skipProcessing: false,
+      });
+
+      if (!photo || !photo.uri) {
+        Alert.alert("Camera error", "Failed to capture photo");
+        return;
+      }
+
+      console.log("Photo taken, URI:", photo.uri);
+
+      // Step 2: Set temp photo and wait for composite view to render
+      setTempCameraPhoto(photo.uri);
+      
+      // Step 3: Preload image and then capture composite view
+      Image.prefetch(photo.uri)
+        .then(() => {
+          // Image preloaded successfully, now capture
+          setTimeout(async () => {
+            try {
+              if (compositeRef.current && compositeRef.current.capture) {
+                const compositeUri = await compositeRef.current.capture?.();
+                if (compositeUri) {
+                  console.log("Composite captured:", compositeUri);
+                  setCapturedPhoto(compositeUri);
+                } else {
+                  Alert.alert("Capture error", "Failed to capture - no URI returned");
+                }
+                setTempCameraPhoto(null);
+              } else {
+                Alert.alert("Capture error", "Composite ref not ready");
+                setTempCameraPhoto(null);
+              }
+            } catch (compErr: any) {
+              console.error("Composite capture error:", compErr);
+              Alert.alert("Capture error", compErr?.message || "Failed to create composite");
+              setTempCameraPhoto(null);
+            }
+          }, 500);
+        })
+        .catch((err) => {
+          console.error("Image prefetch failed:", err);
+          // Try capture anyway
+          setTimeout(async () => {
+            try {
+              if (compositeRef.current && compositeRef.current.capture) {
+                const compositeUri = await compositeRef.current.capture?.();
+                setCapturedPhoto(compositeUri);
+              }
+              setTempCameraPhoto(null);
+            } catch (e: any) {
+              console.error("Capture error:", e);
+              setTempCameraPhoto(null);
+            }
+          }, 500);
+        });
     } catch (e: any) {
+      console.error("Take photo error:", e);
       Alert.alert("Camera error", e?.message ?? "Failed to take photo");
     }
   };
@@ -184,21 +244,15 @@ export default function IndexScreen() {
         return;
       }
 
-      console.log("Starting photo save...");
-      console.log("Photo URI:", capturedPhoto);
-      
-      // Try to save directly - in Expo Go, media library has limited support
-      // In a development build, this would work with proper permissions
       try {
         const asset = await MediaLibrary.createAssetAsync(capturedPhoto);
         console.log("Asset created:", asset);
-        
+
         Alert.alert("Saved!", "Photo saved to gallery successfully!");
         setCameraOpen(false);
         setCapturedPhoto(null);
       } catch (mediaError: any) {
         console.log("Media library error (expected in Expo Go):", mediaError.message);
-        // In Expo Go, we can still proceed - the file is saved to cache
         Alert.alert("Info", "Photo captured! (Full save requires development build)");
         setCameraOpen(false);
         setCapturedPhoto(null);
@@ -456,47 +510,6 @@ export default function IndexScreen() {
           ) : capturedPhoto ? (
             <View style={styles.previewContainer}>
               <Image source={{ uri: capturedPhoto }} style={styles.preview} />
-              <View style={styles.fullScreenOverlay}>
-                <View style={styles.compassOverlay}>
-                  <Image
-                    source={activeCompass === 1 ? require("../../assets/compass2/dial.png") : require("../../assets/compass/dial.png")}
-                    style={{ width: overlayDialSize, height: overlayDialSize }}
-                    resizeMode="contain"
-                  />
-                  <Animated.Image
-                    source={activeCompass === 1 ? require("../../assets/compass2/needle.png") : require("../../assets/compass/needle.png")}
-                    style={[
-                      styles.overlayNeedle,
-                      {
-                        width: overlayNeedleSize,
-                        height: overlayNeedleSize,
-                        transform: [{ rotate: needleRotate }],
-                      },
-                    ]}
-                    resizeMode="contain"
-                  />
-                  <View style={styles.headingBadge}>
-                    <Text style={styles.headingBadgeText}>{headingText}</Text>
-                  </View>
-                </View>
-                <View style={styles.directionBreakdown}>
-                  <View style={styles.directionItem}>
-                    <Text style={styles.dirLabel}>N</Text>
-                    <Text style={styles.dirValue}>{cardinalDirs.north}°</Text>
-                  </View>
-                  <View style={styles.directionItem}>
-                    <Text style={styles.dirLabel}>E</Text>
-                    <Text style={styles.dirValue}>{cardinalDirs.east}°</Text>
-                  </View>
-                  <View style={styles.directionItem}>
-                    <Text style={styles.dirLabel}>S</Text>
-                    <Text style={styles.dirValue}>{cardinalDirs.south}°</Text>
-                  </View>
-                  <View style={styles.directionItem}>
-                    <Text style={styles.dirLabel}>W</Text>
-                    <Text style={styles.dirValue}>{cardinalDirs.west}°</Text>
-                  </View>
-                </View>          </View>
               <View style={styles.previewControls}>
                 <Pressable style={styles.camBtn} onPress={retakePhoto}>
                   <Text style={styles.camBtnText}>Retake</Text>
@@ -514,49 +527,50 @@ export default function IndexScreen() {
             </View>
           ) : (
             <>
-              <CameraView ref={cameraRef} style={styles.camera} facing={facing} />
-              <View style={styles.fullScreenOverlay}>
-                <View style={styles.compassOverlay}>
-                  <Image
-                    source={activeCompass === 1 ? require("../../assets/compass2/dial.png") : require("../../assets/compass/dial.png")}
-                    style={{ width: overlayDialSize, height: overlayDialSize }}
-                    resizeMode="contain"
-                  />
-                  <Animated.Image
-                    source={activeCompass === 1 ? require("../../assets/compass2/needle.png") : require("../../assets/compass/needle.png")}
-                    style={[
-                      styles.overlayNeedle,
-                      {
-                        width: overlayNeedleSize,
-                        height: overlayNeedleSize,
-                        transform: [{ rotate: needleRotate }],
-                      },
-                    ]}
-                    resizeMode="contain"
-                  />
-                  <View style={styles.headingBadge}>
-                    <Text style={styles.headingBadgeText}>{headingText}</Text>
+              <CameraView ref={cameraRef} style={styles.camera} facing={facing}>
+                <View style={styles.fullScreenOverlay}>
+                  <View style={styles.compassOverlay}>
+                    <Image
+                      source={activeCompass === 1 ? require("../../assets/compass2/dial.png") : require("../../assets/compass/dial.png")}
+                      style={{ width: overlayDialSize, height: overlayDialSize }}
+                      resizeMode="contain"
+                    />
+                    <Animated.Image
+                      source={activeCompass === 1 ? require("../../assets/compass2/needle.png") : require("../../assets/compass/needle.png")}
+                      style={[
+                        styles.overlayNeedle,
+                        {
+                          width: overlayNeedleSize,
+                          height: overlayNeedleSize,
+                          transform: [{ rotate: needleRotate }],
+                        },
+                      ]}
+                      resizeMode="contain"
+                    />
+                    <View style={styles.headingBadge}>
+                      <Text style={styles.headingBadgeText}>{headingText}</Text>
+                    </View>
+                  </View>
+                  <View style={styles.directionBreakdown}>
+                    <View style={styles.directionItem}>
+                      <Text style={styles.dirLabel}>N</Text>
+                      <Text style={styles.dirValue}>{cardinalDirs.north}°</Text>
+                    </View>
+                    <View style={styles.directionItem}>
+                      <Text style={styles.dirLabel}>E</Text>
+                      <Text style={styles.dirValue}>{cardinalDirs.east}°</Text>
+                    </View>
+                    <View style={styles.directionItem}>
+                      <Text style={styles.dirLabel}>S</Text>
+                      <Text style={styles.dirValue}>{cardinalDirs.south}°</Text>
+                    </View>
+                    <View style={styles.directionItem}>
+                      <Text style={styles.dirLabel}>W</Text>
+                      <Text style={styles.dirValue}>{cardinalDirs.west}°</Text>
+                    </View>
                   </View>
                 </View>
-                <View style={styles.directionBreakdown}>
-                  <View style={styles.directionItem}>
-                    <Text style={styles.dirLabel}>N</Text>
-                    <Text style={styles.dirValue}>{cardinalDirs.north}°</Text>
-                  </View>
-                  <View style={styles.directionItem}>
-                    <Text style={styles.dirLabel}>E</Text>
-                    <Text style={styles.dirValue}>{cardinalDirs.east}°</Text>
-                  </View>
-                  <View style={styles.directionItem}>
-                    <Text style={styles.dirLabel}>S</Text>
-                    <Text style={styles.dirValue}>{cardinalDirs.south}°</Text>
-                  </View>
-                  <View style={styles.directionItem}>
-                    <Text style={styles.dirLabel}>W</Text>
-                    <Text style={styles.dirValue}>{cardinalDirs.west}°</Text>
-                  </View>
-                </View>
-              </View>
+              </CameraView>
               <View style={styles.cameraControls}>
                 <Pressable style={styles.camBtn} onPress={closeCamera}>
                   <Text style={styles.camBtnText}>Close</Text>
@@ -875,6 +889,42 @@ export default function IndexScreen() {
           </ScrollView>
         </SafeAreaView>
       </Modal>
+
+      {/* Hidden composite view for capturing camera + overlay */}
+      {tempCameraPhoto && (
+        <View style={{ position: 'absolute', left: 0, top: 0, width, height, zIndex: -1, opacity: 0 }}>
+          <ViewShot ref={compositeRef} options={{ format: "jpg", quality: 0.9 }} style={{ width, height }}>
+            <View style={{ width, height, backgroundColor: '#000' }}>
+              <Image
+                source={{ uri: tempCameraPhoto }}
+                style={{ width: '100%', height: '100%' }}
+                resizeMode="cover"
+              />
+              <View style={[styles.fullScreenOverlay, { width, height }]}>
+                <View style={styles.compassOverlay}>
+                  <Image
+                    source={activeCompass === 1 ? require("../../assets/compass2/dial.png") : require("../../assets/compass/dial.png")}
+                    style={{ width: overlayDialSize, height: overlayDialSize }}
+                    resizeMode="contain"
+                  />
+                  <Animated.Image
+                    source={activeCompass === 1 ? require("../../assets/compass2/needle.png") : require("../../assets/compass/needle.png")}
+                    style={[
+                      styles.overlayNeedle,
+                      {
+                        width: overlayNeedleSize,
+                        height: overlayNeedleSize,
+                        transform: [{ rotate: needleRotate }],
+                      },
+                    ]}
+                    resizeMode="contain"
+                  />
+                </View>
+              </View>
+            </View>
+          </ViewShot>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
