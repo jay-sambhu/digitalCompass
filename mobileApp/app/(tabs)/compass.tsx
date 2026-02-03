@@ -17,7 +17,7 @@ import { Magnetometer } from "expo-sensors";
 import * as Location from "expo-location";
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
 import * as MediaLibrary from "expo-media-library";
-import { router } from "expo-router";
+import { Href, router } from "expo-router";
 
 
 
@@ -307,7 +307,7 @@ export default function CompassScreen() {
 
       {/* Bottom nav mock */}
       <View style={[styles.bottomNav, { paddingBottom: 14 + insets.bottom }]}>
-        <Pressable style={styles.navItem} onPress={() => router.push("/(tabs)/index")}>
+        <Pressable style={styles.navItem} onPress={() => router.push("/(tabs)" as Href)}>
           <Text style={styles.navIcon}>🏠</Text>
           <Text style={styles.navLabel}>Home Page</Text>
         </Pressable>
