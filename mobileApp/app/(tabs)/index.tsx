@@ -13,6 +13,7 @@ import {
   Share,
   Linking,
   Switch,
+  Platform,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Magnetometer } from "expo-sensors";
@@ -21,6 +22,7 @@ import * as MediaLibrary from "expo-media-library";
 import * as Sharing from "expo-sharing";
 import * as Location from "expo-location";
 import ViewShot from "react-native-view-shot";
+import Constants from "expo-constants";
 
 function headingFromMag({ x, y }: { x: number; y: number }) {
   let deg = (Math.atan2(y, x) * 180) / Math.PI;
@@ -54,7 +56,44 @@ export default function IndexScreen() {
 
   const cameraRef = useRef<CameraView>(null);
   const [camPerm, requestCamPerm] = useCameraPermissions();
-  const [mediaPerm, requestMediaPerm] = MediaLibrary.usePermissions();
+  const [mediaPerm, setMediaPerm] = useState<MediaLibrary.PermissionResponse | null>(null);
+  const isExpoGoAndroid = Platform.OS === "android" && Constants.appOwnership === "expo";
+
+  const requestMediaPerm = async () => {
+    if (isExpoGoAndroid) {
+      Alert.alert(
+        "Media permission",
+        "Expo Go on Android can't provide full media library access. Use a development build to enable saving."
+      );
+      const denied = {
+        status: "denied",
+        granted: false,
+        canAskAgain: false,
+        expires: "never",
+      } as MediaLibrary.PermissionResponse;
+      setMediaPerm(denied);
+      return denied;
+    }
+
+    try {
+      const result = await MediaLibrary.requestPermissionsAsync();
+      setMediaPerm(result);
+      return result;
+    } catch (e) {
+      return mediaPerm;
+    }
+  };
+
+  const refreshMediaPerm = async () => {
+    if (isExpoGoAndroid) return mediaPerm;
+    try {
+      const result = await MediaLibrary.getPermissionsAsync();
+      setMediaPerm(result);
+      return result;
+    } catch (e) {
+      return mediaPerm;
+    }
+  };
 
   const prevHeadingRef = useRef(0);
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -322,6 +361,7 @@ export default function IndexScreen() {
     // Refresh all permissions status
     const locPerm = await Location.getForegroundPermissionsAsync();
     setLocationPerm(locPerm);
+    await refreshMediaPerm();
     setShowPermissions(true);
   };
 
@@ -365,7 +405,7 @@ export default function IndexScreen() {
   const handleMediaLibraryPermission = async (value: boolean) => {
     if (value && !mediaPerm?.granted) {
       const result = await requestMediaPerm();
-      if (!result.granted) {
+      if (!result?.granted) {
         Alert.alert(
           "Permission Denied",
           "Media library permission was denied. Please enable it from device settings.",

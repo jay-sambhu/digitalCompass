@@ -1,16 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  Pressable,
-  Animated,
-  Modal,
-  Alert,
-  Linking,
-  SafeAreaView,
-  useWindowDimensions,
+import {View,Text,StyleSheet,Image,Pressable,Animated,Modal,Alert,Linking,SafeAreaView,useWindowDimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Magnetometer } from "expo-sensors";
