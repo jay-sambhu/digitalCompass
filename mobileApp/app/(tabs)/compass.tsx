@@ -19,6 +19,7 @@ import { Magnetometer } from "expo-sensors";
 import * as Location from "expo-location";
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
 import * as MediaLibrary from "expo-media-library";
+import * as FileSystem from "expo-file-system";
 import { Href, router } from "expo-router";
 
 
@@ -73,6 +74,7 @@ export default function CompassScreen() {
   const [facing, setFacing] = useState<CameraType>("back");
   const cameraRef = useRef<CameraView>(null);
   const [previewUri, setPreviewUri] = useState<string | null>(null);
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [camPerm, requestCamPerm] = useCameraPermissions();
   const [mediaPerm, requestMediaPerm] = MediaLibrary.usePermissions();
@@ -148,9 +150,8 @@ export default function CompassScreen() {
         return;
       }
 
-      setFacing(preferredFacing);
-      setPreviewUri(null);
-      setCameraOpen(true);
+      // Navigate to camera screen instead of modal
+      router.push("/(tabs)/camera");
     } catch (e: any) {
       Alert.alert("Camera error", e?.message ?? "Failed to open camera");
     }
@@ -205,9 +206,108 @@ export default function CompassScreen() {
       }
       const info = await MediaLibrary.getAssetInfoAsync(latest);
       const uri = info.localUri ?? latest.uri;
-      await Linking.openURL(uri);
+      setPreviewUri(uri);
+      setPreviewModalOpen(true);
     } catch (e: any) {
       Alert.alert("Gallery error", e?.message ?? "Failed to open last captured photo");
+    }
+  };
+
+  const savePreviewPhoto = async () => {
+    try {
+      if (!previewUri) {
+        Alert.alert("Error", "No photo to save");
+        return;
+      }
+
+      console.log("Starting save with URI:", previewUri);
+
+      // Try to save directly without requesting permission first
+      try {
+        console.log("Attempting to create asset from URI");
+        
+        // Create the asset - this saves to the gallery
+        const asset = await MediaLibrary.createAssetAsync(previewUri);
+        console.log("Asset created successfully:", asset.id);
+        
+        // Try to add to Camera album, but don't fail if it doesn't work
+        try {
+          const album = await MediaLibrary.getAlbumAsync("Camera");
+          if (album) {
+            await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
+            console.log("Asset added to Camera album");
+          } else {
+            await MediaLibrary.createAlbumAsync("Camera", asset, false);
+            console.log("Camera album created with asset");
+          }
+        } catch (albumErr: any) {
+          // If album operations fail, the asset is still saved to the gallery
+          console.warn("Album operation skipped:", albumErr?.message);
+        }
+
+        Alert.alert("✅ Saved", "Photo saved to your device gallery successfully!");
+      } catch (saveErr: any) {
+        // If save fails due to permissions, try requesting permission
+        console.error("Save photo error:", saveErr?.message);
+        
+        if (saveErr?.message?.includes("Permission") || saveErr?.message?.includes("permission")) {
+          console.log("Permission error detected, requesting permission");
+          try {
+            const permission = await requestMediaPerm();
+            if (permission?.granted) {
+              // Retry saving with permission granted
+              const asset = await MediaLibrary.createAssetAsync(previewUri);
+              console.log("Asset created successfully after permission:", asset.id);
+              
+              try {
+                const album = await MediaLibrary.getAlbumAsync("Camera");
+                if (album) {
+                  await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
+                } else {
+                  await MediaLibrary.createAlbumAsync("Camera", asset, false);
+                }
+              } catch (albumErr: any) {
+                console.warn("Album operation skipped:", albumErr?.message);
+              }
+              
+              Alert.alert("✅ Saved", "Photo saved to your device gallery successfully!");
+            } else {
+              Alert.alert("Permission Required", "Media library permission is required. Please enable it in app settings.", [
+                { text: "OK", onPress: () => {} },
+              ]);
+            }
+          } catch (permErr: any) {
+            console.error("Permission request error:", permErr?.message);
+            Alert.alert("Save Error", "Unable to save photo. Please check app permissions in settings.", [
+              { text: "Try Again", onPress: savePreviewPhoto },
+              { text: "Cancel", onPress: () => setPreviewUri(null) },
+            ]);
+          }
+        } else {
+          Alert.alert("Save Error", `Unable to save photo: ${saveErr?.message || "Unknown error"}`, [
+            { text: "Try Again", onPress: savePreviewPhoto },
+            { text: "Cancel", onPress: () => setPreviewUri(null) },
+          ]);
+        }
+      }
+    } catch (e: any) {
+      console.error("Outer error in savePreviewPhoto:", e?.message);
+      Alert.alert("Error", `An unexpected error occurred: ${e?.message || "Unknown error"}. Please try again.`);
+    }
+  };
+
+  const sharePreviewPhoto = async () => {
+    try {
+      if (!previewUri) {
+        Alert.alert("Error", "No photo to share");
+        return;
+      }
+      await Share.share({
+        url: previewUri,
+        message: "Check out this photo from Digital Compass",
+      });
+    } catch (e: any) {
+      Alert.alert("Share error", e?.message ?? "Failed to share photo");
     }
   };
 
@@ -226,7 +326,7 @@ export default function CompassScreen() {
   };
 
   const openUserGuide = () => {
-    router.push({ pathname: "/(tabs)", params: { openUserGuide: "1" } } as Href);
+    router.push({ pathname: "/", params: { openUserGuide: "1" } } as Href);
   };
 
   const takePhoto = async () => {
@@ -241,41 +341,6 @@ export default function CompassScreen() {
       setPreviewUri(photo.uri);
     } catch (e: any) {
       Alert.alert("Camera error", e?.message ?? "Failed to take photo");
-    }
-  };
-
-  const savePreviewPhoto = async () => {
-    try {
-      if (!previewUri) return;
-      let perm: boolean;
-      try {
-        perm = mediaPerm?.granted ?? (await requestMediaPerm()).granted;
-      } catch (err) {
-        Alert.alert(
-          "Media permission error",
-          "Media permission could not be requested. Please rebuild the app with updated Android permissions."
-        );
-        return;
-      }
-      if (!perm) {
-        Alert.alert("Permission required", "Media library permission is required to save photos.");
-        return;
-      }
-      await MediaLibrary.createAssetAsync(previewUri);
-      Alert.alert("Saved", "Photo saved to gallery.");
-      setPreviewUri(null);
-      setCameraOpen(false);
-    } catch (e: any) {
-      Alert.alert("Save error", e?.message ?? "Failed to save photo");
-    }
-  };
-
-  const sharePreviewPhoto = async () => {
-    try {
-      if (!previewUri) return;
-      await Share.share({ url: previewUri, message: "Shared from Digital Compass" });
-    } catch (e) {
-      // ignore
     }
   };
 
@@ -595,9 +660,177 @@ export default function CompassScreen() {
         </Pressable>
       </Modal>
 
+      {/* Preview Modal for Last Captured Photo */}
+      <Modal visible={previewModalOpen} animationType="fade" presentationStyle="fullScreen" onRequestClose={() => setPreviewModalOpen(false)}>
+        <SafeAreaView style={styles.previewContainer}>
+          {/* Top bar */}
+          <View style={[styles.topBar, { paddingHorizontal: 16, gap: 12, paddingVertical: 12, marginBottom: 8 }]}>
+            <Pressable onPress={() => setDrawerOpen(true)}>
+              <Text style={[styles.icon, { fontSize: 22 }]}>☰</Text>
+            </Pressable>
+            <View style={[styles.search, { height: 42, borderRadius: 8, paddingHorizontal: 14 }]}>
+              <Text style={[styles.searchText, { fontSize: 13 }]}>Search Location</Text>
+            </View>
+            <Pressable onPress={() => setPreviewModalOpen(false)}>
+              <Text style={[styles.icon, { fontSize: 22 }]}>←</Text>
+            </Pressable>
+          </View>
+
+          {/* Preview Image */}
+          {previewUri && <Image source={{ uri: previewUri }} style={styles.previewImage} />}
+
+          {/* Compass dial overlay on preview */}
+          <View
+            style={[
+              styles.cameraDialWrap,
+              {
+                transform: [
+                  { translateX: -overlayDialSize / 2 },
+                  { translateY: -overlayDialSize / 2 },
+                ],
+              },
+            ]}
+          >
+            <Image
+              source={require("../../assets/compass/dial.png")}
+              style={[styles.cameraDial, { width: overlayDialSize, height: overlayDialSize }]}
+              resizeMode="contain"
+            />
+            <Animated.Image
+              source={require("../../assets/compass/needle.png")}
+              style={[
+                styles.cameraNeedle,
+                {
+                  width: overlayNeedleSize,
+                  height: overlayNeedleSize,
+                  transform: [{ rotate: needleRotate }],
+                },
+              ]}
+              resizeMode="contain"
+            />
+          </View>
+
+          {/* Magnetic field and coordinates overlay */}
+          <View style={styles.cameraOverlay}>
+            <View style={styles.cameraOverlayRow}>
+              <Text style={styles.cameraOverlayLabel}>Degree:</Text>
+              <Text style={styles.cameraOverlayValue}>{Math.round(heading)}°</Text>
+            </View>
+            <View style={styles.cameraOverlayRow}>
+              <Text style={styles.cameraOverlayLabel}>Lat:</Text>
+              <Text style={styles.cameraOverlayValue}>{coords ? coords.lat.toFixed(6) : "—"}</Text>
+            </View>
+            <View style={styles.cameraOverlayRow}>
+              <Text style={styles.cameraOverlayLabel}>Lon:</Text>
+              <Text style={styles.cameraOverlayValue}>{coords ? coords.lon.toFixed(6) : "—"}</Text>
+            </View>
+            <View style={styles.cameraOverlayRow}>
+              <Text style={styles.cameraOverlayLabel}>Mag:</Text>
+              <Text style={styles.cameraOverlayValue}>{strength.toFixed(0)} µT</Text>
+            </View>
+          </View>
+
+          {/* Bottom Controls */}
+          <View style={styles.previewControls}>
+            <Pressable style={styles.previewBtn} onPress={() => setPreviewUri(null)}>
+              <Text style={styles.previewBtnText}>↶</Text>
+              <Text style={styles.previewBtnLabel}>Retake</Text>
+            </Pressable>
+
+            <Pressable style={styles.previewBtn} onPress={savePreviewPhoto}>
+              <Text style={styles.previewBtnText}>💾</Text>
+              <Text style={styles.previewBtnLabel}>Save</Text>
+            </Pressable>
+
+            <Pressable style={styles.previewBtn} onPress={sharePreviewPhoto}>
+              <Text style={styles.previewBtnText}>🔗</Text>
+              <Text style={styles.previewBtnLabel}>Share</Text>
+            </Pressable>
+          </View>
+
+          {/* Drawer Menu Modal */}
+          <Modal visible={drawerOpen} animationType="slide" transparent onRequestClose={() => setDrawerOpen(false)}>
+            <Pressable style={styles.drawerOverlay} onPress={() => setDrawerOpen(false)}>
+              <Pressable style={styles.drawerContainer} onPress={(e) => e.stopPropagation()}>
+                <ScrollView>
+                  <View style={styles.drawerHeader}>
+                    <Image source={require("../../assets/compass/icon.png")} style={styles.drawerLogo} resizeMode="contain" />
+                    <Text style={styles.drawerBrand}>sanskarvastu.com</Text>
+                    <Text style={styles.drawerVersion}>Version: 3.1.3</Text>
+                    <Text style={styles.drawerTitle}>Vastu Compass</Text>
+                  </View>
+
+                  <View style={styles.menuList}>
+                    <Pressable style={styles.menuItem}>
+                      <Text style={styles.menuIcon}>ℹ️</Text>
+                      <Text style={styles.menuText}>About AppliedVastu</Text>
+                      <Text style={styles.menuArrow}>›</Text>
+                    </Pressable>
+
+                    <Pressable style={styles.menuItem}>
+                      <Text style={styles.menuIcon}>💻</Text>
+                      <Text style={styles.menuText}>Access Vastu Software</Text>
+                      <Text style={styles.menuArrow}>›</Text>
+                    </Pressable>
+
+                    <Pressable style={styles.menuItem}>
+                      <Text style={styles.menuIcon}>📱</Text>
+                      <Text style={styles.menuText}>More Apps</Text>
+                      <Text style={styles.menuArrow}>›</Text>
+                    </Pressable>
+
+                    <Pressable style={styles.menuItem} onPress={shareApp}>
+                      <Text style={styles.menuIcon}>🔗</Text>
+                      <Text style={styles.menuText}>Share</Text>
+                      <Text style={styles.menuArrow}>›</Text>
+                    </Pressable>
+
+                    <Pressable style={styles.menuItem}>
+                      <Text style={styles.menuIcon}>✉️</Text>
+                      <Text style={styles.menuText}>Send Feedback</Text>
+                      <Text style={styles.menuArrow}>›</Text>
+                    </Pressable>
+
+                    <Pressable style={styles.menuItem}>
+                      <Text style={styles.menuIcon}>⭐</Text>
+                      <Text style={styles.menuText}>Review Us</Text>
+                      <Text style={styles.menuArrow}>›</Text>
+                    </Pressable>
+
+                    <Pressable style={styles.menuItem} onPress={openPermissionsManager}>
+                      <Text style={styles.menuIcon}>🔒</Text>
+                      <Text style={styles.menuText}>Manage Permissions</Text>
+                      <Text style={styles.menuArrow}>›</Text>
+                    </Pressable>
+
+                    <Pressable style={styles.menuItem} onPress={openUserGuide}>
+                      <Text style={styles.menuIcon}>❓</Text>
+                      <Text style={styles.menuText}>How to use Vastu Compass</Text>
+                      <Text style={styles.menuArrow}>›</Text>
+                    </Pressable>
+
+                    <Pressable style={styles.menuItem}>
+                      <Text style={styles.menuIcon}>🎓</Text>
+                      <Text style={styles.menuText}>Join AppliedVastu Course</Text>
+                      <Text style={styles.menuArrow}>›</Text>
+                    </Pressable>
+
+                    <Pressable style={styles.menuItem} onPress={() => setDrawerOpen(false)}>
+                      <Text style={styles.menuIcon}>←</Text>
+                      <Text style={styles.menuText}>Back</Text>
+                      <Text style={styles.menuArrow}></Text>
+                    </Pressable>
+                  </View>
+                </ScrollView>
+              </Pressable>
+            </Pressable>
+          </Modal>
+        </SafeAreaView>
+      </Modal>
+
       {/* Bottom nav mock */}
       <View style={[styles.bottomNav, { paddingBottom: 14 + insets.bottom }]}>
-        <Pressable style={styles.navItem} onPress={() => router.push("/(tabs)" as Href)}>
+        <Pressable style={styles.navItem} onPress={() => router.push("/")}>
           <Text style={styles.navIcon}>🏠</Text>
           <Text style={styles.navLabel}>Home Page</Text>
         </Pressable>
@@ -749,4 +982,10 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: "#ccc",
   },
+
+  previewContainer: { flex: 1, backgroundColor: "#000" },
+  previewControls: { flexDirection: "row", justifyContent: "space-around", alignItems: "center", padding: 16, backgroundColor: "#000", borderTopWidth: 1, borderTopColor: "#333" },
+  previewBtn: { alignItems: "center", paddingVertical: 12, paddingHorizontal: 20, backgroundColor: "#1f2937", borderRadius: 8 },
+  previewBtnText: { fontSize: 24, marginBottom: 6 },
+  previewBtnLabel: { fontSize: 12, fontWeight: "600", color: "#fff" },
 });

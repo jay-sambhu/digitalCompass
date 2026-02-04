@@ -19,6 +19,7 @@ import { Magnetometer } from "expo-sensors";
 import * as Location from "expo-location";
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
 import * as MediaLibrary from "expo-media-library";
+import * as FileSystem from "expo-file-system";
 import { Href, router } from "expo-router";
 
 
@@ -227,7 +228,7 @@ export default function Compass2Screen() {
   };
 
   const openUserGuide = () => {
-    router.push({ pathname: "/(tabs)", params: { openUserGuide: "1" } } as Href);
+    router.push({ pathname: "/", params: { openUserGuide: "1" } } as Href);
   };
 
   const takePhoto = async () => {
@@ -247,27 +248,84 @@ export default function Compass2Screen() {
 
   const savePreviewPhoto = async () => {
     try {
-      if (!previewUri) return;
-      let perm: boolean;
+      if (!previewUri) {
+        Alert.alert("Error", "No photo to save");
+        return;
+      }
+
+      console.log("Starting save with URI:", previewUri);
+
+      // Try to save directly without requesting permission first
       try {
-        perm = mediaPerm?.granted ?? (await requestMediaPerm()).granted;
-      } catch (err) {
-        Alert.alert(
-          "Media permission error",
-          "Media permission could not be requested. Please rebuild the app with updated Android permissions."
-        );
-        return;
+        console.log("Attempting to create asset from URI");
+        
+        // Create the asset - this saves to the gallery
+        const asset = await MediaLibrary.createAssetAsync(previewUri);
+        console.log("Asset created successfully:", asset.id);
+        
+        // Try to add to Camera album, but don't fail if it doesn't work
+        try {
+          const album = await MediaLibrary.getAlbumAsync("Camera");
+          if (album) {
+            await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
+            console.log("Asset added to Camera album");
+          } else {
+            await MediaLibrary.createAlbumAsync("Camera", asset, false);
+            console.log("Camera album created with asset");
+          }
+        } catch (albumErr: any) {
+          // If album operations fail, the asset is still saved to the gallery
+          console.warn("Album operation skipped:", albumErr?.message);
+        }
+
+        Alert.alert("✅ Saved", "Photo saved to your device gallery successfully!");
+      } catch (saveErr: any) {
+        // If save fails due to permissions, try requesting permission
+        console.error("Save photo error:", saveErr?.message);
+        
+        if (saveErr?.message?.includes("Permission") || saveErr?.message?.includes("permission")) {
+          console.log("Permission error detected, requesting permission");
+          try {
+            const permission = await requestMediaPerm();
+            if (permission?.granted) {
+              // Retry saving with permission granted
+              const asset = await MediaLibrary.createAssetAsync(previewUri);
+              console.log("Asset created successfully after permission:", asset.id);
+              
+              try {
+                const album = await MediaLibrary.getAlbumAsync("Camera");
+                if (album) {
+                  await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
+                } else {
+                  await MediaLibrary.createAlbumAsync("Camera", asset, false);
+                }
+              } catch (albumErr: any) {
+                console.warn("Album operation skipped:", albumErr?.message);
+              }
+              
+              Alert.alert("✅ Saved", "Photo saved to your device gallery successfully!");
+            } else {
+              Alert.alert("Permission Required", "Media library permission is required. Please enable it in app settings.", [
+                { text: "OK", onPress: () => {} },
+              ]);
+            }
+          } catch (permErr: any) {
+            console.error("Permission request error:", permErr?.message);
+            Alert.alert("Save Error", "Unable to save photo. Please check app permissions in settings.", [
+              { text: "Try Again", onPress: savePreviewPhoto },
+              { text: "Cancel", onPress: () => setPreviewUri(null) },
+            ]);
+          }
+        } else {
+          Alert.alert("Save Error", `Unable to save photo: ${saveErr?.message || "Unknown error"}`, [
+            { text: "Try Again", onPress: savePreviewPhoto },
+            { text: "Cancel", onPress: () => setPreviewUri(null) },
+          ]);
+        }
       }
-      if (!perm) {
-        Alert.alert("Permission required", "Media library permission is required to save photos.");
-        return;
-      }
-      await MediaLibrary.createAssetAsync(previewUri);
-      Alert.alert("Saved", "Photo saved to gallery.");
-      setPreviewUri(null);
-      setCameraOpen(false);
     } catch (e: any) {
-      Alert.alert("Save error", e?.message ?? "Failed to save photo");
+      console.error("Outer error in savePreviewPhoto:", e?.message);
+      Alert.alert("Error", `An unexpected error occurred: ${e?.message || "Unknown error"}. Please try again.`);
     }
   };
 
@@ -414,6 +472,10 @@ export default function Compass2Screen() {
                 />
               </View>
               <View style={styles.cameraOverlay}>
+                <View style={styles.cameraOverlayRow}>
+                  <Text style={styles.cameraOverlayLabel}>Degree:</Text>
+                  <Text style={styles.cameraOverlayValue}>{Math.round(heading)}°</Text>
+                </View>
                 <View style={styles.cameraOverlayRow}>
                   <Text style={styles.cameraOverlayLabel}>Lat:</Text>
                   <Text style={styles.cameraOverlayValue}>{coords ? coords.lat.toFixed(6) : "—"}</Text>
@@ -598,7 +660,7 @@ export default function Compass2Screen() {
 
       {/* Bottom nav mock */}
       <View style={[styles.bottomNav, { paddingBottom: 14 + insets.bottom }]}>
-        <Pressable style={styles.navItem} onPress={() => router.push("/(tabs)" as Href)}>
+        <Pressable style={styles.navItem} onPress={() => router.push("/")}>
           <Text style={styles.navIcon}>🏠</Text>
           <Text style={styles.navLabel}>Home Page</Text>
         </Pressable>
