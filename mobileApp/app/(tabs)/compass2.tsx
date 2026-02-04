@@ -11,13 +11,16 @@ import {
   Linking,
   SafeAreaView,
   useWindowDimensions,
+  ScrollView,
+  Share,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Magnetometer } from "expo-sensors";
 import * as Location from "expo-location";
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
 import * as MediaLibrary from "expo-media-library";
-import { router } from "expo-router";
+import { Href, router } from "expo-router";
+
 
 
 
@@ -41,11 +44,27 @@ function smoothAngle(prev: number, next: number, alpha: number) {
 }
 
 export default function Compass2Screen() {
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const isCompact = width < 360;
-  const dialSize = Math.min(width * 0.78, 320);
+  
+  // Calculate responsive dial size based on available space
+  const topBarHeight = 80; // Top bar + quick row
+  const bottomNavHeight = 80;
+  const availableHeight = height - insets.top - insets.bottom - topBarHeight - bottomNavHeight;
+  const availableWidth = width - 32; // 16px padding on each side
+  const maxDialSize = Math.min(availableWidth, availableHeight);
+  const dialSize = Math.max(200, Math.min(maxDialSize * 0.85, 380));
+  const dialWidth = dialSize;
+  const dialHeight = dialSize;
   const needleSize = Math.round(dialSize * 0.68);
+  const overlayDialSize = Math.min(width, height) * 0.65;
+  const overlayNeedleSize = Math.round(overlayDialSize * 0.68);
+  
+  // Responsive font sizes
+  const degreeFontSize = width < 360 ? 14 : width < 600 ? 16 : 18;
+  const quickBtnWidth = width < 360 ? 90 : width < 600 ? 100 : 110;
+  const infoBoxFontSize = width < 360 ? 12 : width < 600 ? 13 : 14;
 
   const [heading, setHeading] = useState(0);         // 0..360
   const [strength, setStrength] = useState(0);       // microTesla approx
@@ -54,6 +73,8 @@ export default function Compass2Screen() {
   const [cameraOpen, setCameraOpen] = useState(false);
   const [facing, setFacing] = useState<CameraType>("back");
   const cameraRef = useRef<CameraView>(null);
+  const [previewUri, setPreviewUri] = useState<string | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [camPerm, requestCamPerm] = useCameraPermissions();
   const [mediaPerm, requestMediaPerm] = MediaLibrary.usePermissions();
 
@@ -118,7 +139,7 @@ export default function Compass2Screen() {
     outputRange: ["0deg", "360deg"],
   });
 
-  const openCamera = async () => {
+  const openCamera = async (preferredFacing: CameraType = "back") => {
     try {
       const camGranted =
         camPerm?.granted ?? (await requestCamPerm()).granted;
@@ -128,10 +149,8 @@ export default function Compass2Screen() {
         return;
       }
 
-      if (!mediaPerm?.granted) {
-        await requestMediaPerm();
-      }
-
+      setFacing(preferredFacing);
+      setPreviewUri(null);
       setCameraOpen(true);
     } catch (e: any) {
       Alert.alert("Camera error", e?.message ?? "Failed to open camera");
@@ -152,7 +171,7 @@ export default function Compass2Screen() {
         setCoords(current);
       }
       const query = `${current.lat},${current.lon}`;
-      const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+      const url = `https://www.google.com/maps/@?api=1&map_action=map&center=${current.lat},${current.lon}&zoom=18&basemap=satellite`;
       await Linking.openURL(url);
     } catch (e: any) {
       Alert.alert("Maps error", e?.message ?? "Failed to open maps");
@@ -161,7 +180,16 @@ export default function Compass2Screen() {
 
   const openLastCaptured = async () => {
     try {
-      const perm = mediaPerm?.granted ?? (await requestMediaPerm()).granted;
+      let perm: boolean;
+      try {
+        perm = mediaPerm?.granted ?? (await requestMediaPerm()).granted;
+      } catch (err) {
+        Alert.alert(
+          "Media permission error",
+          "Media permission could not be requested. Please rebuild the app with updated Android permissions."
+        );
+        return;
+      }
       if (!perm) {
         Alert.alert("Permission required", "Media library permission is required.");
         return;
@@ -184,6 +212,24 @@ export default function Compass2Screen() {
     }
   };
 
+  const shareApp = async () => {
+    try {
+      await Share.share({
+        message: "Try Digital Compass: https://sanskarvastu.com",
+      });
+    } catch (e) {
+      // ignore
+    }
+  };
+
+  const openPermissionsManager = () => {
+    Linking.openSettings();
+  };
+
+  const openUserGuide = () => {
+    router.push({ pathname: "/(tabs)", params: { openUserGuide: "1" } } as Href);
+  };
+
   const takePhoto = async () => {
     try {
       if (!cameraRef.current) return;
@@ -193,71 +239,140 @@ export default function Compass2Screen() {
         skipProcessing: true,
       });
 
-      if (mediaPerm?.granted) {
-        await MediaLibrary.createAssetAsync(photo.uri);
-        Alert.alert("Saved", "Photo saved to gallery.");
-      } else {
-        Alert.alert("Captured", "Photo captured (not saved).");
-      }
-
-      setCameraOpen(false);
+      setPreviewUri(photo.uri);
     } catch (e: any) {
       Alert.alert("Camera error", e?.message ?? "Failed to take photo");
     }
   };
 
+  const savePreviewPhoto = async () => {
+    try {
+      if (!previewUri) return;
+      let perm: boolean;
+      try {
+        perm = mediaPerm?.granted ?? (await requestMediaPerm()).granted;
+      } catch (err) {
+        Alert.alert(
+          "Media permission error",
+          "Media permission could not be requested. Please rebuild the app with updated Android permissions."
+        );
+        return;
+      }
+      if (!perm) {
+        Alert.alert("Permission required", "Media library permission is required to save photos.");
+        return;
+      }
+      await MediaLibrary.createAssetAsync(previewUri);
+      Alert.alert("Saved", "Photo saved to gallery.");
+      setPreviewUri(null);
+      setCameraOpen(false);
+    } catch (e: any) {
+      Alert.alert("Save error", e?.message ?? "Failed to save photo");
+    }
+  };
+
+  const sharePreviewPhoto = async () => {
+    try {
+      if (!previewUri) return;
+      await Share.share({ url: previewUri, message: "Shared from Digital Compass" });
+    } catch (e) {
+      // ignore
+    }
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { paddingTop: Math.max(insets.top, 8) }]}>
       {/* Top bar (simple like screenshot) */}
-      <View style={styles.topBar}>
-        <Text style={styles.icon}>☰</Text>
-        <View style={styles.search}>
-          <Text style={styles.searchText}>Search Location</Text>
+      <View
+        style={[
+          styles.topBar,
+          {
+            paddingHorizontal: width < 360 ? 10 : 16,
+            gap: width < 360 ? 8 : 12,
+            paddingVertical: width < 360 ? 8 : 12,
+            marginBottom: width < 360 ? 6 : 8,
+          },
+        ]}
+      >
+        <Pressable onPress={() => setDrawerOpen(true)}>
+          <Text style={[styles.icon, { fontSize: width < 360 ? 18 : width < 600 ? 20 : 22 }]}>☰</Text>
+        </Pressable>
+        <View
+          style={[
+            styles.search,
+            {
+              height: width < 360 ? 36 : width < 600 ? 40 : 42,
+              borderRadius: 8,
+              paddingHorizontal: width < 360 ? 10 : 14,
+            },
+          ]}
+        >
+          <Text style={[styles.searchText, { fontSize: width < 360 ? 12 : 13 }]}>Search Location</Text>
         </View>
-        <Text style={styles.icon}>⋮</Text>
+        <Pressable onPress={() => router.back()}>
+          <Text style={[styles.icon, { fontSize: width < 360 ? 18 : width < 600 ? 20 : 22 }]}>←</Text>
+        </Pressable>
       </View>
 
       {/* Shortcut icons row */}
-      <View style={[styles.quickRow, isCompact && styles.quickRowCompact]}>
-        <Pressable style={styles.quickBtn} onPress={openMap}>
-          <Text style={styles.quickCircle}>📍</Text>
-          <Text style={styles.quickLabel}>Google map</Text>
+      <View
+        style={[
+          styles.quickRow,
+          isCompact && styles.quickRowCompact,
+          {
+            marginTop: width < 360 ? 8 : 12,
+            paddingHorizontal: width < 360 ? 8 : 12,
+            minHeight: width < 360 ? 60 : 70,
+          },
+        ]}
+      >
+        <Pressable style={[styles.quickBtn, { width: quickBtnWidth }]} onPress={openMap}>
+          <Text style={[styles.quickCircle, { fontSize: width < 360 ? 24 : 30 }]}>📍</Text>
+          <Text style={[styles.quickLabel, { fontSize: width < 360 ? 10 : 11 }]}>Google map</Text>
         </Pressable>
 
-        <Text style={styles.degreeTitle}>{headingText}</Text>
+        <Text style={[styles.degreeTitle, { fontSize: degreeFontSize }]}>{headingText}</Text>
 
-        <Pressable style={styles.quickBtn} onPress={openCamera}>
-          <Text style={styles.quickCircle}>📷</Text>
-          <Text style={styles.quickLabel}>Rear Camera</Text>
+        <Pressable style={[styles.quickBtn, { width: quickBtnWidth }]} onPress={() => openCamera("back")}>
+          <Text style={[styles.quickCircle, { fontSize: width < 360 ? 24 : 30 }]}>📷</Text>
+          <Text style={[styles.quickLabel, { fontSize: width < 360 ? 10 : 11 }]}>Rear Camera</Text>
         </Pressable>
-
-
       </View>
 
       {/* Compass display - Using compass2 assets */}
       <View style={styles.compassWrap}>
         {/* small pointer on top */}
-        <Text style={styles.topPointer}>▼</Text>
+        <Text style={[styles.topPointer, { fontSize: width < 360 ? 14 : 18 }]}>▼</Text>
 
         {/* Dial - compass2 version */}
         <Image
           source={require("../../assets/compass2/dial.png")}
-          style={[styles.dial, { width: dialSize, height: dialSize }]}
-          resizeMode="contain"
+          style={[styles.dial, { width: dialWidth, height: dialHeight, borderRadius: dialSize / 2 }]}
+          resizeMode="cover"
         />
+        
+        {/* Info below compass */}
+        <View style={[styles.infoRowBelow, { bottom: Math.max(120, height * 0.22) }]}>
+          <View style={styles.infoBoxBelow}>
+            <Text style={[styles.infoTitle, { fontSize: width < 360 ? 13 : width < 600 ? 14 : 16 }]}>Geo-Coordinate:</Text>
+            <Text style={[styles.infoValue, { fontSize: infoBoxFontSize }]}>
+              Latitude: {coords ? coords.lat.toFixed(6) : "—"}
+            </Text>
+            <Text style={[styles.infoValue, { fontSize: infoBoxFontSize }]}>
+              Longitude: {coords ? coords.lon.toFixed(6) : "—"}
+            </Text>
+          </View>
 
-        {/* Needle (rotates) - compass2 version */}
-        <Animated.Image
-          source={require("../../assets/compass2/needle.png")}
-          style={[
-            styles.needle,
-            { width: needleSize, height: needleSize, transform: [{ rotate: needleRotate }] },
-          ]}
-          resizeMode="contain"
-        />
+          <View style={styles.infoBoxBelow}>
+            <Text style={[styles.infoTitle, { fontSize: width < 360 ? 13 : width < 600 ? 14 : 16 }]}>Magnetic Field:</Text>
+            <Text style={[styles.infoValue, { fontSize: infoBoxFontSize }]}>
+              Strength: <Text style={styles.red}>{strength.toFixed(0)} µT</Text>
+            </Text>
+          </View>
+        </View>
       </View>
 
-      <Modal visible={cameraOpen} animationType="slide" onRequestClose={() => setCameraOpen(false)}>
+      <Modal visible={cameraOpen} animationType="slide" presentationStyle="fullScreen" onRequestClose={() => setCameraOpen(false)}>
         <View style={styles.cameraContainer}>
           {!camPerm?.granted ? (
             <View style={styles.cameraPermission}>
@@ -266,9 +381,113 @@ export default function Compass2Screen() {
                 <Text style={styles.camBtnText}>Grant Permission</Text>
               </Pressable>
             </View>
+          ) : previewUri ? (
+            <>
+              <Image source={{ uri: previewUri }} style={styles.previewImage} />
+              <View
+                style={[
+                  styles.cameraDialWrap,
+                  {
+                    transform: [
+                      { translateX: -overlayDialSize / 2 },
+                      { translateY: -overlayDialSize / 2 },
+                    ],
+                  },
+                ]}
+              >
+                <Image
+                  source={require("../../assets/compass2/dial.png")}
+                  style={[styles.cameraDial, { width: overlayDialSize, height: overlayDialSize }]}
+                  resizeMode="contain"
+                />
+                <Animated.Image
+                  source={require("../../assets/compass2/needle.png")}
+                  style={[
+                    styles.cameraNeedle,
+                    {
+                      width: overlayNeedleSize,
+                      height: overlayNeedleSize,
+                      transform: [{ rotate: needleRotate }],
+                    },
+                  ]}
+                  resizeMode="contain"
+                />
+              </View>
+              <View style={styles.cameraOverlay}>
+                <View style={styles.cameraOverlayRow}>
+                  <Text style={styles.cameraOverlayLabel}>Lat:</Text>
+                  <Text style={styles.cameraOverlayValue}>{coords ? coords.lat.toFixed(6) : "—"}</Text>
+                </View>
+                <View style={styles.cameraOverlayRow}>
+                  <Text style={styles.cameraOverlayLabel}>Lon:</Text>
+                  <Text style={styles.cameraOverlayValue}>{coords ? coords.lon.toFixed(6) : "—"}</Text>
+                </View>
+                <View style={styles.cameraOverlayRow}>
+                  <Text style={styles.cameraOverlayLabel}>Mag:</Text>
+                  <Text style={styles.cameraOverlayValue}>{strength.toFixed(0)} µT</Text>
+                </View>
+              </View>
+              <View style={styles.cameraControls}>
+                <Pressable style={styles.camBtn} onPress={() => setPreviewUri(null)}>
+                  <Text style={styles.camBtnText}>Retake</Text>
+                </Pressable>
+                <Pressable style={styles.camBtn} onPress={savePreviewPhoto}>
+                  <Text style={styles.camBtnText}>Save</Text>
+                </Pressable>
+                <Pressable style={styles.camBtn} onPress={sharePreviewPhoto}>
+                  <Text style={styles.camBtnText}>Share</Text>
+                </Pressable>
+                <Pressable style={styles.camBtn} onPress={openLastCaptured}>
+                  <Text style={styles.camBtnText}>Last Captured</Text>
+                </Pressable>
+              </View>
+            </>
           ) : (
             <>
               <CameraView ref={cameraRef} style={styles.camera} facing={facing} />
+              <View
+                style={[
+                  styles.cameraDialWrap,
+                  {
+                    transform: [
+                      { translateX: -overlayDialSize / 2 },
+                      { translateY: -overlayDialSize / 2 },
+                    ],
+                  },
+                ]}
+              >
+                <Image
+                  source={require("../../assets/compass2/dial.png")}
+                  style={[styles.cameraDial, { width: overlayDialSize, height: overlayDialSize }]}
+                  resizeMode="contain"
+                />
+                <Animated.Image
+                  source={require("../../assets/compass2/needle.png")}
+                  style={[
+                    styles.cameraNeedle,
+                    {
+                      width: overlayNeedleSize,
+                      height: overlayNeedleSize,
+                      transform: [{ rotate: needleRotate }],
+                    },
+                  ]}
+                  resizeMode="contain"
+                />
+              </View>
+              <View style={styles.cameraOverlay}>
+                <View style={styles.cameraOverlayRow}>
+                  <Text style={styles.cameraOverlayLabel}>Lat:</Text>
+                  <Text style={styles.cameraOverlayValue}>{coords ? coords.lat.toFixed(6) : "—"}</Text>
+                </View>
+                <View style={styles.cameraOverlayRow}>
+                  <Text style={styles.cameraOverlayLabel}>Lon:</Text>
+                  <Text style={styles.cameraOverlayValue}>{coords ? coords.lon.toFixed(6) : "—"}</Text>
+                </View>
+                <View style={styles.cameraOverlayRow}>
+                  <Text style={styles.cameraOverlayLabel}>Mag:</Text>
+                  <Text style={styles.cameraOverlayValue}>{strength.toFixed(0)} µT</Text>
+                </View>
+              </View>
               <View style={styles.cameraControls}>
                 <Pressable style={styles.camBtn} onPress={() => setCameraOpen(false)}>
                   <Text style={styles.camBtnText}>Close</Text>
@@ -282,37 +501,109 @@ export default function Compass2Screen() {
                 >
                   <Text style={styles.camBtnText}>Flip</Text>
                 </Pressable>
+                <Pressable style={styles.camBtn} onPress={openLastCaptured}>
+                  <Text style={styles.camBtnText}>Last Captured</Text>
+                </Pressable>
               </View>
             </>
           )}
         </View>
       </Modal>
 
-      {/* Bottom info */}
-      <View style={[styles.infoRow, isCompact && styles.infoRowCompact]}>
-        <View style={styles.infoBox}>
-          <Text style={styles.infoTitle}>Geo-Coordinate:</Text>
-          <Text style={styles.infoValue}>
-            {coords ? `${coords.lat.toFixed(6)}, ${coords.lon.toFixed(6)}` : "—"}
-          </Text>
-        </View>
+      <Modal
+        visible={drawerOpen}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setDrawerOpen(false)}
+      >
+        <Pressable style={styles.drawerOverlay} onPress={() => setDrawerOpen(false)}>
+          <Pressable style={styles.drawerContainer} onPress={(e) => e.stopPropagation()}>
+            <ScrollView>
+              <View style={styles.drawerHeader}>
+                <Image
+                  source={require("../../assets/compass/icon.png")}
+                  style={styles.drawerLogo}
+                  resizeMode="contain"
+                />
+                <Text style={styles.drawerBrand}>sanskarvastu.com</Text>
+                <Text style={styles.drawerVersion}>Version: 3.1.3</Text>
+                <Text style={styles.drawerTitle}>Vastu Compass</Text>
+              </View>
 
-        <View style={styles.infoBox}>
-          <Text style={styles.infoTitle}>Magnetic Field:</Text>
-          <Text style={styles.infoValue}>
-            Strength: <Text style={styles.red}>{strength.toFixed(0)} µT</Text>
-          </Text>
-        </View>
-      </View>
+              <View style={styles.menuList}>
+                <Pressable style={styles.menuItem}>
+                  <Text style={styles.menuIcon}>ℹ️</Text>
+                  <Text style={styles.menuText}>About AppliedVastu</Text>
+                  <Text style={styles.menuArrow}>›</Text>
+                </Pressable>
+
+                <Pressable style={styles.menuItem}>
+                  <Text style={styles.menuIcon}>💻</Text>
+                  <Text style={styles.menuText}>Access Vastu Software</Text>
+                  <Text style={styles.menuArrow}>›</Text>
+                </Pressable>
+
+                <Pressable style={styles.menuItem}>
+                  <Text style={styles.menuIcon}>📱</Text>
+                  <Text style={styles.menuText}>More Apps</Text>
+                  <Text style={styles.menuArrow}>›</Text>
+                </Pressable>
+
+                <Pressable style={styles.menuItem} onPress={shareApp}>
+                  <Text style={styles.menuIcon}>🔗</Text>
+                  <Text style={styles.menuText}>Share</Text>
+                  <Text style={styles.menuArrow}>›</Text>
+                </Pressable>
+
+                <Pressable style={styles.menuItem}>
+                  <Text style={styles.menuIcon}>✉️</Text>
+                  <Text style={styles.menuText}>Send Feedback</Text>
+                  <Text style={styles.menuArrow}>›</Text>
+                </Pressable>
+
+                <Pressable style={styles.menuItem}>
+                  <Text style={styles.menuIcon}>⭐</Text>
+                  <Text style={styles.menuText}>Review Us</Text>
+                  <Text style={styles.menuArrow}>›</Text>
+                </Pressable>
+
+                <Pressable style={styles.menuItem} onPress={openPermissionsManager}>
+                  <Text style={styles.menuIcon}>🔒</Text>
+                  <Text style={styles.menuText}>Manage Permissions</Text>
+                  <Text style={styles.menuArrow}>›</Text>
+                </Pressable>
+
+                <Pressable style={styles.menuItem} onPress={openUserGuide}>
+                  <Text style={styles.menuIcon}>❓</Text>
+                  <Text style={styles.menuText}>How to use Vastu Compass</Text>
+                  <Text style={styles.menuArrow}>›</Text>
+                </Pressable>
+
+                <Pressable style={styles.menuItem}>
+                  <Text style={styles.menuIcon}>🎓</Text>
+                  <Text style={styles.menuText}>Join AppliedVastu Course</Text>
+                  <Text style={styles.menuArrow}>›</Text>
+                </Pressable>
+
+                <Pressable style={styles.menuItem} onPress={() => setDrawerOpen(false)}>
+                  <Text style={styles.menuIcon}>←</Text>
+                  <Text style={styles.menuText}>Back</Text>
+                  <Text style={styles.menuArrow}></Text>
+                </Pressable>
+              </View>
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       {/* Bottom nav mock */}
       <View style={[styles.bottomNav, { paddingBottom: 14 + insets.bottom }]}>
-        <Pressable style={styles.navItem} onPress={() => router.push("/")}>
+        <Pressable style={styles.navItem} onPress={() => router.push("/(tabs)" as Href)}>
           <Text style={styles.navIcon}>🏠</Text>
           <Text style={styles.navLabel}>Home Page</Text>
         </Pressable>
 
-        <Pressable style={styles.captureBtn} onPress={openCamera}>
+        <Pressable style={styles.captureBtn} onPress={() => openCamera("back")}>
           <Text style={styles.captureIcon}>▣</Text>
         </Pressable>
 
@@ -327,31 +618,34 @@ export default function Compass2Screen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
-  topBar: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, gap: 12 },
+  topBar: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, gap: 12, zIndex: 1 },
   icon: { fontSize: 22 },
   search: { flex: 1, height: 42, borderRadius: 10, backgroundColor: "#e9e9e9", justifyContent: "center", paddingHorizontal: 14 },
   searchText: { color: "#888" },
 
-  quickRow: { marginTop: 18, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", rowGap: 12 },
+  quickRow: { marginTop: 12, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap", zIndex: 1, minHeight: 70 },
   quickRowCompact: { justifyContent: "space-around" },
-  quickBtn: { alignItems: "center", width: 110 },
+  quickBtn: { alignItems: "center" },
   quickCircle: { fontSize: 30 },
-  quickLabel: { marginTop: 6, fontWeight: "600" },
-  degreeTitle: { fontSize: 22, fontWeight: "800" },
+  quickLabel: { marginTop: 4, fontWeight: "600", fontSize: 11 },
+  degreeTitle: { fontWeight: "800" },
 
-  compassWrap: { marginTop: 10, alignItems: "center", justifyContent: "center" },
+  compassWrap: { ...StyleSheet.absoluteFillObject, alignItems: "center", justifyContent: "center", zIndex: 0 },
   topPointer: { fontSize: 18, color: "#1e90ff", marginBottom: 6 },
-  dial: { width: 320, height: 320 },
+  dial: { overflow: "hidden" },
   needle: { position: "absolute" },
+  
+  infoRowBelow: { position: "absolute", left: 16, right: 16, flexDirection: "row", justifyContent: "space-between", gap: 10 },
+  infoBoxBelow: { flex: 1, backgroundColor: "transparent", padding: 0, borderRadius: 0 },
 
-  infoRow: { marginTop: 18, paddingHorizontal: 16, flexDirection: "row", justifyContent: "space-between", gap: 10 },
+  infoRow: { marginTop: 18, paddingHorizontal: 16, flexDirection: "row", justifyContent: "space-between", gap: 10, zIndex: 1 },
   infoRowCompact: { flexDirection: "column" },
   infoBox: { flex: 1 },
-  infoTitle: { fontSize: 16, fontWeight: "800" },
-  infoValue: { marginTop: 6, fontSize: 14, color: "#333" },
+  infoTitle: { fontWeight: "800" },
+  infoValue: { marginTop: 4, color: "#333" },
   red: { color: "red", fontWeight: "800" },
 
-  bottomNav: { marginTop: "auto", paddingVertical: 14, borderTopWidth: 1, borderColor: "#eee", flexDirection: "row", justifyContent: "space-around", alignItems: "center" },
+  bottomNav: { marginTop: "auto", paddingVertical: 14, borderTopWidth: 1, borderColor: "#eee", flexDirection: "row", justifyContent: "space-around", alignItems: "center", zIndex: 1 },
   navItem: { alignItems: "center", flex: 1 },
   navIcon: { fontSize: 22 },
   navLabel: { marginTop: 4, color: "#2b6cff", fontWeight: "700" },
@@ -360,6 +654,28 @@ const styles = StyleSheet.create({
 
   cameraContainer: { flex: 1, backgroundColor: "#000" },
   camera: { flex: 1 },
+  previewImage: { flex: 1, resizeMode: "cover" },
+  cameraDialWrap: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cameraDial: { opacity: 0.95 },
+  cameraNeedle: { position: "absolute" },
+  cameraOverlay: {
+    position: "absolute",
+    top: 12,
+    left: 12,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+  },
+  cameraOverlayRow: { flexDirection: "row", gap: 6 },
+  cameraOverlayLabel: { color: "#fff", fontSize: 12, fontWeight: "700" },
+  cameraOverlayValue: { color: "#fff", fontSize: 12 },
   cameraControls: { flexDirection: "row", justifyContent: "space-around", alignItems: "center", padding: 16, backgroundColor: "#000" },
   camBtn: { paddingVertical: 10, paddingHorizontal: 16, backgroundColor: "#1f2937", borderRadius: 8 },
   camBtnText: { color: "#fff", fontWeight: "600" },
@@ -367,4 +683,71 @@ const styles = StyleSheet.create({
 
   cameraPermission: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12 },
   permissionText: { color: "#fff", fontSize: 16 },
+
+  drawerOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-start",
+  },
+  drawerContainer: {
+    width: "70%",
+    height: "100%",
+    backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOffset: { width: 2, height: 0 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  drawerHeader: {
+    alignItems: "center",
+    paddingVertical: 30,
+    paddingHorizontal: 20,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+  },
+  drawerLogo: {
+    width: 80,
+    height: 80,
+    marginBottom: 10,
+  },
+  drawerBrand: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#000",
+    marginBottom: 5,
+  },
+  drawerVersion: {
+    fontSize: 13,
+    color: "#888",
+    marginBottom: 15,
+  },
+  drawerTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#000",
+  },
+  menuList: {
+    paddingVertical: 10,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  menuIcon: { fontSize: 24, color: "#000", fontWeight: "600", marginRight: 12 },
+  menuText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#000",
+  },
+  menuArrow: {
+    fontSize: 24,
+    color: "#ccc",
+  },
 });

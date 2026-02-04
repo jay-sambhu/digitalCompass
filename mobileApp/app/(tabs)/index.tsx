@@ -23,6 +23,7 @@ import * as Sharing from "expo-sharing";
 import * as Location from "expo-location";
 import ViewShot from "react-native-view-shot";
 import Constants from "expo-constants";
+import { Href, router, useLocalSearchParams } from "expo-router";
 
 function headingFromMag({ x, y }: { x: number; y: number }) {
   let deg = (Math.atan2(y, x) * 180) / Math.PI;
@@ -38,6 +39,7 @@ function smoothAngle(prev: number, next: number, alpha: number) {
 export default function IndexScreen() {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  const { openDrawer, openUserGuide } = useLocalSearchParams<{ openDrawer?: string; openUserGuide?: string }>();
 
   const [heading, setHeading] = useState(0);
   const [cameraOpen, setCameraOpen] = useState(false);
@@ -151,6 +153,20 @@ export default function IndexScreen() {
     return () => sub.remove();
   }, [rotateAnim]);
 
+  useEffect(() => {
+    if (openDrawer === "1") {
+      setDrawerOpen(true);
+      router.setParams({ openDrawer: undefined });
+    }
+  }, [openDrawer]);
+
+  useEffect(() => {
+    if (openUserGuide === "1") {
+      setShowUserGuide(true);
+      router.setParams({ openUserGuide: undefined });
+    }
+  }, [openUserGuide]);
+
   const needleRotate = rotateAnim.interpolate({
     inputRange: [0, 360],
     outputRange: ["0deg", "360deg"],
@@ -158,14 +174,14 @@ export default function IndexScreen() {
 
   const gridGap = 12;
   const gridPadding = 16;
-  const topSectionHeight = 150;
+  const topSectionHeight = 100;
   const tileSize = useMemo(() => {
     const tileByWidth = (width - gridPadding * 2 - gridGap) / 2;
     const availableHeight =
       height - insets.top - insets.bottom - topSectionHeight - gridPadding;
     const tileByHeight = (availableHeight - gridGap) / 2;
     const rawSize = Math.min(tileByWidth, tileByHeight);
-    return Math.max(120, Math.floor(rawSize));
+    return Math.max(160, Math.floor(rawSize));
   }, [width, height, insets.top, insets.bottom]);
 
   const needleSize = Math.round(tileSize * 0.68);
@@ -173,7 +189,7 @@ export default function IndexScreen() {
 
   const overlayDialSize = useMemo(() => {
     const screenSize = Math.min(width, height);
-    return Math.min(screenSize * 0.75, 380);
+    return screenSize * 0.85;
   }, [width, height]);
 
   const overlayNeedleSize = Math.round(overlayDialSize * 0.68);
@@ -485,7 +501,13 @@ export default function IndexScreen() {
               <Pressable
                 key={label}
                 style={styles.compassCard}
-                onPress={() => index <= 1 ? openCompassCamera(index) : undefined}
+                onPress={() => {
+                  if (index === 0) {
+                    router.push("/(tabs)/compass" as Href);
+                  } else if (index === 1) {
+                    router.push("/(tabs)/compass2" as Href);
+                  }
+                }}
                 disabled={index > 1}
               >
                 <View style={styles.compassImageContainer}>
@@ -1322,6 +1344,8 @@ const styles = StyleSheet.create({
     height: 120,
     alignItems: "center",
     justifyContent: "center",
+    borderRadius: 60,
+    overflow: "hidden",
   },
   compassDial: {
     width: 120,
@@ -1389,6 +1413,8 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    borderRadius: 1000,
+    overflow: "hidden",
   },
   directionBreakdown: {
     flexDirection: "row",

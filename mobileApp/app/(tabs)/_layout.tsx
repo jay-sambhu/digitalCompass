@@ -16,12 +16,14 @@ export default function TabsLayout() {
         name="compass"
         options={{
           href: null,
+          headerShown: false,
         }}
       />
       <Tabs.Screen
         name="compass2"
         options={{
           href: null,
+          headerShown: false,
         }}
       />
       <Tabs.Screen
