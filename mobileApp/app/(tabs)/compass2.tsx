@@ -51,7 +51,7 @@ export default function Compass2Screen() {
   const isCompact = width < 360;
   
   // Calculate responsive dial size based on available space
-  const topBarHeight = 80; // Top bar + quick row
+  const topBarHeight = 0;
   const bottomNavHeight = 80;
   const availableHeight = height - insets.top - insets.bottom - topBarHeight - bottomNavHeight;
   const availableWidth = width - 32; // 16px padding on each side
@@ -470,38 +470,6 @@ export default function Compass2Screen() {
 
   return (
     <SafeAreaView style={[styles.container, { paddingTop: Math.max(insets.top, 8) }]}>
-      {/* Top bar (simple like screenshot) */}
-      <View
-        style={[
-          styles.topBar,
-          {
-            paddingHorizontal: width < 360 ? 10 : 16,
-            gap: width < 360 ? 8 : 12,
-            paddingVertical: width < 360 ? 8 : 12,
-            marginBottom: width < 360 ? 6 : 8,
-          },
-        ]}
-      >
-        <Pressable onPress={() => setDrawerOpen(true)}>
-          <Text style={[styles.icon, { fontSize: width < 360 ? 18 : width < 600 ? 20 : 22 }]}>☰</Text>
-        </Pressable>
-        <View
-          style={[
-            styles.search,
-            {
-              height: width < 360 ? 36 : width < 600 ? 40 : 42,
-              borderRadius: 8,
-              paddingHorizontal: width < 360 ? 10 : 14,
-            },
-          ]}
-        >
-          <Text style={[styles.searchText, { fontSize: width < 360 ? 12 : 13 }]}>Search Location</Text>
-        </View>
-        <Pressable onPress={() => router.back()}>
-          <Text style={[styles.icon, { fontSize: width < 360 ? 18 : width < 600 ? 20 : 22 }]}>←</Text>
-        </Pressable>
-      </View>
-
       {/* Shortcut icons row */}
       <View
         style={[
@@ -853,10 +821,6 @@ export default function Compass2Screen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
-  topBar: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, gap: 12, zIndex: 1 },
-  icon: { fontSize: 22 },
-  search: { flex: 1, height: 42, borderRadius: 10, backgroundColor: "#e9e9e9", justifyContent: "center", paddingHorizontal: 14 },
-  searchText: { color: "#888" },
 
   quickRow: { marginTop: 12, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap", zIndex: 1, minHeight: 70 },
   quickRowCompact: { justifyContent: "space-around" },
