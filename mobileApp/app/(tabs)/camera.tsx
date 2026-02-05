@@ -3,11 +3,12 @@ import { View, Text, StyleSheet, Pressable, Alert, Image, Animated, useWindowDim
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
 import * as MediaLibrary from "expo-media-library";
 import * as Location from "expo-location";
-import * as FileSystem from "expo-file-system";
 import { Magnetometer } from "expo-sensors";
 import { Href, router } from "expo-router";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import Constants from "expo-constants";
+import ViewShot from "react-native-view-shot";
+import * as Sharing from "expo-sharing";
 
 function normalize360(deg: number) {
   return (deg + 360) % 360;
@@ -22,6 +23,7 @@ function headingFromMag({ x, y }: { x: number; y: number }) {
 export default function CameraScreen() {
   const { width, height } = useWindowDimensions();
   const cameraRef = useRef<CameraView>(null);
+  const previewShotRef = useRef<ViewShot>(null);
   const [facing, setFacing] = useState<CameraType>("back");
 
   const [camPerm, requestCamPerm] = useCameraPermissions();
@@ -72,6 +74,18 @@ export default function CameraScreen() {
       setMediaPerm(denied);
       return denied;
     }
+  };
+
+  const capturePreviewWithOverlay = async () => {
+    if (previewShotRef.current?.capture) {
+      try {
+        const uri = await previewShotRef.current.capture?.();
+        if (uri) return uri;
+      } catch (e: any) {
+        console.warn("Preview capture failed, falling back to raw image:", e?.message);
+      }
+    }
+    return previewUri;
   };
 
   useEffect(() => {
@@ -135,6 +149,11 @@ export default function CameraScreen() {
         Alert.alert("Error", "No photo to save");
         return;
       }
+      const finalUri = await capturePreviewWithOverlay();
+      if (!finalUri) {
+        Alert.alert("Save Error", "Unable to capture the overlaid image. Please try again.");
+        return;
+      }
 
       console.log("Starting save with URI:", previewUri);
 
@@ -143,7 +162,7 @@ export default function CameraScreen() {
         console.log("Attempting to create asset from URI");
         
         // Create the asset - this saves to the gallery
-        const asset = await MediaLibrary.createAssetAsync(previewUri);
+        const asset = await MediaLibrary.createAssetAsync(finalUri);
         console.log("Asset created successfully:", asset.id);
         
         // Try to add to Camera album, but don't fail if it doesn't work
@@ -178,7 +197,7 @@ export default function CameraScreen() {
             const permission = await requestMediaPerm();
             if (permission?.granted) {
               // Retry saving with permission granted
-              const asset = await MediaLibrary.createAssetAsync(previewUri);
+              const asset = await MediaLibrary.createAssetAsync(finalUri);
               console.log("Asset created successfully after permission:", asset.id);
               
               // Skip album operations in Expo Go on Android
@@ -233,9 +252,19 @@ export default function CameraScreen() {
         Alert.alert("Error", "No photo to share");
         return;
       }
-      await Share.share({
-        url: previewUri,
-        message: "Check out this photo from Digital Compass",
+      const canShare = await Sharing.isAvailableAsync();
+      if (!canShare) {
+        Alert.alert("Share unavailable", "Sharing is not available on this device.");
+        return;
+      }
+      const finalUri = await capturePreviewWithOverlay();
+      if (!finalUri) {
+        Alert.alert("Share Error", "Unable to capture the overlaid image. Please try again.");
+        return;
+      }
+      await Sharing.shareAsync(finalUri, {
+        mimeType: "image/jpeg",
+        dialogTitle: "Share Compass Photo",
       });
     } catch (e: any) {
       Alert.alert("Share error", e?.message ?? "Failed to share photo");
@@ -331,58 +360,66 @@ export default function CameraScreen() {
   if (previewUri) {
     return (
       <View style={styles.container}>
-        <Image source={{ uri: previewUri }} style={styles.previewImage} />
-
-        {/* Compass dial overlay on preview */}
-        <View
-          style={[
-            styles.cameraDialWrap,
-            {
-              transform: [
-                { translateX: -dialSize / 2 },
-                { translateY: -dialSize / 2 },
-              ],
-            },
-          ]}
+        <ViewShot
+          ref={previewShotRef}
+          options={{ format: "jpg", quality: 0.9 }}
+          style={styles.previewShot}
         >
-          <Image
-            source={require("../../assets/compass/dial.png")}
-            style={[styles.cameraDial, { width: dialSize, height: dialSize }]}
-            resizeMode="contain"
-          />
-          <Animated.Image
-            source={require("../../assets/compass/needle.png")}
-            style={[
-              styles.cameraNeedle,
-              {
-                width: needleSize,
-                height: needleSize,
-                transform: [{ rotate: needleRotate }],
-              },
-            ]}
-            resizeMode="contain"
-          />
-        </View>
+          <View style={styles.previewShotInner}>
+            <Image source={{ uri: previewUri }} style={styles.previewImage} />
 
-        {/* Magnetic field and coordinates overlay */}
-        <View style={styles.cameraOverlay}>
-          <View style={styles.cameraOverlayRow}>
-            <Text style={styles.cameraOverlayLabel}>Degree:</Text>
-            <Text style={styles.cameraOverlayValue}>{Math.round(heading)}°</Text>
+            {/* Compass dial overlay on preview */}
+            <View
+              style={[
+                styles.cameraDialWrap,
+                {
+                  transform: [
+                    { translateX: -dialSize / 2 },
+                    { translateY: -dialSize / 2 },
+                  ],
+                },
+              ]}
+            >
+              <Image
+                source={require("../../assets/compass/dial.png")}
+                style={[styles.cameraDial, { width: dialSize, height: dialSize }]}
+                resizeMode="contain"
+              />
+              <Animated.Image
+                source={require("../../assets/compass/needle.png")}
+                style={[
+                  styles.cameraNeedle,
+                  {
+                    width: needleSize,
+                    height: needleSize,
+                    transform: [{ rotate: needleRotate }],
+                  },
+                ]}
+                resizeMode="contain"
+              />
+            </View>
+
+            {/* Magnetic field and coordinates overlay */}
+            <View style={styles.cameraOverlay}>
+              <View style={styles.cameraOverlayRow}>
+                <Text style={styles.cameraOverlayLabel}>Degree:</Text>
+                <Text style={styles.cameraOverlayValue}>{Math.round(heading)}°</Text>
+              </View>
+              <View style={styles.cameraOverlayRow}>
+                <Text style={styles.cameraOverlayLabel}>Lat:</Text>
+                <Text style={styles.cameraOverlayValue}>{coords ? coords.lat.toFixed(6) : "—"}</Text>
+              </View>
+              <View style={styles.cameraOverlayRow}>
+                <Text style={styles.cameraOverlayLabel}>Lon:</Text>
+                <Text style={styles.cameraOverlayValue}>{coords ? coords.lon.toFixed(6) : "—"}</Text>
+              </View>
+              <View style={styles.cameraOverlayRow}>
+                <Text style={styles.cameraOverlayLabel}>Mag:</Text>
+                <Text style={styles.cameraOverlayValue}>{strength.toFixed(0)} µT</Text>
+              </View>
+            </View>
           </View>
-          <View style={styles.cameraOverlayRow}>
-            <Text style={styles.cameraOverlayLabel}>Lat:</Text>
-            <Text style={styles.cameraOverlayValue}>{coords ? coords.lat.toFixed(6) : "—"}</Text>
-          </View>
-          <View style={styles.cameraOverlayRow}>
-            <Text style={styles.cameraOverlayLabel}>Lon:</Text>
-            <Text style={styles.cameraOverlayValue}>{coords ? coords.lon.toFixed(6) : "—"}</Text>
-          </View>
-          <View style={styles.cameraOverlayRow}>
-            <Text style={styles.cameraOverlayLabel}>Mag:</Text>
-            <Text style={styles.cameraOverlayValue}>{strength.toFixed(0)} µT</Text>
-          </View>
-        </View>
+        </ViewShot>
 
         {/* Top bar for preview */}
         <View style={styles.topBar}>
@@ -784,6 +821,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   previewImage: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
+  },
+  previewShot: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
+  },
+  previewShotInner: {
     flex: 1,
     width: "100%",
     height: "100%",

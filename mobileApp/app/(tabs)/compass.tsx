@@ -11,7 +11,6 @@ import {
   Linking,
   useWindowDimensions,
   ScrollView,
-  Share,
   Platform,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -19,6 +18,7 @@ import { Magnetometer } from "expo-sensors";
 import * as Location from "expo-location";
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
 import * as MediaLibrary from "expo-media-library";
+import * as Sharing from "expo-sharing";
 import ViewShot from "react-native-view-shot";
 import { Href, router } from "expo-router";
 import Constants from "expo-constants";
@@ -364,26 +364,52 @@ export default function CompassScreen() {
   };
 
   const sharePreviewPhoto = async () => {
+    console.log("[COMPASS] 📤 Share Photo button clicked");
     try {
       if (!previewUri) {
+        console.log("[COMPASS] ❌ No photo to share");
         Alert.alert("Error", "No photo to share");
         return;
       }
-      await Share.share({
-        url: previewUri,
-        message: "Check out this photo from Digital Compass",
+
+      // Check if sharing is available
+      const isAvailable = await Sharing.isAvailableAsync();
+      if (!isAvailable) {
+        console.log("[COMPASS] ❌ Sharing not available on this device");
+        Alert.alert("Error", "Sharing is not available on this device");
+        return;
+      }
+
+      console.log("[COMPASS] 📸 Capturing preview with overlays for sharing...");
+      let shareUri = previewUri;
+
+      // Capture the preview with all overlays
+      try {
+        const capturedWithOverlays = await previewShotRef.current?.capture?.();
+        if (capturedWithOverlays) {
+          console.log("[COMPASS] ✅ Captured overlaid preview for sharing:", capturedWithOverlays);
+          shareUri = capturedWithOverlays;
+        }
+      } catch (captureErr: any) {
+        console.warn("[COMPASS] ⚠️ Could not capture overlays, sharing raw image:", captureErr?.message);
+      }
+
+      console.log("[COMPASS] 📤 Opening share dialog with image:", shareUri);
+      await Sharing.shareAsync(shareUri, {
+        mimeType: "image/jpeg",
+        dialogTitle: "Share Compass Photo",
       });
+      console.log("[COMPASS] ✅ Share completed successfully");
     } catch (e: any) {
-      Alert.alert("Share error", e?.message ?? "Failed to share photo");
+      console.error("[COMPASS] ❌ Share error:", e?.message);
+      Alert.alert("Share Error", e?.message ?? "Failed to share photo");
     }
   };
 
   const shareApp = async () => {
     console.log("[COMPASS] 📤 Share App button clicked");
     try {
-      await Share.share({
-        message: "Try Digital Compass: https://sanskarvastu.com",
-      });
+      await Sharing.shareAsync("Try Digital Compass: https://sanskarvastu.com");
       console.log("[COMPASS] ✅ Share dialog opened");
     } catch (e: any) {
       console.log("[COMPASS] ❌ Share cancelled or failed:", e?.message);
