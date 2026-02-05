@@ -55,6 +55,8 @@ export default function IndexScreen() {
 
   const [tempCameraPhoto, setTempCameraPhoto] = useState<string | null>(null);
   const compositeRef = useRef<ViewShot>(null);
+  const previewShotRef = useRef<ViewShot>(null);
+  const [isCompositePhoto, setIsCompositePhoto] = useState(false);
 
   const cameraRef = useRef<CameraView>(null);
   const [camPerm, requestCamPerm] = useCameraPermissions();
@@ -219,6 +221,7 @@ export default function IndexScreen() {
       }
       setActiveCompass(compassIndex);
       setCapturedPhoto(null);
+      setIsCompositePhoto(false);
       setCameraOpen(true);
     } catch (e: any) {
       Alert.alert("Camera error", e?.message ?? "Failed to open camera");
@@ -245,6 +248,16 @@ export default function IndexScreen() {
 
       console.log("Photo taken, URI:", photo.uri);
 
+      const finishCapture = (uri: string | null, composite: boolean) => {
+        if (uri) {
+          setCapturedPhoto(uri);
+          setIsCompositePhoto(composite);
+        } else {
+          Alert.alert("Capture error", "Failed to capture photo");
+        }
+        setTempCameraPhoto(null);
+      };
+
       // Step 2: Set temp photo and wait for composite view to render
       setTempCameraPhoto(photo.uri);
       
@@ -258,19 +271,18 @@ export default function IndexScreen() {
                 const compositeUri = await compositeRef.current.capture?.();
                 if (compositeUri) {
                   console.log("Composite captured:", compositeUri);
-                  setCapturedPhoto(compositeUri);
+                  finishCapture(compositeUri, true);
                 } else {
-                  Alert.alert("Capture error", "Failed to capture - no URI returned");
+                  console.warn("Composite capture returned no URI, falling back to raw photo");
+                  finishCapture(photo.uri, false);
                 }
-                setTempCameraPhoto(null);
               } else {
-                Alert.alert("Capture error", "Composite ref not ready");
-                setTempCameraPhoto(null);
+                console.warn("Composite ref not ready, falling back to raw photo");
+                finishCapture(photo.uri, false);
               }
             } catch (compErr: any) {
               console.error("Composite capture error:", compErr);
-              Alert.alert("Capture error", compErr?.message || "Failed to create composite");
-              setTempCameraPhoto(null);
+              finishCapture(photo.uri, false);
             }
           }, 500);
         })
@@ -281,12 +293,17 @@ export default function IndexScreen() {
             try {
               if (compositeRef.current && compositeRef.current.capture) {
                 const compositeUri = await compositeRef.current.capture?.();
-                setCapturedPhoto(compositeUri);
+                if (compositeUri) {
+                  finishCapture(compositeUri, true);
+                } else {
+                  finishCapture(photo.uri, false);
+                }
+              } else {
+                finishCapture(photo.uri, false);
               }
-              setTempCameraPhoto(null);
             } catch (e: any) {
               console.error("Capture error:", e);
-              setTempCameraPhoto(null);
+              finishCapture(photo.uri, false);
             }
           }, 500);
         });
@@ -296,6 +313,20 @@ export default function IndexScreen() {
     }
   };
 
+  const capturePreviewWithOverlay = async () => {
+    if (!capturedPhoto) return null;
+    if (isCompositePhoto) return capturedPhoto;
+    if (previewShotRef.current?.capture) {
+      try {
+        const uri = await previewShotRef.current.capture?.();
+        if (uri) return uri;
+      } catch (e: any) {
+        console.warn("Preview capture failed, falling back to raw photo:", e?.message);
+      }
+    }
+    return capturedPhoto;
+  };
+
   const savePhoto = async () => {
     try {
       if (!capturedPhoto) {
@@ -303,18 +334,26 @@ export default function IndexScreen() {
         return;
       }
 
+      const finalUri = await capturePreviewWithOverlay();
+      if (!finalUri) {
+        Alert.alert("Save error", "Unable to capture the overlaid image. Please try again.");
+        return;
+      }
+
       try {
-        const asset = await MediaLibrary.createAssetAsync(capturedPhoto);
+        const asset = await MediaLibrary.createAssetAsync(finalUri);
         console.log("Asset created:", asset);
 
         Alert.alert("Saved!", "Photo saved to gallery successfully!");
         setCameraOpen(false);
         setCapturedPhoto(null);
+        setIsCompositePhoto(false);
       } catch (mediaError: any) {
         console.log("Media library error (expected in Expo Go):", mediaError.message);
         Alert.alert("Info", "Photo captured! (Full save requires development build)");
         setCameraOpen(false);
         setCapturedPhoto(null);
+        setIsCompositePhoto(false);
       }
     } catch (e: any) {
       console.error("Save error:", e);
@@ -333,7 +372,12 @@ export default function IndexScreen() {
         Alert.alert("Share unavailable", "Sharing is not available on this device.");
         return;
       }
-      await Sharing.shareAsync(capturedPhoto, {
+      const finalUri = await capturePreviewWithOverlay();
+      if (!finalUri) {
+        Alert.alert("Share error", "Unable to capture the overlaid image. Please try again.");
+        return;
+      }
+      await Sharing.shareAsync(finalUri, {
         mimeType: "image/jpeg",
         dialogTitle: "Share Compass Photo",
       });
@@ -453,11 +497,13 @@ export default function IndexScreen() {
 
   const retakePhoto = () => {
     setCapturedPhoto(null);
+    setIsCompositePhoto(false);
   };
 
   const closeCamera = () => {
     setCameraOpen(false);
     setCapturedPhoto(null);
+    setIsCompositePhoto(false);
   };
 
   return (
@@ -575,7 +621,59 @@ export default function IndexScreen() {
             </View>
           ) : capturedPhoto ? (
             <View style={styles.previewContainer}>
-              <Image source={{ uri: capturedPhoto }} style={styles.preview} />
+              <ViewShot
+                ref={previewShotRef}
+                options={{ format: "jpg", quality: 0.9 }}
+                style={styles.previewShot}
+              >
+                <View style={styles.previewShotInner}>
+                  <Image source={{ uri: capturedPhoto }} style={styles.preview} />
+                  {!isCompositePhoto && (
+                    <View style={styles.fullScreenOverlay}>
+                      <View style={styles.compassOverlay}>
+                        <Image
+                          source={activeCompass === 1 ? require("../../assets/compass2/dial.png") : require("../../assets/compass/dial.png")}
+                          style={{ width: overlayDialSize, height: overlayDialSize }}
+                          resizeMode="contain"
+                        />
+                        <Animated.Image
+                          source={activeCompass === 1 ? require("../../assets/compass2/needle.png") : require("../../assets/compass/needle.png")}
+                          style={[
+                            styles.overlayNeedle,
+                            {
+                              width: overlayNeedleSize,
+                              height: overlayNeedleSize,
+                              transform: [{ rotate: needleRotate }],
+                            },
+                          ]}
+                          resizeMode="contain"
+                        />
+                        <View style={styles.headingBadge}>
+                          <Text style={styles.headingBadgeText}>{headingText}</Text>
+                        </View>
+                      </View>
+                      <View style={styles.directionBreakdown}>
+                        <View style={styles.directionItem}>
+                          <Text style={styles.dirLabel}>N</Text>
+                          <Text style={styles.dirValue}>{cardinalDirs.north}°</Text>
+                        </View>
+                        <View style={styles.directionItem}>
+                          <Text style={styles.dirLabel}>E</Text>
+                          <Text style={styles.dirValue}>{cardinalDirs.east}°</Text>
+                        </View>
+                        <View style={styles.directionItem}>
+                          <Text style={styles.dirLabel}>S</Text>
+                          <Text style={styles.dirValue}>{cardinalDirs.south}°</Text>
+                        </View>
+                        <View style={styles.directionItem}>
+                          <Text style={styles.dirLabel}>W</Text>
+                          <Text style={styles.dirValue}>{cardinalDirs.west}°</Text>
+                        </View>
+                      </View>
+                    </View>
+                  )}
+                </View>
+              </ViewShot>
               <View style={styles.previewControls}>
                 <Pressable style={styles.camBtn} onPress={retakePhoto}>
                   <Text style={styles.camBtnText}>Retake</Text>
@@ -985,6 +1083,27 @@ export default function IndexScreen() {
                     ]}
                     resizeMode="contain"
                   />
+                  <View style={styles.headingBadge}>
+                    <Text style={styles.headingBadgeText}>{headingText}</Text>
+                  </View>
+                </View>
+                <View style={styles.directionBreakdown}>
+                  <View style={styles.directionItem}>
+                    <Text style={styles.dirLabel}>N</Text>
+                    <Text style={styles.dirValue}>{cardinalDirs.north}°</Text>
+                  </View>
+                  <View style={styles.directionItem}>
+                    <Text style={styles.dirLabel}>E</Text>
+                    <Text style={styles.dirValue}>{cardinalDirs.east}°</Text>
+                  </View>
+                  <View style={styles.directionItem}>
+                    <Text style={styles.dirLabel}>S</Text>
+                    <Text style={styles.dirValue}>{cardinalDirs.south}°</Text>
+                  </View>
+                  <View style={styles.directionItem}>
+                    <Text style={styles.dirLabel}>W</Text>
+                    <Text style={styles.dirValue}>{cardinalDirs.west}°</Text>
+                  </View>
                 </View>
               </View>
             </View>
@@ -1485,6 +1604,8 @@ const styles = StyleSheet.create({
   },
   permissionText: { color: "#fff", fontSize: 16 },
   previewContainer: { flex: 1 },
+  previewShot: { flex: 1, width: "100%", height: "100%" },
+  previewShotInner: { flex: 1, width: "100%", height: "100%" },
   preview: { flex: 1, width: "100%" },
   previewControls: {
     flexDirection: "row",

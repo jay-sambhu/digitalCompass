@@ -421,20 +421,6 @@ export default function CameraScreen() {
           </View>
         </ViewShot>
 
-        {/* Top bar for preview */}
-        <View style={styles.topBar}>
-          <Pressable style={styles.topIconBtn} onPress={() => setDrawerOpen(true)}>
-            <MaterialIcons name="menu" size={28} color="#fff" />
-          </Pressable>
-          <Pressable style={styles.searchBtn} onPress={openMap}>
-            <MaterialIcons name="search" size={22} color="#fff" />
-            <Text style={styles.searchText}>Search location</Text>
-          </Pressable>
-          <Pressable style={styles.topIconBtn} onPress={() => router.back()}>
-            <MaterialIcons name="arrow-back" size={28} color="#fff" />
-          </Pressable>
-        </View>
-
         {/* Bottom preview controls */}
         <View style={styles.previewControls}>
           <Pressable style={styles.previewBtn} onPress={() => setPreviewUri(null)}>
@@ -532,22 +518,6 @@ export default function CameraScreen() {
   return (
     <View style={styles.container}>
       <CameraView ref={cameraRef} style={styles.camera} facing={facing} />
-
-      {/* Top bar: menu, search location, back */}
-      <View style={styles.topBar}>
-        <Pressable style={styles.topIconBtn} onPress={() => setDrawerOpen(true)}>
-          <MaterialIcons name="menu" size={28} color="#fff" />
-        </Pressable>
-
-        <Pressable style={styles.searchBtn} onPress={openMap}>
-          <MaterialIcons name="search" size={22} color="#fff" />
-          <Text style={styles.searchText}>Search location</Text>
-        </Pressable>
-
-        <Pressable style={styles.topIconBtn} onPress={() => router.back()}>
-          <MaterialIcons name="arrow-back" size={28} color="#fff" />
-        </Pressable>
-      </View>
 
       {/* Flip button - moved away from top bar */}
       <Pressable
@@ -702,39 +672,6 @@ export default function CameraScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#000" },
   camera: { flex: 1 },
-  
-  topBar: {
-    position: "absolute",
-    top: 20,
-    left: 20,
-    right: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    zIndex: 10,
-  },
-  topIconBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  searchBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  searchText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
-  },
   
   degreeDisplay: {
     position: "absolute",
