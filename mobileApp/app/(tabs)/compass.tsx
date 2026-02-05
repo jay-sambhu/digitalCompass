@@ -265,20 +265,29 @@ export default function CompassScreen() {
       console.log("[COMPASS] 📸 Photo URI to save:", previewUri);
 
       const addToCameraAlbumIfPossible = async (asset: MediaLibrary.Asset) => {
+        // Skip album operations in Expo Go on Android - not supported
+        if (isExpoGoAndroid) {
+          console.log("[COMPASS] ℹ️ Album operation skipped: Expo Go limitation");
+          return;
+        }
+        
         try {
           const granted = mediaPerm?.granted ?? (await requestMediaPerm()).granted;
           if (!granted) {
-            console.log("Album operation skipped: No media permission");
+            console.log("[COMPASS] ℹ️ Album operation skipped: No media permission");
             return;
           }
+          console.log("[COMPASS] 📁 Adding photo to Camera album...");
           const album = await MediaLibrary.getAlbumAsync("Camera");
           if (album) {
             await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
+            console.log("[COMPASS] ✅ Photo added to Camera album");
           } else {
             await MediaLibrary.createAlbumAsync("Camera", asset, false);
+            console.log("[COMPASS] ✅ Camera album created with photo");
           }
         } catch (albumErr: any) {
-          console.log("Album operation skipped:", albumErr?.message ?? "Unknown error");
+          console.log("[COMPASS] ⚠️ Album operation failed:", albumErr?.message ?? "Unknown error");
           // Silently ignore - asset is already saved to gallery
         }
       };
@@ -799,6 +808,24 @@ export default function CompassScreen() {
                 <Text style={styles.cameraOverlayValue}>{strength.toFixed(0)} µT</Text>
               </View>
             </View>
+            
+            {/* Top Center Degree Display */}
+            <View style={styles.degreeTopCenter}>
+              <Text style={styles.degreeTopText}>{Math.round(heading)}° Degree</Text>
+            </View>
+            
+            {/* Bottom Left - Geo Coordinates */}
+            <View style={styles.geoInfoBottom}>
+              <Text style={styles.geoLabel}>Geo-Coordinate:</Text>
+              <Text style={styles.geoValue}>Latitude: {coords ? coords.lat.toFixed(6) : "—"}</Text>
+              <Text style={styles.geoValue}>Longitude: {coords ? coords.lon.toFixed(6) : "—"}</Text>
+            </View>
+            
+            {/* Bottom Right - Magnetic Field */}
+            <View style={styles.magneticInfoBottom}>
+              <Text style={styles.magneticLabel}>Magnetic Field:</Text>
+              <Text style={styles.magneticValue}>Strength: {strength.toFixed(2)} µT</Text>
+            </View>
           </ViewShot>
 
           {/* Bottom Controls */}
@@ -980,6 +1007,69 @@ const styles = StyleSheet.create({
   cameraOverlayRow: { flexDirection: "row", gap: 6 },
   cameraOverlayLabel: { color: "#fff", fontSize: 12, fontWeight: "700" },
   cameraOverlayValue: { color: "#fff", fontSize: 12 },
+  
+  /* Top Center Degree */
+  degreeTopCenter: {
+    position: "absolute",
+    top: 30,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  degreeTopText: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: "#fff",
+    textShadowColor: "rgba(0, 0, 0, 0.8)",
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 4,
+  },
+  
+  /* Bottom Left - Geo Info */
+  geoInfoBottom: {
+    position: "absolute",
+    bottom: 40,
+    left: 20,
+    backgroundColor: "rgba(255, 80, 80, 0.85)",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+  },
+  geoLabel: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#fff",
+  },
+  geoValue: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#fff",
+    marginTop: 2,
+  },
+  
+  /* Bottom Right - Magnetic Field */
+  magneticInfoBottom: {
+    position: "absolute",
+    bottom: 40,
+    right: 20,
+    backgroundColor: "rgba(80, 80, 80, 0.85)",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+  },
+  magneticLabel: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#fff",
+  },
+  magneticValue: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#fff",
+    marginTop: 2,
+  },
+  
   cameraControls: { flexDirection: "row", justifyContent: "space-around", alignItems: "center", padding: 16, backgroundColor: "#000" },
   camBtn: { paddingVertical: 10, paddingHorizontal: 16, backgroundColor: "#1f2937", borderRadius: 8 },
   camBtnText: { color: "#fff", fontWeight: "600" },

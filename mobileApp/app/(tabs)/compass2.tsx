@@ -329,20 +329,29 @@ export default function Compass2Screen() {
       console.log("[COMPASS2] 📸 Photo URI to save:", previewUri);
 
       const addToCameraAlbumIfPossible = async (asset: MediaLibrary.Asset) => {
+        // Skip album operations in Expo Go on Android - not supported
+        if (isExpoGoAndroid) {
+          console.log("[COMPASS2] ℹ️ Album operation skipped: Expo Go limitation");
+          return;
+        }
+        
         try {
           const granted = mediaPerm?.granted ?? (await requestMediaPerm()).granted;
           if (!granted) {
-            console.log("Album operation skipped: No media permission");
+            console.log("[COMPASS2] ℹ️ Album operation skipped: No media permission");
             return;
           }
+          console.log("[COMPASS2] 📁 Adding photo to Camera album...");
           const album = await MediaLibrary.getAlbumAsync("Camera");
           if (album) {
             await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
+            console.log("[COMPASS2] ✅ Photo added to Camera album");
           } else {
             await MediaLibrary.createAlbumAsync("Camera", asset, false);
+            console.log("[COMPASS2] ✅ Camera album created with photo");
           }
         } catch (albumErr: any) {
-          console.log("Album operation skipped:", albumErr?.message ?? "Unknown error");
+          console.log("[COMPASS2] ⚠️ Album operation failed:", albumErr?.message ?? "Unknown error");
           // Silently ignore - asset is already saved to gallery
         }
       };

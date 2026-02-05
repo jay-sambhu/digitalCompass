@@ -147,18 +147,24 @@ export default function CameraScreen() {
         console.log("Asset created successfully:", asset.id);
         
         // Try to add to Camera album, but don't fail if it doesn't work
-        try {
-          const album = await MediaLibrary.getAlbumAsync("Camera");
-          if (album) {
-            await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
-            console.log("Asset added to Camera album");
-          } else {
-            await MediaLibrary.createAlbumAsync("Camera", asset, false);
-            console.log("Camera album created with asset");
+        // Skip album operations in Expo Go on Android - not supported
+        if (!isExpoGoAndroid) {
+          try {
+            console.log("[CAMERA] 📁 Adding photo to Camera album...");
+            const album = await MediaLibrary.getAlbumAsync("Camera");
+            if (album) {
+              await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
+              console.log("[CAMERA] ✅ Photo added to Camera album");
+            } else {
+              await MediaLibrary.createAlbumAsync("Camera", asset, false);
+              console.log("[CAMERA] ✅ Camera album created with photo");
+            }
+          } catch (albumErr: any) {
+            console.log("[CAMERA] ⚠️ Album operation failed:", albumErr?.message ?? "Unknown error");
+            // Silently ignore - asset is already saved to gallery
           }
-        } catch (albumErr: any) {
-          console.log("Album operation skipped:", albumErr?.message ?? "Unknown error");
-          // Silently ignore - asset is already saved to gallery
+        } else {
+          console.log("[CAMERA] ℹ️ Album operation skipped: Expo Go limitation");
         }
 
         Alert.alert("✅ Saved", "Photo saved to your device gallery successfully!");
@@ -175,16 +181,24 @@ export default function CameraScreen() {
               const asset = await MediaLibrary.createAssetAsync(previewUri);
               console.log("Asset created successfully after permission:", asset.id);
               
-              try {
-                const album = await MediaLibrary.getAlbumAsync("Camera");
-                if (album) {
-                  await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
-                } else {
-                  await MediaLibrary.createAlbumAsync("Camera", asset, false);
+              // Skip album operations in Expo Go on Android
+              if (!isExpoGoAndroid) {
+                try {
+                  console.log("[CAMERA] 📁 Adding photo to Camera album...");
+                  const album = await MediaLibrary.getAlbumAsync("Camera");
+                  if (album) {
+                    await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
+                    console.log("[CAMERA] ✅ Photo added to Camera album");
+                  } else {
+                    await MediaLibrary.createAlbumAsync("Camera", asset, false);
+                    console.log("[CAMERA] ✅ Camera album created with photo");
+                  }
+                } catch (albumErr: any) {
+                  console.log("[CAMERA] ⚠️ Album operation failed:", albumErr?.message ?? "Unknown error");
+                  // Silently ignore - asset is already saved to gallery
                 }
-              } catch (albumErr: any) {
-                console.log("Album operation skipped:", albumErr?.message ?? "Unknown error");
-                // Silently ignore - asset is already saved to gallery
+              } else {
+                console.log("[CAMERA] ℹ️ Album operation skipped: Expo Go limitation");
               }
               
               Alert.alert("✅ Saved", "Photo saved to your device gallery successfully!");
