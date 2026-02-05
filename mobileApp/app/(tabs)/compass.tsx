@@ -9,18 +9,19 @@ import {
   Modal,
   Alert,
   Linking,
-  SafeAreaView,
   useWindowDimensions,
   ScrollView,
   Share,
+  Platform,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Magnetometer } from "expo-sensors";
 import * as Location from "expo-location";
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
 import * as MediaLibrary from "expo-media-library";
-import * as FileSystem from "expo-file-system";
+import ViewShot from "react-native-view-shot";
 import { Href, router } from "expo-router";
+import Constants from "expo-constants";
 
 
 
@@ -73,16 +74,46 @@ export default function CompassScreen() {
   const [cameraOpen, setCameraOpen] = useState(false);
   const [facing, setFacing] = useState<CameraType>("back");
   const cameraRef = useRef<CameraView>(null);
+  const previewShotRef = useRef<ViewShot>(null);
   const [previewUri, setPreviewUri] = useState<string | null>(null);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [camPerm, requestCamPerm] = useCameraPermissions();
-  const [mediaPerm, requestMediaPerm] = MediaLibrary.usePermissions();
+  const [mediaPerm, setMediaPerm] = useState<MediaLibrary.PermissionResponse | null>(null);
+  const isExpoGoAndroid = Platform.OS === "android" && Constants.appOwnership === "expo";
 
   const prevHeadingRef = useRef(0);
 
   // Animated rotation (degrees)
   const rotateAnim = useRef(new Animated.Value(0)).current;
+  const requestMediaPerm = async () => {
+    if (isExpoGoAndroid) {
+      const denied = {
+        status: "denied",
+        granted: false,
+        canAskAgain: false,
+        expires: "never",
+      } as MediaLibrary.PermissionResponse;
+      setMediaPerm(denied);
+      return denied;
+    }
+
+    try {
+      const result = await MediaLibrary.requestPermissionsAsync();
+      setMediaPerm(result);
+      return result;
+    } catch (e: any) {
+      console.log("Media permission request failed:", e?.message ?? "Unknown error");
+      const denied = {
+        status: "denied",
+        granted: false,
+        canAskAgain: false,
+        expires: "never",
+      } as MediaLibrary.PermissionResponse;
+      setMediaPerm(denied);
+      return denied;
+    }
+  };
 
   useEffect(() => {
     let locSub: Location.LocationSubscription | null = null;
@@ -158,11 +189,14 @@ export default function CompassScreen() {
   };
 
   const openMap = async () => {
+    console.log("[COMPASS] 🗺️ Open Map button clicked");
     try {
       let current = coords;
       if (!current) {
+        console.log("[COMPASS] 📍 No location available, requesting permission");
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== "granted") {
+          console.log("[COMPASS] ❌ Location permission denied");
           Alert.alert("Permission required", "Location permission is required to open maps.");
           return;
         }
@@ -172,18 +206,22 @@ export default function CompassScreen() {
       }
       const query = `${current.lat},${current.lon}`;
       const url = `https://www.google.com/maps/@?api=1&map_action=map&center=${current.lat},${current.lon}&zoom=18&basemap=satellite`;
+      console.log("[COMPASS] 🗺️ Opening Google Maps:", url);
       await Linking.openURL(url);
+      console.log("[COMPASS] ✅ Maps opened successfully");
     } catch (e: any) {
       Alert.alert("Maps error", e?.message ?? "Failed to open maps");
     }
   };
 
   const openLastCaptured = async () => {
+    console.log("[COMPASS] 🖼️ View Last Photo button clicked");
     try {
       let perm: boolean;
       try {
         perm = mediaPerm?.granted ?? (await requestMediaPerm()).granted;
       } catch (err) {
+        console.error("[COMPASS] ❌ Media permission request failed");
         Alert.alert(
           "Media permission error",
           "Media permission could not be requested. Please rebuild the app with updated Android permissions."
@@ -191,9 +229,11 @@ export default function CompassScreen() {
         return;
       }
       if (!perm) {
+        console.log("[COMPASS] ❌ Media permission denied");
         Alert.alert("Permission required", "Media library permission is required.");
         return;
       }
+      console.log("[COMPASS] ✅ Media permission granted, fetching last photo");
       const assets = await MediaLibrary.getAssetsAsync({
         first: 1,
         sortBy: [MediaLibrary.SortBy.creationTime],
@@ -214,36 +254,63 @@ export default function CompassScreen() {
   };
 
   const savePreviewPhoto = async () => {
+    console.log("[COMPASS] 💾 Save Photo button clicked");
     try {
       if (!previewUri) {
+        console.log("[COMPASS] ❌ No photo URI available");
         Alert.alert("Error", "No photo to save");
         return;
       }
 
-      console.log("Starting save with URI:", previewUri);
+      console.log("[COMPASS] 📸 Photo URI to save:", previewUri);
+
+      const addToCameraAlbumIfPossible = async (asset: MediaLibrary.Asset) => {
+        try {
+          const granted = mediaPerm?.granted ?? (await requestMediaPerm()).granted;
+          if (!granted) {
+            console.log("Album operation skipped: No media permission");
+            return;
+          }
+          const album = await MediaLibrary.getAlbumAsync("Camera");
+          if (album) {
+            await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
+          } else {
+            await MediaLibrary.createAlbumAsync("Camera", asset, false);
+          }
+        } catch (albumErr: any) {
+          console.log("Album operation skipped:", albumErr?.message ?? "Unknown error");
+          // Silently ignore - asset is already saved to gallery
+        }
+      };
+
+      console.log("Starting save process...");
+      let finalImageUri = previewUri;
+
+      // Capture the preview with all overlays (dial + geo + magnetic field)
+      try {
+        console.log("[COMPASS] 📸 Attempting to capture preview with overlays...");
+        const capturedWithOverlays = await previewShotRef.current?.capture?.();
+        
+        if (capturedWithOverlays) {
+          console.log("[COMPASS] ✅ Captured overlaid preview:", capturedWithOverlays);
+          finalImageUri = capturedWithOverlays;
+        }
+      } catch (e: any) {
+        console.warn("[COMPASS] ⚠️ Could not capture overlaid preview:", e?.message, "Using raw image");
+      }
+
+      console.log("[COMPASS] 📁 Final image URI to save:", finalImageUri);
 
       // Try to save directly without requesting permission first
       try {
         console.log("Attempting to create asset from URI");
         
         // Create the asset - this saves to the gallery
-        const asset = await MediaLibrary.createAssetAsync(previewUri);
+        const asset = await MediaLibrary.createAssetAsync(finalImageUri);
         console.log("Asset created successfully:", asset.id);
         
         // Try to add to Camera album, but don't fail if it doesn't work
-        try {
-          const album = await MediaLibrary.getAlbumAsync("Camera");
-          if (album) {
-            await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
-            console.log("Asset added to Camera album");
-          } else {
-            await MediaLibrary.createAlbumAsync("Camera", asset, false);
-            console.log("Camera album created with asset");
-          }
-        } catch (albumErr: any) {
-          // If album operations fail, the asset is still saved to the gallery
-          console.warn("Album operation skipped:", albumErr?.message);
-        }
+        await addToCameraAlbumIfPossible(asset);
 
         Alert.alert("✅ Saved", "Photo saved to your device gallery successfully!");
       } catch (saveErr: any) {
@@ -256,19 +323,10 @@ export default function CompassScreen() {
             const permission = await requestMediaPerm();
             if (permission?.granted) {
               // Retry saving with permission granted
-              const asset = await MediaLibrary.createAssetAsync(previewUri);
+              const asset = await MediaLibrary.createAssetAsync(finalImageUri);
               console.log("Asset created successfully after permission:", asset.id);
               
-              try {
-                const album = await MediaLibrary.getAlbumAsync("Camera");
-                if (album) {
-                  await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
-                } else {
-                  await MediaLibrary.createAlbumAsync("Camera", asset, false);
-                }
-              } catch (albumErr: any) {
-                console.warn("Album operation skipped:", albumErr?.message);
-              }
+              await addToCameraAlbumIfPossible(asset);
               
               Alert.alert("✅ Saved", "Photo saved to your device gallery successfully!");
             } else {
@@ -312,34 +370,45 @@ export default function CompassScreen() {
   };
 
   const shareApp = async () => {
+    console.log("[COMPASS] 📤 Share App button clicked");
     try {
       await Share.share({
         message: "Try Digital Compass: https://sanskarvastu.com",
       });
-    } catch (e) {
-      // ignore
+      console.log("[COMPASS] ✅ Share dialog opened");
+    } catch (e: any) {
+      console.log("[COMPASS] ❌ Share cancelled or failed:", e?.message);
     }
   };
 
   const openPermissionsManager = () => {
+    console.log("[COMPASS] ⚙️ Open Settings button clicked");
     Linking.openSettings();
   };
 
   const openUserGuide = () => {
+    console.log("[COMPASS] 📖 Open User Guide button clicked");
     router.push({ pathname: "/", params: { openUserGuide: "1" } } as Href);
   };
 
   const takePhoto = async () => {
+    console.log("[COMPASS] 📷 Take Photo button clicked");
     try {
-      if (!cameraRef.current) return;
+      if (!cameraRef.current) {
+        console.log("[COMPASS] ❌ Camera ref not available");
+        return;
+      }
 
+      console.log("[COMPASS] 📸 Capturing photo...");
       const photo = await cameraRef.current.takePictureAsync({
         quality: 0.85,
         skipProcessing: true,
       });
 
+      console.log("[COMPASS] ✅ Photo captured:", photo.uri);
       setPreviewUri(photo.uri);
     } catch (e: any) {
+      console.error("[COMPASS] ❌ Camera error:", e?.message);
       Alert.alert("Camera error", e?.message ?? "Failed to take photo");
     }
   };
@@ -663,72 +732,74 @@ export default function CompassScreen() {
       {/* Preview Modal for Last Captured Photo */}
       <Modal visible={previewModalOpen} animationType="fade" presentationStyle="fullScreen" onRequestClose={() => setPreviewModalOpen(false)}>
         <SafeAreaView style={styles.previewContainer}>
-          {/* Top bar */}
-          <View style={[styles.topBar, { paddingHorizontal: 16, gap: 12, paddingVertical: 12, marginBottom: 8 }]}>
-            <Pressable onPress={() => setDrawerOpen(true)}>
-              <Text style={[styles.icon, { fontSize: 22 }]}>☰</Text>
-            </Pressable>
-            <View style={[styles.search, { height: 42, borderRadius: 8, paddingHorizontal: 14 }]}>
-              <Text style={[styles.searchText, { fontSize: 13 }]}>Search Location</Text>
+          <ViewShot ref={previewShotRef} style={styles.previewShot} options={{ format: "jpg", quality: 0.95 }}>
+            {/* Top bar */}
+            <View style={[styles.topBar, { paddingHorizontal: 16, gap: 12, paddingVertical: 12, marginBottom: 8 }]}>
+              <Pressable onPress={() => setDrawerOpen(true)}>
+                <Text style={[styles.icon, { fontSize: 22 }]}>☰</Text>
+              </Pressable>
+              <View style={[styles.search, { height: 42, borderRadius: 8, paddingHorizontal: 14 }]}>
+                <Text style={[styles.searchText, { fontSize: 13 }]}>Search Location</Text>
+              </View>
+              <Pressable onPress={() => setPreviewModalOpen(false)}>
+                <Text style={[styles.icon, { fontSize: 22 }]}>←</Text>
+              </Pressable>
             </View>
-            <Pressable onPress={() => setPreviewModalOpen(false)}>
-              <Text style={[styles.icon, { fontSize: 22 }]}>←</Text>
-            </Pressable>
-          </View>
 
-          {/* Preview Image */}
-          {previewUri && <Image source={{ uri: previewUri }} style={styles.previewImage} />}
+            {/* Preview Image */}
+            {previewUri && <Image source={{ uri: previewUri }} style={styles.previewImage} />}
 
-          {/* Compass dial overlay on preview */}
-          <View
-            style={[
-              styles.cameraDialWrap,
-              {
-                transform: [
-                  { translateX: -overlayDialSize / 2 },
-                  { translateY: -overlayDialSize / 2 },
-                ],
-              },
-            ]}
-          >
-            <Image
-              source={require("../../assets/compass/dial.png")}
-              style={[styles.cameraDial, { width: overlayDialSize, height: overlayDialSize }]}
-              resizeMode="contain"
-            />
-            <Animated.Image
-              source={require("../../assets/compass/needle.png")}
+            {/* Compass dial overlay on preview */}
+            <View
               style={[
-                styles.cameraNeedle,
+                styles.cameraDialWrap,
                 {
-                  width: overlayNeedleSize,
-                  height: overlayNeedleSize,
-                  transform: [{ rotate: needleRotate }],
+                  transform: [
+                    { translateX: -overlayDialSize / 2 },
+                    { translateY: -overlayDialSize / 2 },
+                  ],
                 },
               ]}
-              resizeMode="contain"
-            />
-          </View>
+            >
+              <Image
+                source={require("../../assets/compass/dial.png")}
+                style={[styles.cameraDial, { width: overlayDialSize, height: overlayDialSize }]}
+                resizeMode="contain"
+              />
+              <Animated.Image
+                source={require("../../assets/compass/needle.png")}
+                style={[
+                  styles.cameraNeedle,
+                  {
+                    width: overlayNeedleSize,
+                    height: overlayNeedleSize,
+                    transform: [{ rotate: needleRotate }],
+                  },
+                ]}
+                resizeMode="contain"
+              />
+            </View>
 
-          {/* Magnetic field and coordinates overlay */}
-          <View style={styles.cameraOverlay}>
-            <View style={styles.cameraOverlayRow}>
-              <Text style={styles.cameraOverlayLabel}>Degree:</Text>
-              <Text style={styles.cameraOverlayValue}>{Math.round(heading)}°</Text>
+            {/* Magnetic field and coordinates overlay */}
+            <View style={styles.cameraOverlay}>
+              <View style={styles.cameraOverlayRow}>
+                <Text style={styles.cameraOverlayLabel}>Degree:</Text>
+                <Text style={styles.cameraOverlayValue}>{Math.round(heading)}°</Text>
+              </View>
+              <View style={styles.cameraOverlayRow}>
+                <Text style={styles.cameraOverlayLabel}>Lat:</Text>
+                <Text style={styles.cameraOverlayValue}>{coords ? coords.lat.toFixed(6) : "—"}</Text>
+              </View>
+              <View style={styles.cameraOverlayRow}>
+                <Text style={styles.cameraOverlayLabel}>Lon:</Text>
+                <Text style={styles.cameraOverlayValue}>{coords ? coords.lon.toFixed(6) : "—"}</Text>
+              </View>
+              <View style={styles.cameraOverlayRow}>
+                <Text style={styles.cameraOverlayLabel}>Mag:</Text>
+                <Text style={styles.cameraOverlayValue}>{strength.toFixed(0)} µT</Text>
+              </View>
             </View>
-            <View style={styles.cameraOverlayRow}>
-              <Text style={styles.cameraOverlayLabel}>Lat:</Text>
-              <Text style={styles.cameraOverlayValue}>{coords ? coords.lat.toFixed(6) : "—"}</Text>
-            </View>
-            <View style={styles.cameraOverlayRow}>
-              <Text style={styles.cameraOverlayLabel}>Lon:</Text>
-              <Text style={styles.cameraOverlayValue}>{coords ? coords.lon.toFixed(6) : "—"}</Text>
-            </View>
-            <View style={styles.cameraOverlayRow}>
-              <Text style={styles.cameraOverlayLabel}>Mag:</Text>
-              <Text style={styles.cameraOverlayValue}>{strength.toFixed(0)} µT</Text>
-            </View>
-          </View>
+          </ViewShot>
 
           {/* Bottom Controls */}
           <View style={styles.previewControls}>
@@ -886,6 +957,7 @@ const styles = StyleSheet.create({
 
   cameraContainer: { flex: 1, backgroundColor: "#000" },
   camera: { flex: 1 },
+  previewShot: { flex: 1 },
   previewImage: { flex: 1, resizeMode: "cover" },
   cameraDialWrap: {
     position: "absolute",

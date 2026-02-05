@@ -63,10 +63,6 @@ export default function IndexScreen() {
 
   const requestMediaPerm = async () => {
     if (isExpoGoAndroid) {
-      Alert.alert(
-        "Media permission",
-        "Expo Go on Android can't provide full media library access. Use a development build to enable saving."
-      );
       const denied = {
         status: "denied",
         granted: false,
@@ -81,18 +77,25 @@ export default function IndexScreen() {
       const result = await MediaLibrary.requestPermissionsAsync();
       setMediaPerm(result);
       return result;
-    } catch (e) {
-      return mediaPerm;
+    } catch (e: any) {
+      console.log("Media permission request failed:", e?.message ?? "Unknown error");
+      const denied = {
+        status: "denied",
+        granted: false,
+        canAskAgain: false,
+        expires: "never",
+      } as MediaLibrary.PermissionResponse;
+      setMediaPerm(denied);
+      return denied;
     }
   };
 
   const refreshMediaPerm = async () => {
     if (isExpoGoAndroid) return mediaPerm;
     try {
-      const result = await MediaLibrary.getPermissionsAsync();
-      setMediaPerm(result);
-      return result;
-    } catch (e) {
+      return await requestMediaPerm();
+    } catch (e: any) {
+      console.log("Failed to refresh media permission:", e?.message ?? "Unknown error");
       return mediaPerm;
     }
   };
@@ -106,24 +109,25 @@ export default function IndexScreen() {
     const originalLog = console.log;
     const originalWarn = console.warn;
 
-    console.log = (...args: any[]) => {
-      originalLog(...args);
+    const pushDebugLog = (type: "LOG" | "WARN", args: any[]) => {
       try {
         const message = args.map((arg) => (typeof arg === "string" ? arg : JSON.stringify(arg))).join(" ");
-        setDebugLogs((prev) => [...prev.slice(-49), { type: "LOG", message, time: new Date().toLocaleTimeString() }]);
-      } catch (e) {
-        // Silently fail if state update causes issues
+        setTimeout(() => {
+          setDebugLogs((prev) => [...prev.slice(-49), { type, message, time: new Date().toLocaleTimeString() }]);
+        }, 0);
+      } catch {
+        // ignore
       }
+    };
+
+    console.log = (...args: any[]) => {
+      originalLog(...args);
+      pushDebugLog("LOG", args);
     };
 
     console.warn = (...args: any[]) => {
       originalWarn(...args);
-      try {
-        const message = args.map((arg) => (typeof arg === "string" ? arg : JSON.stringify(arg))).join(" ");
-        setDebugLogs((prev) => [...prev.slice(-49), { type: "WARN", message, time: new Date().toLocaleTimeString() }]);
-      } catch (e) {
-        // Silently fail if state update causes issues
-      }
+      pushDebugLog("WARN", args);
     };
 
     return () => {

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, StyleSheet, Pressable, Alert, Image, Animated, useWindowDimensions, Linking, Modal, ScrollView, Share } from "react-native";
+import { View, Text, StyleSheet, Pressable, Alert, Image, Animated, useWindowDimensions, Linking, Modal, ScrollView, Share, Platform } from "react-native";
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
 import * as MediaLibrary from "expo-media-library";
 import * as Location from "expo-location";
@@ -7,6 +7,7 @@ import * as FileSystem from "expo-file-system";
 import { Magnetometer } from "expo-sensors";
 import { Href, router } from "expo-router";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
+import Constants from "expo-constants";
 
 function normalize360(deg: number) {
   return (deg + 360) % 360;
@@ -24,7 +25,8 @@ export default function CameraScreen() {
   const [facing, setFacing] = useState<CameraType>("back");
 
   const [camPerm, requestCamPerm] = useCameraPermissions();
-  const [mediaPerm, requestMediaPerm] = MediaLibrary.usePermissions();
+  const [mediaPerm, setMediaPerm] = useState<MediaLibrary.PermissionResponse | null>(null);
+  const isExpoGoAndroid = Platform.OS === "android" && Constants.appOwnership === "expo";
   
   const [heading, setHeading] = useState(0);
   const [strength, setStrength] = useState(0);
@@ -43,17 +45,47 @@ export default function CameraScreen() {
     outputRange: ['0deg', '360deg'],
   });
 
+  const requestMediaPerm = async () => {
+    if (isExpoGoAndroid) {
+      const denied = {
+        status: "denied",
+        granted: false,
+        canAskAgain: false,
+        expires: "never",
+      } as MediaLibrary.PermissionResponse;
+      setMediaPerm(denied);
+      return denied;
+    }
+
+    try {
+      const result = await MediaLibrary.requestPermissionsAsync();
+      setMediaPerm(result);
+      return result;
+    } catch (e: any) {
+      console.log("Media permission request failed:", e?.message ?? "Unknown error");
+      const denied = {
+        status: "denied",
+        granted: false,
+        canAskAgain: false,
+        expires: "never",
+      } as MediaLibrary.PermissionResponse;
+      setMediaPerm(denied);
+      return denied;
+    }
+  };
+
   useEffect(() => {
     const requestPermissions = async () => {
-      if (camPerm && !camPerm.granted) {
-        await requestCamPerm();
-      }
-      if (mediaPerm && !mediaPerm.granted) {
-        await requestMediaPerm();
+      try {
+        if (camPerm && !camPerm.granted) {
+          await requestCamPerm();
+        }
+      } catch (e: any) {
+        console.log("Permission request skipped:", e?.message ?? "Unknown error");
       }
     };
     requestPermissions();
-  }, [camPerm?.granted, mediaPerm?.granted, requestCamPerm, requestMediaPerm]);
+  }, [camPerm?.granted, requestCamPerm]);
 
   // Location tracking
   useEffect(() => {
@@ -125,8 +157,8 @@ export default function CameraScreen() {
             console.log("Camera album created with asset");
           }
         } catch (albumErr: any) {
-          // If album operations fail, the asset is still saved to the gallery
-          console.warn("Album operation skipped:", albumErr?.message);
+          console.log("Album operation skipped:", albumErr?.message ?? "Unknown error");
+          // Silently ignore - asset is already saved to gallery
         }
 
         Alert.alert("✅ Saved", "Photo saved to your device gallery successfully!");
@@ -151,7 +183,8 @@ export default function CameraScreen() {
                   await MediaLibrary.createAlbumAsync("Camera", asset, false);
                 }
               } catch (albumErr: any) {
-                console.warn("Album operation skipped:", albumErr?.message);
+                console.log("Album operation skipped:", albumErr?.message ?? "Unknown error");
+                // Silently ignore - asset is already saved to gallery
               }
               
               Alert.alert("✅ Saved", "Photo saved to your device gallery successfully!");
@@ -216,16 +249,21 @@ export default function CameraScreen() {
         Alert.alert("Permission required", "Media library permission is required.");
         return;
       }
-      const album = await MediaLibrary.getAlbumAsync("Camera");
-      if (album) {
-        const assets = await MediaLibrary.getAssetsAsync({
-          album: album,
-          first: 1,
-          sortBy: [[MediaLibrary.SortBy.creationTime, false]],
-        });
-        if (assets.assets.length > 0) {
-          setPreviewUri(assets.assets[0].uri);
+      try {
+        const album = await MediaLibrary.getAlbumAsync("Camera");
+        if (album) {
+          const assets = await MediaLibrary.getAssetsAsync({
+            album: album,
+            first: 1,
+            sortBy: [[MediaLibrary.SortBy.creationTime, false]],
+          });
+          if (assets.assets.length > 0) {
+            setPreviewUri(assets.assets[0].uri);
+          }
         }
+      } catch (albumErr: any) {
+        console.log("Could not access media library:", albumErr?.message);
+        Alert.alert("Error", "Unable to access gallery. This feature requires a development build.");
       }
     } catch (e: any) {
       Alert.alert("Error", e?.message ?? "Failed to get last photo");
