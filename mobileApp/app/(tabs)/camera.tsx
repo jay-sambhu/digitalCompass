@@ -4,11 +4,12 @@ import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
 import * as MediaLibrary from "expo-media-library";
 import * as Location from "expo-location";
 import { Magnetometer } from "expo-sensors";
-import { Href, router } from "expo-router";
+import { Href, router, useLocalSearchParams } from "expo-router";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import Constants from "expo-constants";
 import ViewShot from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
+import { getCompassAssets } from "../../utils/compassAssets";
 
 function normalize360(deg: number) {
   return (deg + 360) % 360;
@@ -22,9 +23,11 @@ function headingFromMag({ x, y }: { x: number; y: number }) {
 
 export default function CameraScreen() {
   const { width, height } = useWindowDimensions();
+  const { type } = useLocalSearchParams<{ type?: string }>();
   const cameraRef = useRef<CameraView>(null);
   const previewShotRef = useRef<ViewShot>(null);
   const [facing, setFacing] = useState<CameraType>("back");
+  const assets = getCompassAssets(type);
 
   const [camPerm, requestCamPerm] = useCameraPermissions();
   const [mediaPerm, setMediaPerm] = useState<MediaLibrary.PermissionResponse | null>(null);
@@ -33,12 +36,15 @@ export default function CameraScreen() {
   const [heading, setHeading] = useState(0);
   const [strength, setStrength] = useState(0);
   const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
+  const [capturedHeading, setCapturedHeading] = useState<number | null>(null);
+  const [capturedStrength, setCapturedStrength] = useState<number | null>(null);
+  const [capturedCoords, setCapturedCoords] = useState<{ lat: number; lon: number } | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [previewUri, setPreviewUri] = useState<string | null>(null);
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const prevHeadingRef = useRef(0);
   
-  const dialSize = Math.min(width * 0.65, 320);
+  const dialSize = Math.max(200, Math.min(Math.min(width, height) * 0.92, 420));
   const needleSize = Math.round(dialSize * 0.68);
 
   // Create interpolated rotation string for animated value
@@ -275,6 +281,10 @@ export default function CameraScreen() {
     try {
       if (!cameraRef.current) return;
 
+      setCapturedHeading(heading);
+      setCapturedStrength(strength);
+      setCapturedCoords(coords ? { ...coords } : null);
+
       const photo = await cameraRef.current.takePictureAsync({
         quality: 0.85,
         skipProcessing: true,
@@ -358,6 +368,11 @@ export default function CameraScreen() {
 
   // Show preview screen if photo is captured
   if (previewUri) {
+    const previewHeading = capturedHeading ?? heading;
+    const previewStrength = capturedStrength ?? strength;
+    const previewCoords = capturedCoords ?? coords;
+    const previewNeedleRotate = `${-previewHeading}deg`;
+
     return (
       <View style={styles.container}>
         <ViewShot
@@ -381,18 +396,29 @@ export default function CameraScreen() {
               ]}
             >
               <Image
-                source={require("../../assets/compass/dial.png")}
-                style={[styles.cameraDial, { width: dialSize, height: dialSize }]}
+                source={assets.dial}
+                style={[
+                  styles.cameraDial,
+                  {
+                    width: dialSize,
+                    height: dialSize,
+                    transform: [
+                      { translateX: assets.dialOffset.x },
+                      { translateY: assets.dialOffset.y },
+                      { scale: assets.dialScale },
+                    ],
+                  },
+                ]}
                 resizeMode="contain"
               />
-              <Animated.Image
-                source={require("../../assets/compass/needle.png")}
+              <Image
+                source={assets.needle}
                 style={[
                   styles.cameraNeedle,
                   {
                     width: needleSize,
                     height: needleSize,
-                    transform: [{ rotate: needleRotate }],
+                    transform: [{ rotate: previewNeedleRotate }],
                   },
                 ]}
                 resizeMode="contain"
@@ -403,19 +429,19 @@ export default function CameraScreen() {
             <View style={styles.cameraOverlay}>
               <View style={styles.cameraOverlayRow}>
                 <Text style={styles.cameraOverlayLabel}>Degree:</Text>
-                <Text style={styles.cameraOverlayValue}>{Math.round(heading)}°</Text>
+                <Text style={styles.cameraOverlayValue}>{Math.round(previewHeading)}°</Text>
               </View>
               <View style={styles.cameraOverlayRow}>
                 <Text style={styles.cameraOverlayLabel}>Lat:</Text>
-                <Text style={styles.cameraOverlayValue}>{coords ? coords.lat.toFixed(6) : "—"}</Text>
+                <Text style={styles.cameraOverlayValue}>{previewCoords ? previewCoords.lat.toFixed(6) : "—"}</Text>
               </View>
               <View style={styles.cameraOverlayRow}>
                 <Text style={styles.cameraOverlayLabel}>Lon:</Text>
-                <Text style={styles.cameraOverlayValue}>{coords ? coords.lon.toFixed(6) : "—"}</Text>
+                <Text style={styles.cameraOverlayValue}>{previewCoords ? previewCoords.lon.toFixed(6) : "—"}</Text>
               </View>
               <View style={styles.cameraOverlayRow}>
                 <Text style={styles.cameraOverlayLabel}>Mag:</Text>
-                <Text style={styles.cameraOverlayValue}>{strength.toFixed(0)} µT</Text>
+                <Text style={styles.cameraOverlayValue}>{previewStrength.toFixed(0)} µT</Text>
               </View>
             </View>
           </View>
@@ -448,7 +474,7 @@ export default function CameraScreen() {
               <ScrollView>
                 <View style={styles.drawerHeader}>
                   <Image
-                    source={require("../../assets/compass/icon.png")}
+                    source={assets.icon}
                     style={styles.drawerLogo}
                     resizeMode="contain"
                   />
@@ -519,6 +545,24 @@ export default function CameraScreen() {
     <View style={styles.container}>
       <CameraView ref={cameraRef} style={styles.camera} facing={facing} />
 
+      {/* Top Header with Menu, Search, and Location */}
+      <View style={styles.topHeader}>
+        <Pressable onPress={() => setDrawerOpen(true)} style={styles.menuBtn}>
+          <Text style={styles.menuBtnIcon}>☰</Text>
+        </Pressable>
+        
+        <View style={styles.searchBar}>
+          <Text style={styles.searchIcon}>🔍</Text>
+          <Text style={styles.searchText}>
+            {coords ? `${coords.lat.toFixed(4)}, ${coords.lon.toFixed(4)}` : "Locating..."}
+          </Text>
+        </View>
+
+        <Pressable style={styles.locationBtn} onPress={openMap}>
+          <MaterialIcons name="location-on" size={24} color="#FF4444" />
+        </Pressable>
+      </View>
+
       {/* Flip button - moved away from top bar */}
       <Pressable
         style={styles.flipBtn}
@@ -527,24 +571,26 @@ export default function CameraScreen() {
         <MaterialCommunityIcons name="camera-flip" size={28} color="#fff" />
       </Pressable>
 
-      {/* Center - Degree display */}
-      <View style={styles.degreeDisplay}>
-        <Text style={styles.degreeText}>{Math.round(heading)}° Degree</Text>
-      </View>
-
       {/* Compass dial overlay */}
-      <View style={styles.compassContainer}>
+      <View style={[styles.compassContainer, { transform: [{ translateY: -dialSize / 2 }] }]}>
         <Animated.Image
-          source={require("../../assets/compass/dial.png")}
+          source={assets.dial}
           style={[
             styles.compassDial,
             { width: dialSize, height: dialSize },
-            { transform: [{ rotate: rotateAnim.interpolate({ inputRange: [0, 360], outputRange: ["0deg", "360deg"] }) }] },
+            {
+              transform: [
+                { translateX: assets.dialOffset.x },
+                { translateY: assets.dialOffset.y },
+                { scale: assets.dialScale },
+                { rotate: rotateAnim.interpolate({ inputRange: [0, 360], outputRange: ["0deg", "360deg"] }) },
+              ],
+            },
           ]}
           resizeMode="contain"
         />
         <Image
-          source={require("../../assets/compass/needle.png")}
+          source={assets.needle}
           style={[styles.compassNeedle, { width: needleSize, height: needleSize }]}
           resizeMode="contain"
         />
@@ -591,7 +637,7 @@ export default function CameraScreen() {
             <ScrollView>
               <View style={styles.drawerHeader}>
                 <Image
-                  source={require("../../assets/compass/icon.png")}
+                  source={assets.icon}
                   style={styles.drawerLogo}
                   resizeMode="contain"
                 />
@@ -673,24 +719,70 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#000" },
   camera: { flex: 1 },
   
-  degreeDisplay: {
+  topHeader: {
     position: "absolute",
-    top: 100,
-    alignSelf: "center",
-    zIndex: 5,
+    top: 0,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    zIndex: 10,
   },
-  degreeText: {
+  
+  menuBtn: {
+    padding: 8,
+  },
+  menuBtnIcon: {
+    fontSize: 28,
     color: "#fff",
-    fontSize: 24,
     fontWeight: "700",
-    textShadowColor: "rgba(0,0,0,0.8)",
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+  },
+  
+  searchBar: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
+  },
+  searchIcon: {
+    fontSize: 18,
+    marginRight: 8,
+  },
+  searchText: {
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  
+  locationBtn: {
+    padding: 8,
+  },
+  
+  flipBtn: {
+    position: "absolute",
+    top: 70,
+    right: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10,
   },
   
   compassContainer: {
     position: "absolute",
-    top: "30%",
+    top: "50%",
     alignSelf: "center",
     justifyContent: "center",
     alignItems: "center",
@@ -706,7 +798,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 120,
     left: 20,
-    backgroundColor: "rgba(0,0,0,0.6)",
+    backgroundColor: "transparent",
     padding: 10,
     borderRadius: 8,
   },
@@ -714,18 +806,18 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 120,
     right: 20,
-    backgroundColor: "rgba(0,0,0,0.6)",
+    backgroundColor: "transparent",
     padding: 10,
     borderRadius: 8,
   },
   infoTitle: {
-    color: "#FF4444",
+    color: "#000",
     fontSize: 14,
     fontWeight: "700",
     marginBottom: 4,
   },
   infoText: {
-    color: "#FF4444",
+    color: "#000",
     fontSize: 12,
     fontWeight: "600",
   },

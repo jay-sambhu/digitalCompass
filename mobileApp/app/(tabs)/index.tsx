@@ -24,6 +24,7 @@ import * as Location from "expo-location";
 import ViewShot from "react-native-view-shot";
 import Constants from "expo-constants";
 import { Href, router, useLocalSearchParams } from "expo-router";
+import { getCompassAssets } from "../../utils/compassAssets";
 
 function headingFromMag({ x, y }: { x: number; y: number }) {
   let deg = (Math.atan2(y, x) * 180) / Math.PI;
@@ -105,6 +106,8 @@ export default function IndexScreen() {
   const prevHeadingRef = useRef(0);
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const tempRotateAnim = useRef(new Animated.Value(0)).current;
+  const translateX = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(0)).current;
 
   // Capture console logs and errors (without error hook to avoid render errors)
   useEffect(() => {
@@ -193,12 +196,21 @@ export default function IndexScreen() {
   const needleSize = Math.round(tileSize * 0.68);
   const headingText = useMemo(() => `${Math.round(heading)}°`, [heading]);
 
+  // Detect if device has navigation bar (bottom inset > 0 indicates gesture nav or nav bar)
+  const hasNavigationBar = insets.bottom > 0;
+  const cameraViewHeightPercent = hasNavigationBar ? 0.9 : 1.0;
+
   const overlayDialSize = useMemo(() => {
     const screenSize = Math.min(width, height);
-    return screenSize * 0.85;
-  }, [width, height]);
+    const availableHeight = height * cameraViewHeightPercent;
+    const dial = Math.min(screenSize * 0.85, availableHeight * 0.8);
+    return dial;
+  }, [width, height, cameraViewHeightPercent]);
 
   const overlayNeedleSize = Math.round(overlayDialSize * 0.68);
+  
+  // Camera controls padding adjustment for navigation bar
+  const cameraControlsPaddingBottom = hasNavigationBar ? insets.bottom + 8 : 16;
 
   const getCardinalDirections = () => {
     const h = Math.round(heading);
@@ -538,44 +550,35 @@ export default function IndexScreen() {
 
         {/* Compass Grid */}
         <View style={styles.compassGrid}>
-          {["Normal Compass", "16 Zone Vastu\nCompass", "32 Zone Vastu\nCompass", "AppliedVastu\nCharka"].map((label, index) => {
-            // Determine which assets to use
-            const dialSource = index === 1 
-              ? require("../../assets/compass2/dial.png")
-              : require("../../assets/compass/dial.png");
-            const needleSource = index === 1
-              ? require("../../assets/compass2/needle.png")
-              : require("../../assets/compass/needle.png");
-            
+          {[
+            { label: "Normal Compass", route: "/(tabs)/compass" as Href, type: "normal" },
+            { label: "16 Zone Vastu\nCompass", route: "/(tabs)/compass2" as Href, type: "zone16" },
+            { label: "32 Zone Vastu\nCompass", route: "/(tabs)/compass3" as Href, type: "zone32" },
+            { label: "AppliedVastu\nCharka", route: "/(tabs)/compass4" as Href, type: "chakra" },
+          ].map((item) => {
+            const assets = getCompassAssets(item.type);
             return (
               <Pressable
-                key={label}
+                key={item.label}
                 style={styles.compassCard}
-                onPress={() => {
-                  if (index === 0) {
-                    router.push("/(tabs)/compass" as Href);
-                  } else if (index === 1) {
-                    router.push("/(tabs)/compass2" as Href);
-                  }
-                }}
-                disabled={index > 1}
+                onPress={() => router.push(item.route)}
               >
                 <View style={styles.compassImageContainer}>
                   <Image
-                    source={dialSource}
+                    source={assets.dial}
                     style={styles.compassDial}
                     resizeMode="contain"
                   />
                   <Animated.Image
-                    source={needleSource}
+                    source={assets.needle}
                     style={[
                       styles.compassNeedle,
-                      { transform: [{ rotate: needleRotate }] },
+                      { transform: [{ translateX }, { translateY }, { rotate: needleRotate }] },
                     ]}
                     resizeMode="contain"
                   />
                 </View>
-                <Text style={styles.compassLabel}>{label}</Text>
+                <Text style={styles.compassLabel}>{item.label}</Text>
               </Pressable>
             );
           })}
@@ -603,7 +606,7 @@ export default function IndexScreen() {
         {/* Logo */}
         <View style={styles.logoContainer}>
           <Image
-            source={require("../../assets/compass/icon.png")}
+            source={require("../../assets/normalCompass/icon.png")}
             style={styles.logo}
             resizeMode="contain"
           />
@@ -632,18 +635,18 @@ export default function IndexScreen() {
                     <View style={styles.fullScreenOverlay}>
                       <View style={styles.compassOverlay}>
                         <Image
-                          source={activeCompass === 1 ? require("../../assets/compass2/dial.png") : require("../../assets/compass/dial.png")}
+                          source={activeCompass === 1 ? require("../../assets/16ZoneVastuCompass/dial.png") : require("../../assets/normalCompass/dial.png")}
                           style={{ width: overlayDialSize, height: overlayDialSize }}
                           resizeMode="contain"
                         />
                         <Animated.Image
-                          source={activeCompass === 1 ? require("../../assets/compass2/needle.png") : require("../../assets/compass/needle.png")}
+                          source={activeCompass === 1 ? require("../../assets/16ZoneVastuCompass/needle.png") : require("../../assets/normalCompass/needle.png")}
                           style={[
                             styles.overlayNeedle,
                             {
                               width: overlayNeedleSize,
                               height: overlayNeedleSize,
-                              transform: [{ rotate: needleRotate }],
+                              transform: [{ translateX }, { translateY }, { rotate: needleRotate }],
                             },
                           ]}
                           resizeMode="contain"
@@ -652,7 +655,7 @@ export default function IndexScreen() {
                           <Text style={styles.headingBadgeText}>{headingText}</Text>
                         </View>
                       </View>
-                      <View style={styles.directionBreakdown}>
+                      <View style={[styles.directionBreakdown, { marginBottom: hasNavigationBar ? insets.bottom + 70 : 70 }]}>
                         <View style={styles.directionItem}>
                           <Text style={styles.dirLabel}>N</Text>
                           <Text style={styles.dirValue}>{cardinalDirs.north}°</Text>
@@ -674,7 +677,7 @@ export default function IndexScreen() {
                   )}
                 </View>
               </ViewShot>
-              <View style={styles.previewControls}>
+              <View style={[styles.previewControls, { paddingBottom: cameraControlsPaddingBottom }]}>
                 <Pressable style={styles.camBtn} onPress={retakePhoto}>
                   <Text style={styles.camBtnText}>Retake</Text>
                 </Pressable>
@@ -695,18 +698,18 @@ export default function IndexScreen() {
                 <View style={styles.fullScreenOverlay}>
                   <View style={styles.compassOverlay}>
                     <Image
-                      source={activeCompass === 1 ? require("../../assets/compass2/dial.png") : require("../../assets/compass/dial.png")}
+                      source={activeCompass === 1 ? require("../../assets/16ZoneVastuCompass/dial.png") : require("../../assets/normalCompass/dial.png")}
                       style={{ width: overlayDialSize, height: overlayDialSize }}
                       resizeMode="contain"
                     />
                     <Animated.Image
-                      source={activeCompass === 1 ? require("../../assets/compass2/needle.png") : require("../../assets/compass/needle.png")}
+                      source={activeCompass === 1 ? require("../../assets/16ZoneVastuCompass/needle.png") : require("../../assets/normalCompass/needle.png")}
                       style={[
                         styles.overlayNeedle,
                         {
                           width: overlayNeedleSize,
                           height: overlayNeedleSize,
-                          transform: [{ rotate: needleRotate }],
+                          transform: [{ translateX }, { translateY }, { rotate: needleRotate }],
                         },
                       ]}
                       resizeMode="contain"
@@ -715,7 +718,7 @@ export default function IndexScreen() {
                       <Text style={styles.headingBadgeText}>{headingText}</Text>
                     </View>
                   </View>
-                  <View style={styles.directionBreakdown}>
+                  <View style={[styles.directionBreakdown, { marginBottom: hasNavigationBar ? insets.bottom + 70 : 70 }]}>
                     <View style={styles.directionItem}>
                       <Text style={styles.dirLabel}>N</Text>
                       <Text style={styles.dirValue}>{cardinalDirs.north}°</Text>
@@ -735,7 +738,7 @@ export default function IndexScreen() {
                   </View>
                 </View>
               </CameraView>
-              <View style={styles.cameraControls}>
+              <View style={[styles.cameraControls, { paddingBottom: cameraControlsPaddingBottom }]}>
                 <Pressable style={styles.camBtn} onPress={closeCamera}>
                   <Text style={styles.camBtnText}>Close</Text>
                 </Pressable>
@@ -765,7 +768,7 @@ export default function IndexScreen() {
               {/* Logo and Header */}
               <View style={styles.drawerHeader}>
                 <Image
-                  source={require("../../assets/compass/icon.png")}
+                  source={require("../../assets/normalCompass/icon.png")}
                   style={styles.drawerLogo}
                   resizeMode="contain"
                 />
@@ -1067,18 +1070,18 @@ export default function IndexScreen() {
               <View style={[styles.fullScreenOverlay, { width, height }]}>
                 <View style={styles.compassOverlay}>
                   <Image
-                    source={activeCompass === 1 ? require("../../assets/compass2/dial.png") : require("../../assets/compass/dial.png")}
+                    source={activeCompass === 1 ? require("../../assets/16ZoneVastuCompass/dial.png") : require("../../assets/normalCompass/dial.png")}
                     style={{ width: overlayDialSize, height: overlayDialSize }}
                     resizeMode="contain"
                   />
                   <Animated.Image
-                    source={activeCompass === 1 ? require("../../assets/compass2/needle.png") : require("../../assets/compass/needle.png")}
+                    source={activeCompass === 1 ? require("../../assets/16ZoneVastuCompass/needle.png") : require("../../assets/normalCompass/needle.png")}
                     style={[
                       styles.overlayNeedle,
                       {
                         width: overlayNeedleSize,
                         height: overlayNeedleSize,
-                        transform: [{ rotate: needleRotate }],
+                        transform: [{ translateX }, { translateY }, { rotate: needleRotate }],
                       },
                     ]}
                     resizeMode="contain"
@@ -1117,7 +1120,7 @@ export default function IndexScreen() {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: "#f5f5f5"
+    backgroundColor: "#eef2f6"
   },
   scrollContent: { 
     flexGrow: 1,
@@ -1129,10 +1132,18 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: "#333",
+    backgroundColor: "#0f172a",
+    borderBottomWidth: 1,
+    borderBottomColor: "#1e293b",
   },
-  menuIcon: { fontSize: 24, color: "#fff", fontWeight: "600" },
-  appTitle: { fontSize: 20, fontWeight: "700", color: "#fff" },
+  menuIcon: { fontSize: 24, color: "#e2e8f0", fontWeight: "700" },
+  appTitle: { 
+    fontSize: 20, 
+    fontWeight: "700", 
+    color: "#f8fafc",
+    letterSpacing: 0.3,
+    fontFamily: Platform.select({ ios: "ui-rounded", android: "serif", default: "serif" }),
+  },
   headerIcons: { flexDirection: "row", gap: 8 },
   iconBtn: { padding: 4 },
   icon: { fontSize: 20 },
@@ -1150,14 +1161,16 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 5,
+    borderRightWidth: 1,
+    borderRightColor: "#e2e8f0",
   },
   drawerHeader: {
     alignItems: "center",
     paddingVertical: 30,
     paddingHorizontal: 20,
-    backgroundColor: "#fff",
+    backgroundColor: "#f8fafc",
     borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
+    borderBottomColor: "#e2e8f0",
   },
   drawerLogo: {
     width: 80,
@@ -1167,8 +1180,9 @@ const styles = StyleSheet.create({
   drawerBrand: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#000",
+    color: "#0f172a",
     marginBottom: 5,
+    letterSpacing: 0.2,
   },
   drawerVersion: {
     fontSize: 13,
@@ -1178,7 +1192,9 @@ const styles = StyleSheet.create({
   drawerTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#000",
+    color: "#0f172a",
+    letterSpacing: 0.2,
+    fontFamily: Platform.select({ ios: "ui-rounded", android: "serif", default: "serif" }),
   },
   menuList: {
     paddingVertical: 10,
@@ -1189,13 +1205,13 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    borderBottomColor: "#f1f5f9",
   },
   menuText: {
     flex: 1,
     fontSize: 16,
     fontWeight: "600",
-    color: "#000",
+    color: "#0f172a",
   },
   menuArrow: {
     fontSize: 24,
@@ -1203,7 +1219,7 @@ const styles = StyleSheet.create({
   },
   permissionsContainer: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#eef2f6",
   },
   permissionsHeader: {
     flexDirection: "row",
@@ -1211,14 +1227,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: "#fff",
+    backgroundColor: "#f8fafc",
     borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
+    borderBottomColor: "#e2e8f0",
   },
   permissionsTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#000",
+    color: "#0f172a",
+    fontFamily: Platform.select({ ios: "ui-rounded", android: "serif", default: "serif" }),
   },
   permissionsClose: {
     fontSize: 28,
@@ -1240,7 +1257,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: "#ffffff",
     padding: 16,
     marginBottom: 12,
     borderRadius: 12,
@@ -1249,6 +1266,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
   },
   permissionInfo: {
     flexDirection: "row",
@@ -1265,7 +1284,7 @@ const styles = StyleSheet.create({
   permissionName: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#000",
+    color: "#0f172a",
     marginBottom: 4,
   },
   permissionDesc: {
@@ -1277,7 +1296,7 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   openSettingsBtn: {
-    backgroundColor: "#2196f3",
+    backgroundColor: "#2563eb",
     paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 8,
@@ -1310,7 +1329,7 @@ const styles = StyleSheet.create({
   },
   userGuideContainer: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#eef2f6",
   },
   userGuideHeader: {
     flexDirection: "row",
@@ -1318,14 +1337,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: "#fff",
+    backgroundColor: "#f8fafc",
     borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
+    borderBottomColor: "#e2e8f0",
   },
   userGuideTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#000",
+    color: "#0f172a",
+    fontFamily: Platform.select({ ios: "ui-rounded", android: "serif", default: "serif" }),
   },
   userGuideClose: {
     fontSize: 28,
@@ -1347,11 +1367,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
   },
   guideSectionTitle: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#2196f3",
+    color: "#2563eb",
     marginBottom: 12,
   },
   guideSubtitle: {
@@ -1431,16 +1453,23 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginBottom: 12,
     padding: 12,
-    backgroundColor: "#fff",
+    backgroundColor: "#ffffff",
     borderRadius: 8,
-    borderWidth: 2,
-    borderColor: "#888",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    shadowColor: "#0f172a",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#2196f3",
+    color: "#0f172a",
     textAlign: "center",
+    letterSpacing: 0.3,
+    fontFamily: Platform.select({ ios: "ui-rounded", android: "serif", default: "serif" }),
   },
   compassGrid: {
     flexDirection: "row",
@@ -1451,16 +1480,18 @@ const styles = StyleSheet.create({
   },
   compassCard: {
     width: "48%",
-    backgroundColor: "#fff",
+    backgroundColor: "#ffffff",
     borderRadius: 12,
     padding: 16,
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowColor: "#0f172a",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
     elevation: 3,
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
   },
   compassImageContainer: {
     width: 120,
@@ -1469,22 +1500,28 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderRadius: 60,
     overflow: "hidden",
+    backgroundColor: "#f8fafc",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
   },
   compassDial: {
     width: 120,
     height: 120,
+    alignSelf: "center",
   },
   compassNeedle: {
     width: 80,
     height: 80,
     position: "absolute",
+    alignSelf: "center",
   },
   compassLabel: {
     marginTop: 8,
     fontSize: 14,
     fontWeight: "700",
-    color: "#000",
+    color: "#0f172a",
     textAlign: "center",
+    letterSpacing: 0.2,
   },
   bottomButtons: {
     flexDirection: "row",
@@ -1494,23 +1531,24 @@ const styles = StyleSheet.create({
   },
   bottomBtn: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#ffffff",
     paddingVertical: 14,
     paddingHorizontal: 12,
     borderRadius: 8,
-    borderWidth: 2,
-    borderColor: "#888",
-    shadowColor: "#000",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    shadowColor: "#0f172a",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
     elevation: 2,
   },
   bottomBtnText: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#000",
+    color: "#0f172a",
     textAlign: "center",
+    letterSpacing: 0.2,
   },
   logoContainer: {
     alignItems: "center",
@@ -1578,7 +1616,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
-    padding: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
     backgroundColor: "#000",
   },
   camBtn: {
@@ -1611,7 +1650,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
-    padding: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
     backgroundColor: "#000",
     gap: 8,
   },

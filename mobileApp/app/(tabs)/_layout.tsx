@@ -27,9 +27,24 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="compass3"
+        options={{
+          href: null,
+          headerShown: false,
+        }}
+      />
+      <Tabs.Screen
+        name="compass4"
+        options={{
+          href: null,
+          headerShown: false,
+        }}
+      />
+      <Tabs.Screen
         name="camera"
         options={{
           href: null,
+          headerShown: false,
         }}
       />
     </Tabs>
