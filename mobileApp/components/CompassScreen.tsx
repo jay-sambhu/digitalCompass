@@ -779,7 +779,7 @@ export default function CompassScreen({ type }: Props) {
       <Modal visible={previewModalOpen} animationType="fade" presentationStyle="fullScreen" onRequestClose={() => setPreviewModalOpen(false)}>
         <SafeAreaView style={styles.previewContainer}>
           <ViewShot ref={previewShotRef} style={styles.previewShot} options={{ format: "jpg", quality: 0.95 }}>
-            {/* Preview Imagess */}
+            {/* Preview Imagessss */}
             {previewUri && <Image source={{ uri: previewUri }} style={styles.previewImage} />}
 
             {/* Compasssssss dial overlay on preview */}
