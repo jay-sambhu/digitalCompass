@@ -782,7 +782,7 @@ export default function CompassScreen({ type }: Props) {
             {/* Preview Image */}
             {previewUri && <Image source={{ uri: previewUri }} style={styles.previewImage} />}
 
-            {/* Compasssss dial overlay on preview */}
+            {/* Compassssss dial overlay on preview */}
             <View
               style={[
                 styles.cameraDialWrap,
