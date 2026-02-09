@@ -24,7 +24,7 @@ export const styles = StyleSheet.create({
     fontWeight: "700", 
     color: "#ffffff",
     letterSpacing: 0.3,
-    fontFamily: Platform.select({ ios: "ui-rounded", android: "serif", default: "serif" }),
+    fontFamily: "Poppins",
   },
   headerIcons: { flexDirection: "row", gap: 8 },
   iconBtn: { padding: 4 },
@@ -81,7 +81,7 @@ export const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#BD202E",
     letterSpacing: 0.2,
-    fontFamily: Platform.select({ ios: "ui-rounded", android: "serif", default: "serif" }),
+    fontFamily: "Poppins",
   },
   menuList: {
     paddingVertical: 10,
@@ -99,6 +99,7 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#BD202E",
+    fontFamily: "Poppins",
   },
   menuArrow: {
     fontSize: 24,
@@ -122,7 +123,7 @@ export const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "700",
     color: "#BD202E",
-    fontFamily: Platform.select({ ios: "ui-rounded", android: "serif", default: "serif" }),
+    fontFamily: "Poppins",
   },
   permissionsClose: {
     fontSize: 28,
@@ -228,7 +229,7 @@ export const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "700",
     color: "#BD202E",
-    fontFamily: Platform.select({ ios: "ui-rounded", android: "serif", default: "serif" }),
+    fontFamily: "Poppins",
   },
   userGuideClose: {
     fontSize: 28,
@@ -352,7 +353,7 @@ export const styles = StyleSheet.create({
     color: "#BD202E",
     textAlign: "center",
     letterSpacing: 0.3,
-    fontFamily: Platform.select({ ios: "ui-rounded", android: "serif", default: "serif" }),
+    fontFamily: "Poppins",
   },
   compassGrid: {
     flexDirection: "row",
@@ -404,8 +405,7 @@ export const styles = StyleSheet.create({
     fontWeight: "700",
       color: "#BD202E",
     textAlign: "center",
-    letterSpacing: 0.2,
-  },
+    letterSpacing: 0.2,    fontFamily: "Poppins",  },
   bottomButtons: {
     flexDirection: "row",
     paddingHorizontal: 16,
@@ -434,8 +434,7 @@ export const styles = StyleSheet.create({
     fontWeight: "700",
       color: "#BD202E",
     textAlign: "center",
-    letterSpacing: 0.2,
-  },
+    letterSpacing: 0.2,    fontFamily: "Poppins",  },
   logoContainer: {
     alignItems: "center",
     marginTop: 20,

@@ -225,8 +225,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: "600",
-    color: "#BD202E",
-  },
+    color: "#BD202E",    fontFamily: "Poppins",  },
   menuArrow: {
     fontSize: 24,
     color: "#ccc",

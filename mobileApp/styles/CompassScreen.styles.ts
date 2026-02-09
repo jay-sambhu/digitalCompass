@@ -188,6 +188,7 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#000",
+    fontFamily: "Poppins",
   },
   menuArrow: {
     fontSize: 24,
