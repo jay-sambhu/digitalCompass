@@ -6,7 +6,7 @@ export const styles = StyleSheet.create({
   quickRow: { marginTop: 12, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap", zIndex: 1, minHeight: 70 },
   quickRowCompact: { justifyContent: "space-around" },
   quickBtn: { alignItems: "center" },
-  quickLabel: { marginTop: 4, fontWeight: "600", fontSize: 11 },
+  quickLabel: { marginTop: 4, fontWeight: "600", fontSize: 11, color: "#BD202E" },
   degreeTitle: { fontWeight: "800" },
 
   compassWrap: { ...StyleSheet.absoluteFillObject, alignItems: "center", justifyContent: "center", zIndex: 0 },
@@ -26,7 +26,7 @@ export const styles = StyleSheet.create({
 
   bottomNav: { marginTop: "auto", paddingVertical: 14, borderTopWidth: 1, borderColor: "#CBD5E1", flexDirection: "row", justifyContent: "space-around", alignItems: "center", zIndex: 1 },
   navItem: { alignItems: "center", flex: 1 },
-  navLabel: { marginTop: 4, color: "#2596be", fontWeight: "700" },
+  navLabel: { marginTop: 4, color: "#BD202E", fontWeight: "700" },
   captureBtn: { width: 60, height: 60, borderRadius: 30, backgroundColor: "#fff", borderWidth: 2, borderColor: "#CBD5E1", alignItems: "center", justifyContent: "center" },
 
   cameraContainer: { flex: 1, backgroundColor: "#000" },

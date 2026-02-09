@@ -113,7 +113,7 @@ export const styles = StyleSheet.create({
     gap: 4,
   },
   navBtnText: {
-    color: "#2596be",
+    color: "#BD202E",
     fontSize: 12,
     fontWeight: "600",
   },
