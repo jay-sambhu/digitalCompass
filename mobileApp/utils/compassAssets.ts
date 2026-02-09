@@ -4,7 +4,7 @@ type DialTuning = {
   dialScale: number;
   dialOffset: { x: number; y: number;  };
 };
-
+// compass part for how many zones and the dial tuning for each type of compass
 const COMPASS_ASSETS = {
   normal: {
     dial: require("../assets/normalCompass/dial.png"),
