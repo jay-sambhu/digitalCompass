@@ -26,6 +26,7 @@ import { Href, router, useLocalSearchParams } from "expo-router";
 import { getCompassAssets } from "../../utils/compassAssets";
 import { MaterialIcons } from "@expo/vector-icons";
 import { styles } from "../../styles/index.styles";
+import { SplashScreenComponent } from "../../components/SplashScreen";
 
 function headingFromMag({ x, y }: { x: number; y: number }) {
   let deg = (Math.atan2(y, x) * 180) / Math.PI;
@@ -55,6 +56,7 @@ export default function IndexScreen() {
   const [locationPerm, setLocationPerm] = useState<Location.LocationPermissionResponse | null>(null);
   const [showUserGuide, setShowUserGuide] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true); // Theme state
+  const [showSplash, setShowSplash] = useState(true); // Splash screen state
 
   const [tempCameraPhoto, setTempCameraPhoto] = useState<string | null>(null);
   const compositeRef = useRef<ViewShot>(null);
@@ -519,6 +521,16 @@ export default function IndexScreen() {
     setCapturedPhoto(null);
     setIsCompositePhoto(false);
   };
+
+  // Show splash screen if needed
+  if (showSplash) {
+    return (
+      <SplashScreenComponent
+        onFinish={() => setShowSplash(false)}
+        duration={3500}
+      />
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? "#f5f5f5" : "#1a1a2e" }]} edges={['top']}>
