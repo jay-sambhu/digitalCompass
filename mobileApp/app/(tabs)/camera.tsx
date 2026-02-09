@@ -352,7 +352,7 @@ export default function CameraScreen() {
   const shareApp = async () => {
     try {
       await Share.share({
-        message: "Try Digital Compass: https://sanskarvastu.com",
+        message: "Try Sanskar Compass: https://sanskarvastu.com",
       });
     } catch (e) {
       // ignore

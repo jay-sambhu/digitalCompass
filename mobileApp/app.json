@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "mobileApp",
-    "slug": "mobileApp",
+    "name": "Sanskar Compass",
+    "slug": "sanskar-compass",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/normalCompass/icon.png",

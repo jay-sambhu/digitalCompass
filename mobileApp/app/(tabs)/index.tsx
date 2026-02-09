@@ -403,8 +403,8 @@ export default function IndexScreen() {
   const shareApp = async () => {
     try {
       const result = await Share.share({
-        message: "Check out Digital Compass - Vastu Compass App! Download now: https://sanskarvastu.com",
-        title: "Digital Compass App",
+        message: "Check out Sanskar Compass - Vastu Compass App! Download now: https://sanskarvastu.com",
+        title: "Sanskar Compass App",
       });
       
       if (result.action === Share.sharedAction) {
@@ -530,7 +530,7 @@ export default function IndexScreen() {
           <Pressable onPress={() => setDrawerOpen(true)}>
             <MaterialIcons name="menu" size={28} color="#e2e8f0" />
           </Pressable>
-          <Text style={styles.appTitle}>Digital Compass</Text>
+          <Text style={styles.appTitle}>Sanskar Compass</Text>
           <View style={styles.headerIcons}>
             <Pressable style={styles.iconBtn}>
               <MaterialIcons name="lightbulb-outline" size={24} color="#e2e8f0" />
@@ -859,7 +859,7 @@ export default function IndexScreen() {
       <Modal visible={showUserGuide} animationType="slide" onRequestClose={() => setShowUserGuide(false)}>
         <SafeAreaView style={styles.userGuideContainer}>
           <View style={styles.userGuideHeader}>
-            <Text style={styles.userGuideTitle}>How to Use Digital Compass</Text>
+            <Text style={styles.userGuideTitle}>How to Use Sanskar Compass</Text>
             <Pressable onPress={() => setShowUserGuide(false)}>
               <Text style={styles.userGuideClose}>✕</Text>
             </Pressable>
@@ -1058,7 +1058,7 @@ export default function IndexScreen() {
 
             <View style={{ marginBottom: 20, padding: 16, backgroundColor: '#f0f9ff', borderRadius: 12 }}>
               <Text style={{ fontSize: 14, color: '#0f172a', textAlign: 'center', fontWeight: '600' }}>
-                <MaterialIcons name="favorite" size={18} color="#0f172a" />{' '}Thank you for using Digital Compass!{'\n'}
+                <MaterialIcons name="favorite" size={18} color="#0f172a" />{' '}Thank you for using Sanskar Compass!{'\n'}
                 <Text style={{ fontWeight: '400', fontSize: 13 }}>May your space bring prosperity and peace</Text>
               </Text>
             </View>

@@ -434,7 +434,7 @@ export default function CompassScreen({ type }: Props) {
   const shareApp = async () => {
     console.log("[COMPASS] 📤 Share App button clicked");
     try {
-      await Sharing.shareAsync("Try Digital Compass: https://sanskarvastu.com");
+      await Sharing.shareAsync("Try Sanskar Compass: https://sanskarvastu.com");
       console.log("[COMPASS] ✅ Share dialog opened");
     } catch (e: any) {
       console.log("[COMPASS] ❌ Share cancelled or failed:", e?.message);
