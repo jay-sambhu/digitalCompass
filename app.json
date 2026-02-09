@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "177627f1-fc08-4c3c-be50-5797aa246bcb"
+      }
+    },
+    "android": {
+      "package": "com.bobthedeveloper.digitalcompass"
+    }
+  }
+}

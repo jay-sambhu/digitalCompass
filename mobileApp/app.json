@@ -63,6 +63,14 @@
           "savePhotosPermission": "Allow $(PRODUCT_NAME) to save photos.",
           "isAccessMediaLocationEnabled": false
         }
+      ],
+      [
+        "react-native-view-shot",
+        {
+          "android": {
+            "useRenderScript": true
+          }
+        }
       ]
     ],
     "experiments": {

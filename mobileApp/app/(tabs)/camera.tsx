@@ -84,14 +84,27 @@ export default function CameraScreen() {
   };
 
   const capturePreviewWithOverlay = async () => {
-    if (previewShotRef.current?.capture) {
-      try {
-        const uri = await previewShotRef.current.capture?.();
-        if (uri) return uri;
-      } catch (e: any) {
-        console.warn("Preview capture failed, falling back to raw image:", e?.message);
-      }
+    if (!previewShotRef.current?.capture) {
+      console.warn("ViewShot capture not available, returning raw image");
+      return previewUri;
     }
+    
+    try {
+      // Add a small delay to ensure rendering
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const uri = await previewShotRef.current.capture();
+      if (uri) {
+        console.log("✅ Successfully captured overlay image:", uri);
+        return uri;
+      }
+    } catch (e: any) {
+      console.warn("❌ ViewShot capture failed:", e?.message || e);
+      console.warn("Stack:", e?.stack);
+    }
+    
+    // Fallback to raw image
+    console.warn("⚠️ Falling back to raw preview image");
     return previewUri;
   };
 
@@ -590,9 +603,16 @@ export default function CameraScreen() {
           ]}
           resizeMode="contain"
         />
-        <Image
+        <Animated.Image
           source={assets.needle}
-          style={[styles.compassNeedle, { width: needleSize, height: needleSize }]}
+          style={[
+            styles.compassNeedle,
+            {
+              width: needleSize,
+              height: needleSize,
+              transform: [{ rotate: rotateAnim.interpolate({ inputRange: [0, 360], outputRange: ["0deg", "360deg"] }) }],
+            },
+          ]}
           resizeMode="contain"
         />
       </View>

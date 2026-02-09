@@ -305,14 +305,25 @@ export default function CompassScreen({ type }: Props) {
       // Capture the preview with all overlays (dial + geo + magnetic field)
       try {
         console.log("[COMPASS] 📸 Attempting to capture preview with overlays...");
-        const capturedWithOverlays = await previewShotRef.current?.capture?.();
+        // Add a small delay to ensure rendering
+        await new Promise(resolve => setTimeout(resolve, 100));
         
-        if (capturedWithOverlays) {
-          console.log("[COMPASS] ✅ Captured overlaid preview:", capturedWithOverlays);
-          finalImageUri = capturedWithOverlays;
+        try {
+          const capturedWithOverlays = await previewShotRef.current?.capture?.();
+          
+          if (capturedWithOverlays) {
+            console.log("[COMPASS] ✅ Captured overlaid preview:", capturedWithOverlays);
+            finalImageUri = capturedWithOverlays;
+          } else {
+            console.warn("[COMPASS] ⚠️ ViewShot returned null, using raw image");
+          }
+        } catch (captureErr: any) {
+          console.warn("[COMPASS] ⚠️ ViewShot capture failed:", captureErr?.message);
+          console.warn("Stack:", captureErr?.stack);
+          console.warn("[COMPASS] Using raw image as fallback");
         }
       } catch (e: any) {
-        console.warn("[COMPASS] ⚠️ Could not capture overlaid preview:", e?.message, "Using raw image");
+        console.warn("[COMPASS] ⚠️ Error in capture block:", e?.message, "Using raw image");
       }
 
       console.log("[COMPASS] 📁 Final image URI to save:", finalImageUri);
@@ -392,13 +403,20 @@ export default function CompassScreen({ type }: Props) {
 
       // Capture the preview with all overlays
       try {
+        // Add delay to ensure rendering
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         const capturedWithOverlays = await previewShotRef.current?.capture?.();
         if (capturedWithOverlays) {
           console.log("[COMPASS] ✅ Captured overlaid preview for sharing:", capturedWithOverlays);
           shareUri = capturedWithOverlays;
+        } else {
+          console.warn("[COMPASS] ⚠️ ViewShot returned null for sharing, using raw image");
         }
       } catch (captureErr: any) {
-        console.warn("[COMPASS] ⚠️ Could not capture overlays, sharing raw image:", captureErr?.message);
+        console.warn("[COMPASS] ⚠️ ViewShot capture failed for sharing:", captureErr?.message);
+        console.warn("Stack:", captureErr?.stack);
+        console.warn("[COMPASS] Sharing raw image as fallback");
       }
 
       console.log("[COMPASS] 📤 Opening share dialog with image:", shareUri);
