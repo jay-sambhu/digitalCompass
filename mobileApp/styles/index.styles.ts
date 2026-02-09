@@ -425,6 +425,9 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 2,
+    minHeight: 52,
+    justifyContent: "center",
+    alignItems: "center",
   },
   bottomBtnText: {
     fontSize: 14,

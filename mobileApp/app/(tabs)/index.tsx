@@ -854,10 +854,10 @@ export default function IndexScreen() {
             <View style={styles.guideSection}>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
                 <MaterialIcons name="location-on" size={20} color="#0f172a" style={{ marginRight: 8 }} />
-                <Text style={styles.guideSectionTitle}>Getting Started</Text>
+                <Text style={styles.guideSectionTitle}>Welcome!</Text>
               </View>
               <Text style={styles.guideText}>
-                Welcome to Digital Compass! This app helps you understand Vastu principles and directions. Before using the app, please grant the necessary permissions for location, camera, and media access.
+                This app helps you find directions and apply Vastu Shastra (ancient science of architecture) to your home, office, or any space. It's like having a compass and Vastu expert in your pocket! Let's get started.
               </Text>
             </View>
 
@@ -865,25 +865,25 @@ export default function IndexScreen() {
             <View style={styles.guideSection}>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
                 <MaterialIcons name="lock" size={20} color="#0f172a" style={{ marginRight: 8 }} />
-                <Text style={styles.guideSectionTitle}>Permissions</Text>
+                <Text style={styles.guideSectionTitle}>What We Need</Text>
               </View>
-              <Text style={styles.guideSubtitle}>Why we need permissions:</Text>
+              <Text style={styles.guideSubtitle}>To work properly, we need a few permissions:</Text>
               <View style={styles.guideList}>
                 <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 }}>
                   <MaterialIcons name="camera-alt" size={16} color="#0f172a" style={{ marginRight: 8, marginTop: 2 }} />
-                  <Text style={styles.guideListText}>Camera: To capture photos with compass overlay</Text>
+                  <Text style={styles.guideListText}>Camera - Take photos with compass directions on them</Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 }}>
                   <MaterialIcons name="location-on" size={16} color="#0f172a" style={{ marginRight: 8, marginTop: 2 }} />
-                  <Text style={styles.guideListText}>Location: To show your coordinates and compass direction</Text>
+                  <Text style={styles.guideListText}>Location - Show where you are and which way you're facing</Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 }}>
                   <MaterialIcons name="image" size={16} color="#0f172a" style={{ marginRight: 8, marginTop: 2 }} />
-                  <Text style={styles.guideListText}>Media Library: To save captured photos to your gallery</Text>
+                  <Text style={styles.guideListText}>Photos - Save your compass pictures to your gallery</Text>
                 </View>
               </View>
               <Text style={styles.guideText}>
-                You can manage permissions anytime from the sidebar menu → Manage Permissions.
+                You can turn these on or off anytime from the menu → "Manage Permissions".
               </Text>
             </View>
 
@@ -891,11 +891,59 @@ export default function IndexScreen() {
             <View style={styles.guideSection}>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
                 <MaterialIcons name="explore" size={20} color="#0f172a" style={{ marginRight: 8 }} />
-                <Text style={styles.guideSectionTitle}>Compass Types</Text>
+                <Text style={styles.guideSectionTitle}>Choose Your Compass</Text>
               </View>
+              <Text style={[styles.guideText, { marginBottom: 12 }]}>
+                We have 4 different compasses for different needs:
+              </Text>
               <View style={styles.guideList}>
-                <Text style={styles.guideListItem}><Text style={styles.guideListText}><Text style={{fontWeight: '700'}}>Normal Compass:</Text> Standard 360° compass showing cardinal directions</Text></Text>
-                <Text style={styles.guideListItem}><Text style={styles.guideListText}><Text style={{fontWeight: '700'}}>16 Zone Vastu Compass:</Text> Advanced compass divided into 16 zones based on Vastu principles</Text></Text>
+                <View style={{ marginBottom: 16 }}>
+                  <Text style={styles.guideListItem}>
+                    <Text style={{fontWeight: '700', fontSize: 15}}>
+                      <MaterialIcons name="explore" size={16} color="#0f172a" />{' '}
+                      Normal Compass
+                    </Text>
+                  </Text>
+                  <Text style={[styles.guideListText, { marginLeft: 0, marginTop: 4 }]}>
+                    A basic compass showing the 4 main directions (North, South, East, West). Perfect for everyday use - just like the compass you learned about in school!
+                  </Text>
+                </View>
+                
+                <View style={{ marginBottom: 16 }}>
+                  <Text style={styles.guideListItem}>
+                    <Text style={{fontWeight: '700', fontSize: 15}}>
+                      <MaterialIcons name="view-module" size={16} color="#0f172a" />{' '}
+                      16 Zone Vastu Compass
+                    </Text>
+                  </Text>
+                  <Text style={[styles.guideListText, { marginLeft: 0, marginTop: 4 }]}>
+                    Divides your space into 16 sections. Good for checking basic Vastu for rooms like bedroom, kitchen, or living room. Great for beginners!
+                  </Text>
+                </View>
+                
+                <View style={{ marginBottom: 16 }}>
+                  <Text style={styles.guideListItem}>
+                    <Text style={{fontWeight: '700', fontSize: 15}}>
+                      <MaterialIcons name="grid-view" size={16} color="#0f172a" />{' '}
+                      32 Zone Vastu Compass
+                    </Text>
+                  </Text>
+                  <Text style={[styles.guideListText, { marginLeft: 0, marginTop: 4 }]}>
+                    Divides your space into 32 detailed sections. For advanced Vastu analysis of your entire property. Recommended for serious Vastu practitioners or consultants.
+                  </Text>
+                </View>
+                
+                <View style={{ marginBottom: 8 }}>
+                  <Text style={styles.guideListItem}>
+                    <Text style={{fontWeight: '700', fontSize: 15}}>
+                      <MaterialIcons name="flare" size={16} color="#0f172a" />{' '}
+                      AppliedVastu Chakra
+                    </Text>
+                  </Text>
+                  <Text style={[styles.guideListText, { marginLeft: 0, marginTop: 4 }]}>
+                    A special energy wheel used in applied Vastu science. Shows energy flow patterns in your space. Perfect for Vastu experts and energy healers.
+                  </Text>
+                </View>
               </View>
             </View>
 
@@ -903,25 +951,32 @@ export default function IndexScreen() {
             <View style={styles.guideSection}>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
                 <MaterialIcons name="smartphone" size={20} color="#0f172a" style={{ marginRight: 8 }} />
-                <Text style={styles.guideSectionTitle}>Using the Compass</Text>
+                <Text style={styles.guideSectionTitle}>How to Use</Text>
               </View>
+              <Text style={[styles.guideText, { marginBottom: 12 }]}>
+                It's super easy! Just follow these steps:
+              </Text>
               <View style={styles.guideSteps}>
-                <Text style={styles.guideStep}><Text style={{fontWeight: '700'}}>Step 1:</Text> Select a compass type from the home screen</Text>
-                <Text style={styles.guideStep}><Text style={{fontWeight: '700'}}>Step 2:</Text> Click to open the camera with compass overlay</Text>
-                <Text style={styles.guideStep}><Text style={{fontWeight: '700'}}>Step 3:</Text> The compass needle will point to magnetic north</Text>
-                <Text style={styles.guideStep}><Text style={{fontWeight: '700'}}>Step 4:</Text> Use this for Vastu analysis of your property or space</Text>
+                <Text style={styles.guideStep}><Text style={{fontWeight: '700'}}>1.</Text> On the main screen, tap on any compass card (Normal, 16 Zone, 32 Zone, or Chakra)</Text>
+                <Text style={styles.guideStep}><Text style={{fontWeight: '700'}}>2.</Text> The compass will open - hold your phone flat like a tray</Text>
+                <Text style={styles.guideStep}><Text style={{fontWeight: '700'}}>3.</Text> The red needle points to North. Rotate yourself (not the phone) to face any direction</Text>
+                <Text style={styles.guideStep}><Text style={{fontWeight: '700'}}>4.</Text> Tap the camera icon to take a photo with the compass overlay</Text>
+                <Text style={styles.guideStep}><Text style={{fontWeight: '700'}}>5.</Text> Your photo will be saved with directions marked - perfect for sharing or Vastu analysis!</Text>
               </View>
             </View>
 
             {/* Features */}
             <View style={styles.guideSection}>
-              <Text style={styles.guideSectionTitle}>✨ Key Features</Text>
+              <Text style={styles.guideSectionTitle}>
+                <MaterialIcons name="star" size={18} color="#0f172a" />{' '}
+                Cool Features
+              </Text>
               <View style={styles.guideList}>
-                <Text style={styles.guideListItem}><Text style={styles.guideListText}><Text style={{fontWeight: '700'}}>Real-time Heading:</Text> Live compass direction updates</Text></Text>
-                <Text style={styles.guideListItem}><Text style={styles.guideListText}><Text style={{fontWeight: '700'}}>Geo-Coordinates:</Text> View your location coordinates</Text></Text>
-                <Text style={styles.guideListItem}><Text style={styles.guideListText}><Text style={{fontWeight: '700'}}>Magnetic Field:</Text> Monitor magnetic field strength (µT)</Text></Text>
-                <Text style={styles.guideListItem}><Text style={styles.guideListText}><Text style={{fontWeight: '700'}}>Photo Capture:</Text> Capture photos with compass overlay</Text></Text>
-                <Text style={styles.guideListItem}><Text style={styles.guideListText}><Text style={{fontWeight: '700'}}>Share Feature:</Text> Share app link with friends</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}><MaterialIcons name="explore" size={14} color="#0f172a" /> <Text style={{fontWeight: '700'}}>Live Direction:</Text> Watch the needle move as you turn - shows where you're facing right now</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}><MaterialIcons name="my-location" size={14} color="#0f172a" /> <Text style={{fontWeight: '700'}}>Your Location:</Text> See your exact GPS coordinates (those long numbers are your location on Earth!)</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}><MaterialIcons name="battery-full" size={14} color="#0f172a" /> <Text style={{fontWeight: '700'}}>Signal Strength:</Text> Shows how strong the magnetic field is around you</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}><MaterialIcons name="photo-camera" size={14} color="#0f172a" /> <Text style={{fontWeight: '700'}}>Save Photos:</Text> Take pictures with compass directions on them - save and share easily</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}><MaterialIcons name="share" size={14} color="#0f172a" /> <Text style={{fontWeight: '700'}}>Share App:</Text> Love the app? Share it with friends and family from the menu</Text></Text>
               </View>
             </View>
 
@@ -932,11 +987,34 @@ export default function IndexScreen() {
                 <Text style={styles.guideSectionTitle}>Tips for Best Results</Text>
               </View>
               <View style={styles.guideList}>
-                <Text style={styles.guideListItem}><Text style={styles.guideListText}>Hold your phone steady for accurate readings</Text></Text>
-                <Text style={styles.guideListItem}><Text style={styles.guideListText}>Keep phone away from metal objects or magnets</Text></Text>
-                <Text style={styles.guideListItem}><Text style={styles.guideListText}>Outdoor use gives more accurate results</Text></Text>
-                <Text style={styles.guideListItem}><Text style={styles.guideListText}>Allow a few seconds for calibration after opening compass</Text></Text>
-                <Text style={styles.guideListItem}><Text style={styles.guideListText}>Move phone in figure-8 pattern if readings seem off</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}>✓ Hold phone flat and steady (like holding a plate of food)</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}>✓ Stay away from metal things, magnets, speakers, or electronic devices</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}>✓ Works best outside or near windows (better GPS signal)</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}>✓ Wait 3-5 seconds for the needle to stop moving before taking a photo</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}>✓ Compass acting weird? Wave your phone in a figure-8 pattern to reset it</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}>✓ Make sure location services are ON in your phone settings</Text></Text>
+              </View>
+            </View>
+
+            {/* Which Compass When */}
+            <View style={styles.guideSection}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                <MaterialIcons name="help-outline" size={20} color="#0f172a" style={{ marginRight: 8 }} />
+                <Text style={styles.guideSectionTitle}>Which Compass Should I Use?</Text>
+              </View>
+              <View style={styles.guideList}>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}>
+                  <MaterialIcons name="home" size={14} color="#0f172a" /> <Text style={{fontWeight: '700'}}>For checking room direction:</Text> Use Normal Compass
+                </Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}>
+                  <MaterialIcons name="weekend" size={14} color="#0f172a" /> <Text style={{fontWeight: '700'}}>For basic Vastu (furniture placement):</Text> Use 16 Zone Compass
+                </Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}>
+                  <MaterialIcons name="apartment" size={14} color="#0f172a" /> <Text style={{fontWeight: '700'}}>For complete home/office Vastu:</Text> Use 32 Zone Compass
+                </Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}>
+                  <MaterialIcons name="auto-fix-high" size={14} color="#0f172a" /> <Text style={{fontWeight: '700'}}>For energy and chakra analysis:</Text> Use AppliedVastu Chakra
+                </Text></Text>
               </View>
             </View>
 
@@ -947,15 +1025,25 @@ export default function IndexScreen() {
                 <Text style={styles.guideSectionTitle}>Need Expert Help?</Text>
               </View>
               <Text style={styles.guideText}>
-                For professional Vastu consultation, please visit our Vastu Consultancy Services section or contact us through the app menu.
+                Want a professional Vastu consultant to analyze your property? We offer personalized Vastu services! Just tap on "Vastu Consultancy Services" button on the home screen or contact us through the menu. Our experts will guide you step by step.
               </Text>
             </View>
 
             {/* Support */}
             <View style={styles.guideSection}>
-              <Text style={styles.guideSectionTitle}>📞 Support & Feedback</Text>
+              <Text style={styles.guideSectionTitle}>
+                <MaterialIcons name="chat" size={18} color="#0f172a" />{' '}
+                Have Questions?
+              </Text>
               <Text style={styles.guideText}>
-                Have questions or suggestions? Use the "Send Feedback" option in the sidebar menu to reach us. We'd love to hear from you!
+                Confused about something? Want to suggest a new feature? Tap the menu (☰) and select "Send Feedback". We read every message and reply quickly - usually within 24 hours!
+              </Text>
+            </View>
+
+            <View style={{ marginBottom: 20, padding: 16, backgroundColor: '#f0f9ff', borderRadius: 12 }}>
+              <Text style={{ fontSize: 14, color: '#0f172a', textAlign: 'center', fontWeight: '600' }}>
+                <MaterialIcons name="favorite" size={18} color="#0f172a" />{' '}Thank you for using Digital Compass!{'\n'}
+                <Text style={{ fontWeight: '400', fontSize: 13 }}>May your space bring prosperity and peace</Text>
               </Text>
             </View>
           </ScrollView>
