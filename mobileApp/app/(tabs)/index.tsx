@@ -567,14 +567,30 @@ export default function IndexScreen() {
                 <View style={styles.compassImageContainer}>
                   <Image
                     source={assets.dial}
-                    style={styles.compassDial}
+                    style={[
+                      styles.compassDial,
+                      {
+                        transform: [
+                          { translateX: assets.dialOffset.x },
+                          { translateY: assets.dialOffset.y },
+                          { scale: assets.dialScale },
+                        ],
+                      },
+                    ]}
                     resizeMode="contain"
                   />
                   <Animated.Image
                     source={assets.needle}
                     style={[
                       styles.compassNeedle,
-                      { transform: [{ translateX }, { translateY }, { rotate: needleRotate }] },
+                      { 
+                        transform: [
+                          { translateX }, 
+                          { translateY }, 
+                          { rotate: needleRotate },
+                          { scale: assets.dialScale * 0.74 },
+                        ],
+                      },
                     ]}
                     resizeMode="contain"
                   />
