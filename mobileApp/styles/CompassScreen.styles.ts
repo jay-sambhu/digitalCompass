@@ -24,10 +24,10 @@ export const styles = StyleSheet.create({
   infoValue: { marginTop: 4, color: "#000" },
   red: { color: "#000", fontWeight: "800" },
 
-  bottomNav: { marginTop: "auto", paddingVertical: 14, borderTopWidth: 1, borderColor: "#eee", flexDirection: "row", justifyContent: "space-around", alignItems: "center", zIndex: 1 },
+  bottomNav: { marginTop: "auto", paddingVertical: 14, borderTopWidth: 1, borderColor: "#CBD5E1", flexDirection: "row", justifyContent: "space-around", alignItems: "center", zIndex: 1 },
   navItem: { alignItems: "center", flex: 1 },
-  navLabel: { marginTop: 4, color: "#2b6cff", fontWeight: "700" },
-  captureBtn: { width: 60, height: 60, borderRadius: 30, backgroundColor: "#fff", borderWidth: 2, borderColor: "#dbe7ff", alignItems: "center", justifyContent: "center" },
+  navLabel: { marginTop: 4, color: "#2596be", fontWeight: "700" },
+  captureBtn: { width: 60, height: 60, borderRadius: 30, backgroundColor: "#fff", borderWidth: 2, borderColor: "#CBD5E1", alignItems: "center", justifyContent: "center" },
 
   cameraContainer: { flex: 1, backgroundColor: "#000" },
   camera: { flex: 1 },
@@ -118,9 +118,9 @@ export const styles = StyleSheet.create({
   },
   
   cameraControls: { flexDirection: "row", justifyContent: "space-around", alignItems: "center", padding: 16, backgroundColor: "#000" },
-  camBtn: { paddingVertical: 10, paddingHorizontal: 16, backgroundColor: "#1f2937", borderRadius: 8 },
+  camBtn: { paddingVertical: 10, paddingHorizontal: 16, backgroundColor: "#2596be", borderRadius: 8 },
   camBtnText: { color: "#fff", fontWeight: "600" },
-  capture: { width: 60, height: 60, borderRadius: 30, backgroundColor: "#fff", borderWidth: 4, borderColor: "#d1d5db" },
+  capture: { width: 60, height: 60, borderRadius: 30, backgroundColor: "#fff", borderWidth: 4, borderColor: "#CBD5E1" },
 
   cameraPermission: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12 },
   permissionText: { color: "#fff", fontSize: 16 },
@@ -146,7 +146,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
+    borderBottomColor: "#CBD5E1",
   },
   drawerLogo: {
     width: 80,
@@ -178,7 +178,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    borderBottomColor: "#CBD5E1",
   },
   menuIconStyle: {
     marginRight: 12,
@@ -195,7 +195,7 @@ export const styles = StyleSheet.create({
   },
 
   previewContainer: { flex: 1, backgroundColor: "#000" },
-  previewControls: { flexDirection: "row", justifyContent: "space-around", alignItems: "center", padding: 16, backgroundColor: "#000", borderTopWidth: 1, borderTopColor: "#333" },
-  previewBtn: { alignItems: "center", paddingVertical: 12, paddingHorizontal: 20, backgroundColor: "#1f2937", borderRadius: 8 },
+  previewControls: { flexDirection: "row", justifyContent: "space-around", alignItems: "center", padding: 16, backgroundColor: "#000", borderTopWidth: 1, borderTopColor: "#CBD5E1" },
+  previewBtn: { alignItems: "center", paddingVertical: 12, paddingHorizontal: 20, backgroundColor: "#2596be", borderRadius: 8 },
   previewBtnLabel: { fontSize: 12, fontWeight: "600", color: "#fff" },
 });

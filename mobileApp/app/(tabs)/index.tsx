@@ -54,6 +54,7 @@ export default function IndexScreen() {
   const [showPermissions, setShowPermissions] = useState(false);
   const [locationPerm, setLocationPerm] = useState<Location.LocationPermissionResponse | null>(null);
   const [showUserGuide, setShowUserGuide] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true); // Theme state
 
   const [tempCameraPhoto, setTempCameraPhoto] = useState<string | null>(null);
   const compositeRef = useRef<ViewShot>(null);
@@ -520,33 +521,39 @@ export default function IndexScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? "#f5f5f5" : "#1a1a2e" }]} edges={['top']}>
       <ScrollView 
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[
+          styles.header,
+          {
+            backgroundColor: isDarkMode ? "#BD202E" : "#f5f5f5",
+            borderBottomColor: isDarkMode ? "#a01b26" : "#CBD5E1",
+          },
+        ]}>
           <Pressable onPress={() => setDrawerOpen(true)}>
-            <MaterialIcons name="menu" size={28} color="#e2e8f0" />
+            <MaterialIcons name="menu" size={28} color={isDarkMode ? "#e2e8f0" : "#BD202E"} />
           </Pressable>
-          <Text style={styles.appTitle}>Sanskar Compass</Text>
+          <Text style={[styles.appTitle, { color: isDarkMode ? "#ffffff" : "#BD202E" }]}>Sanskar Compass</Text>
           <View style={styles.headerIcons}>
-            <Pressable style={styles.iconBtn}>
-              <MaterialIcons name="lightbulb-outline" size={24} color="#e2e8f0" />
+            <Pressable style={styles.iconBtn} onPress={() => setIsDarkMode(!isDarkMode)}>
+              <MaterialIcons name={isDarkMode ? "lightbulb-outline" : "lightbulb"} size={24} color={isDarkMode ? "#e2e8f0" : "#BD202E"} />
             </Pressable>
             <Pressable style={styles.iconBtn}>
-              <MaterialIcons name="star-outline" size={24} color="#e2e8f0" />
+              <MaterialIcons name="star-outline" size={24} color={isDarkMode ? "#e2e8f0" : "#BD202E"} />
             </Pressable>
             <Pressable style={styles.iconBtn} onPress={shareApp}>
-              <MaterialIcons name="share" size={24} color="#e2e8f0" />
+              <MaterialIcons name="share" size={24} color={isDarkMode ? "#e2e8f0" : "#BD202E"} />
             </Pressable>
           </View>
         </View>
 
         {/* Section Title */}
-        <View style={styles.sectionTitleContainer}>
-          <Text style={styles.sectionTitle}>Select Compasses Type</Text>
+        <View style={[styles.sectionTitleContainer, { backgroundColor: isDarkMode ? "#f5f5f5" : "#1a1a2e" }]}>
+          <Text style={[styles.sectionTitle, { color: isDarkMode ? "#BD202E" : "#f5f5f5" }]}>Select Compasses Type</Text>
         </View>
 
         {/* Compass Grid */}
@@ -561,10 +568,16 @@ export default function IndexScreen() {
             return (
               <Pressable
                 key={item.label}
-                style={styles.compassCard}
+                style={[
+                  styles.compassCard,
+                  {
+                    backgroundColor: isDarkMode ? "#ffffff" : "#2a2a4a",
+                    borderColor: isDarkMode ? "#CBD5E1" : "#3a3a5a",
+                  },
+                ]}
                 onPress={() => router.push(item.route)}
               >
-                <View style={styles.compassImageContainer}>
+                <View style={[styles.compassImageContainer, { backgroundColor: isDarkMode ? "#f8fafc" : "#1a1a3a", borderColor: isDarkMode ? "#CBD5E1" : "#3a3a5a" }]}>
                   <Image
                     source={assets.dial}
                     style={[
@@ -595,7 +608,7 @@ export default function IndexScreen() {
                     resizeMode="contain"
                   />
                 </View>
-                <Text style={styles.compassLabel}>{item.label}</Text>
+                <Text style={[styles.compassLabel, { color: isDarkMode ? "#BD202E" : "#f5f5f5" }]}>{item.label}</Text>
               </Pressable>
             );
           })}
@@ -603,20 +616,20 @@ export default function IndexScreen() {
 
         {/* Bottom Buttons */}
         <View style={styles.bottomButtons}>
-          <Pressable style={styles.bottomBtn} onPress={() => setShowUserGuide(true)}>
-            <Text style={styles.bottomBtnText}>User Guide</Text>
+          <Pressable style={[styles.bottomBtn, { backgroundColor: isDarkMode ? "#ffffff" : "#2a2a4a", borderColor: isDarkMode ? "#CBD5E1" : "#3a3a5a" }]} onPress={() => setShowUserGuide(true)}>
+            <Text style={[styles.bottomBtnText, { color: isDarkMode ? "#BD202E" : "#f5f5f5" }]}>User Guide</Text>
           </Pressable>
-          <Pressable style={styles.bottomBtn} onPress={() => openWebsite('https://sanskarvastu.com/consultancy')}>
-            <Text style={styles.bottomBtnText}>Vastu Consultancy Services</Text>
+          <Pressable style={[styles.bottomBtn, { backgroundColor: isDarkMode ? "#ffffff" : "#2a2a4a", borderColor: isDarkMode ? "#CBD5E1" : "#3a3a5a" }]} onPress={() => openWebsite('https://sanskarvastu.com/consultancy')}>
+            <Text style={[styles.bottomBtnText, { color: isDarkMode ? "#BD202E" : "#f5f5f5" }]}>Vastu Consultancy Services</Text>
           </Pressable>
         </View>
 
         <View style={styles.bottomButtons}>
-          <Pressable style={styles.bottomBtn}>
-            <Text style={styles.bottomBtnText}>Vastu Courses</Text>
+          <Pressable style={[styles.bottomBtn, { backgroundColor: isDarkMode ? "#ffffff" : "#2a2a4a", borderColor: isDarkMode ? "#CBD5E1" : "#3a3a5a" }]}>
+            <Text style={[styles.bottomBtnText, { color: isDarkMode ? "#BD202E" : "#f5f5f5" }]}>Vastu Courses</Text>
           </Pressable>
-          <Pressable style={styles.bottomBtn} onPress={() => openWebsite('https://sanskarvastu.com/contact')}>
-            <Text style={styles.bottomBtnText}>Contact Us</Text>
+          <Pressable style={[styles.bottomBtn, { backgroundColor: isDarkMode ? "#ffffff" : "#2a2a4a", borderColor: isDarkMode ? "#CBD5E1" : "#3a3a5a" }]} onPress={() => openWebsite('https://sanskarvastu.com/contact')}>
+            <Text style={[styles.bottomBtnText, { color: isDarkMode ? "#BD202E" : "#f5f5f5" }]}>Contact Us</Text>
           </Pressable>
         </View>
 
@@ -797,55 +810,55 @@ export default function IndexScreen() {
               {/* Menu Items */}
               <View style={styles.menuList}>
                 <Pressable style={styles.menuItem}>
-                  <MaterialIcons name="info-outline" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                  <MaterialIcons name="info-outline" size={24} color="#BD202E" style={styles.menuIconStyle} />
                   <Text style={styles.menuText}>About AppliedVastu</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
 
                 <Pressable style={styles.menuItem}>
-                  <MaterialIcons name="computer" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                  <MaterialIcons name="computer" size={24} color="#BD202E" style={styles.menuIconStyle} />
                   <Text style={styles.menuText}>Access Vastu Software</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
 
                 <Pressable style={styles.menuItem}>
-                  <MaterialIcons name="smartphone" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                  <MaterialIcons name="smartphone" size={24} color="#BD202E" style={styles.menuIconStyle} />
                   <Text style={styles.menuText}>More Apps</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
 
                 <Pressable style={styles.menuItem} onPress={shareApp}>
-                  <MaterialIcons name="share" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                  <MaterialIcons name="share" size={24} color="#BD202E" style={styles.menuIconStyle} />
                   <Text style={styles.menuText}>Share</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
 
                 <Pressable style={styles.menuItem}>
-                  <MaterialIcons name="mail-outline" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                  <MaterialIcons name="mail-outline" size={24} color="#BD202E" style={styles.menuIconStyle} />
                   <Text style={styles.menuText}>Send Feedback</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
 
                 <Pressable style={styles.menuItem}>
-                  <MaterialIcons name="star-outline" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                  <MaterialIcons name="star-outline" size={24} color="#BD202E" style={styles.menuIconStyle} />
                   <Text style={styles.menuText}>Review Us</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
 
                 <Pressable style={styles.menuItem} onPress={openPermissionsManager}>
-                  <MaterialIcons name="lock-outline" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                  <MaterialIcons name="lock-outline" size={24} color="#BD202E" style={styles.menuIconStyle} />
                   <Text style={styles.menuText}>Manage Permissions</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
 
                 <Pressable style={styles.menuItem} onPress={() => { setDrawerOpen(false); setShowUserGuide(true); }}>
-                  <MaterialIcons name="help-outline" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                  <MaterialIcons name="help-outline" size={24} color="#BD202E" style={styles.menuIconStyle} />
                   <Text style={styles.menuText}>How to use Vastu Compass</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
 
                 <Pressable style={styles.menuItem}>
-                  <MaterialIcons name="school" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                  <MaterialIcons name="school" size={24} color="#BD202E" style={styles.menuIconStyle} />
                   <Text style={styles.menuText}>Join AppliedVastu Course</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
@@ -869,7 +882,7 @@ export default function IndexScreen() {
             {/* Getting Started */}
             <View style={styles.guideSection}>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                <MaterialIcons name="location-on" size={20} color="#0f172a" style={{ marginRight: 8 }} />
+                <MaterialIcons name="location-on" size={20} color="#BD202E" style={{ marginRight: 8 }} />
                 <Text style={styles.guideSectionTitle}>Welcome!</Text>
               </View>
               <Text style={styles.guideText}>
@@ -880,21 +893,21 @@ export default function IndexScreen() {
             {/* Permissions */}
             <View style={styles.guideSection}>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                <MaterialIcons name="lock" size={20} color="#0f172a" style={{ marginRight: 8 }} />
+                <MaterialIcons name="lock" size={20} color="#BD202E" style={{ marginRight: 8 }} />
                 <Text style={styles.guideSectionTitle}>What We Need</Text>
               </View>
               <Text style={styles.guideSubtitle}>To work properly, we need a few permissions:</Text>
               <View style={styles.guideList}>
                 <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 }}>
-                  <MaterialIcons name="camera-alt" size={16} color="#0f172a" style={{ marginRight: 8, marginTop: 2 }} />
+                  <MaterialIcons name="camera-alt" size={16} color="#BD202E" style={{ marginRight: 8, marginTop: 2 }} />
                   <Text style={styles.guideListText}>Camera - Take photos with compass directions on them</Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 }}>
-                  <MaterialIcons name="location-on" size={16} color="#0f172a" style={{ marginRight: 8, marginTop: 2 }} />
+                  <MaterialIcons name="location-on" size={16} color="#BD202E" style={{ marginRight: 8, marginTop: 2 }} />
                   <Text style={styles.guideListText}>Location - Show where you are and which way you're facing</Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 }}>
-                  <MaterialIcons name="image" size={16} color="#0f172a" style={{ marginRight: 8, marginTop: 2 }} />
+                  <MaterialIcons name="image" size={16} color="#BD202E" style={{ marginRight: 8, marginTop: 2 }} />
                   <Text style={styles.guideListText}>Photos - Save your compass pictures to your gallery</Text>
                 </View>
               </View>
@@ -906,7 +919,7 @@ export default function IndexScreen() {
             {/* Compass Types */}
             <View style={styles.guideSection}>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                <MaterialIcons name="explore" size={20} color="#0f172a" style={{ marginRight: 8 }} />
+                <MaterialIcons name="explore" size={20} color="#BD202E" style={{ marginRight: 8 }} />
                 <Text style={styles.guideSectionTitle}>Choose Your Compass</Text>
               </View>
               <Text style={[styles.guideText, { marginBottom: 12 }]}>
@@ -916,7 +929,7 @@ export default function IndexScreen() {
                 <View style={{ marginBottom: 16 }}>
                   <Text style={styles.guideListItem}>
                     <Text style={{fontWeight: '700', fontSize: 15}}>
-                      <MaterialIcons name="explore" size={16} color="#0f172a" />{' '}
+                      <MaterialIcons name="explore" size={16} color="#BD202E" />{' '}
                       Normal Compass
                     </Text>
                   </Text>
@@ -928,7 +941,7 @@ export default function IndexScreen() {
                 <View style={{ marginBottom: 16 }}>
                   <Text style={styles.guideListItem}>
                     <Text style={{fontWeight: '700', fontSize: 15}}>
-                      <MaterialIcons name="view-module" size={16} color="#0f172a" />{' '}
+                      <MaterialIcons name="view-module" size={16} color="#BD202E" />{' '}
                       16 Zone Vastu Compass
                     </Text>
                   </Text>
@@ -940,7 +953,7 @@ export default function IndexScreen() {
                 <View style={{ marginBottom: 16 }}>
                   <Text style={styles.guideListItem}>
                     <Text style={{fontWeight: '700', fontSize: 15}}>
-                      <MaterialIcons name="grid-view" size={16} color="#0f172a" />{' '}
+                      <MaterialIcons name="grid-view" size={16} color="#BD202E" />{' '}
                       32 Zone Vastu Compass
                     </Text>
                   </Text>
@@ -952,7 +965,7 @@ export default function IndexScreen() {
                 <View style={{ marginBottom: 8 }}>
                   <Text style={styles.guideListItem}>
                     <Text style={{fontWeight: '700', fontSize: 15}}>
-                      <MaterialIcons name="flare" size={16} color="#0f172a" />{' '}
+                      <MaterialIcons name="flare" size={16} color="#BD202E" />{' '}
                       AppliedVastu Chakra
                     </Text>
                   </Text>
@@ -966,7 +979,7 @@ export default function IndexScreen() {
             {/* Using Compass */}
             <View style={styles.guideSection}>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                <MaterialIcons name="smartphone" size={20} color="#0f172a" style={{ marginRight: 8 }} />
+                <MaterialIcons name="smartphone" size={20} color="#BD202E" style={{ marginRight: 8 }} />
                 <Text style={styles.guideSectionTitle}>How to Use</Text>
               </View>
               <Text style={[styles.guideText, { marginBottom: 12 }]}>
@@ -984,22 +997,22 @@ export default function IndexScreen() {
             {/* Features */}
             <View style={styles.guideSection}>
               <Text style={styles.guideSectionTitle}>
-                <MaterialIcons name="star" size={18} color="#0f172a" />{' '}
+                <MaterialIcons name="star" size={18} color="#BD202E" />{' '}
                 Cool Features
               </Text>
               <View style={styles.guideList}>
-                <Text style={styles.guideListItem}><Text style={styles.guideListText}><MaterialIcons name="explore" size={14} color="#0f172a" /> <Text style={{fontWeight: '700'}}>Live Direction:</Text> Watch the needle move as you turn - shows where you're facing right now</Text></Text>
-                <Text style={styles.guideListItem}><Text style={styles.guideListText}><MaterialIcons name="my-location" size={14} color="#0f172a" /> <Text style={{fontWeight: '700'}}>Your Location:</Text> See your exact GPS coordinates (those long numbers are your location on Earth!)</Text></Text>
-                <Text style={styles.guideListItem}><Text style={styles.guideListText}><MaterialIcons name="battery-full" size={14} color="#0f172a" /> <Text style={{fontWeight: '700'}}>Signal Strength:</Text> Shows how strong the magnetic field is around you</Text></Text>
-                <Text style={styles.guideListItem}><Text style={styles.guideListText}><MaterialIcons name="photo-camera" size={14} color="#0f172a" /> <Text style={{fontWeight: '700'}}>Save Photos:</Text> Take pictures with compass directions on them - save and share easily</Text></Text>
-                <Text style={styles.guideListItem}><Text style={styles.guideListText}><MaterialIcons name="share" size={14} color="#0f172a" /> <Text style={{fontWeight: '700'}}>Share App:</Text> Love the app? Share it with friends and family from the menu</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}><MaterialIcons name="explore" size={14} color="#BD202E" /> <Text style={{fontWeight: '700'}}>Live Direction:</Text> Watch the needle move as you turn - shows where you're facing right now</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}><MaterialIcons name="my-location" size={14} color="#BD202E" /> <Text style={{fontWeight: '700'}}>Your Location:</Text> See your exact GPS coordinates (those long numbers are your location on Earth!)</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}><MaterialIcons name="battery-full" size={14} color="#BD202E" /> <Text style={{fontWeight: '700'}}>Signal Strength:</Text> Shows how strong the magnetic field is around you</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}><MaterialIcons name="photo-camera" size={14} color="#BD202E" /> <Text style={{fontWeight: '700'}}>Save Photos:</Text> Take pictures with compass directions on them - save and share easily</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}><MaterialIcons name="share" size={14} color="#BD202E" /> <Text style={{fontWeight: '700'}}>Share App:</Text> Love the app? Share it with friends and family from the menu</Text></Text>
               </View>
             </View>
 
             {/* Tips */}
             <View style={styles.guideSection}>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                <MaterialIcons name="lightbulb-outline" size={20} color="#0f172a" style={{ marginRight: 8 }} />
+                <MaterialIcons name="lightbulb-outline" size={20} color="#BD202E" style={{ marginRight: 8 }} />
                 <Text style={styles.guideSectionTitle}>Tips for Best Results</Text>
               </View>
               <View style={styles.guideList}>
@@ -1015,21 +1028,21 @@ export default function IndexScreen() {
             {/* Which Compass When */}
             <View style={styles.guideSection}>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                <MaterialIcons name="help-outline" size={20} color="#0f172a" style={{ marginRight: 8 }} />
+                <MaterialIcons name="help-outline" size={20} color="#BD202E" style={{ marginRight: 8 }} />
                 <Text style={styles.guideSectionTitle}>Which Compass Should I Use?</Text>
               </View>
               <View style={styles.guideList}>
                 <Text style={styles.guideListItem}><Text style={styles.guideListText}>
-                  <MaterialIcons name="home" size={14} color="#0f172a" /> <Text style={{fontWeight: '700'}}>For checking room direction:</Text> Use Normal Compass
+                  <MaterialIcons name="home" size={14} color="#BD202E" /> <Text style={{fontWeight: '700'}}>For checking room direction:</Text> Use Normal Compass
                 </Text></Text>
                 <Text style={styles.guideListItem}><Text style={styles.guideListText}>
-                  <MaterialIcons name="weekend" size={14} color="#0f172a" /> <Text style={{fontWeight: '700'}}>For basic Vastu (furniture placement):</Text> Use 16 Zone Compass
+                  <MaterialIcons name="weekend" size={14} color="#BD202E" /> <Text style={{fontWeight: '700'}}>For basic Vastu (furniture placement):</Text> Use 16 Zone Compass
                 </Text></Text>
                 <Text style={styles.guideListItem}><Text style={styles.guideListText}>
-                  <MaterialIcons name="apartment" size={14} color="#0f172a" /> <Text style={{fontWeight: '700'}}>For complete home/office Vastu:</Text> Use 32 Zone Compass
+                  <MaterialIcons name="apartment" size={14} color="#BD202E" /> <Text style={{fontWeight: '700'}}>For complete home/office Vastu:</Text> Use 32 Zone Compass
                 </Text></Text>
                 <Text style={styles.guideListItem}><Text style={styles.guideListText}>
-                  <MaterialIcons name="auto-fix-high" size={14} color="#0f172a" /> <Text style={{fontWeight: '700'}}>For energy and chakra analysis:</Text> Use AppliedVastu Chakra
+                  <MaterialIcons name="auto-fix-high" size={14} color="#BD202E" /> <Text style={{fontWeight: '700'}}>For energy and chakra analysis:</Text> Use AppliedVastu Chakra
                 </Text></Text>
               </View>
             </View>
@@ -1037,7 +1050,7 @@ export default function IndexScreen() {
             {/* Vastu Consultancy */}
             <View style={styles.guideSection}>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                <MaterialIcons name="business" size={20} color="#0f172a" style={{ marginRight: 8 }} />
+                <MaterialIcons name="business" size={20} color="#BD202E" style={{ marginRight: 8 }} />
                 <Text style={styles.guideSectionTitle}>Need Expert Help?</Text>
               </View>
               <Text style={styles.guideText}>
@@ -1048,7 +1061,7 @@ export default function IndexScreen() {
             {/* Support */}
             <View style={styles.guideSection}>
               <Text style={styles.guideSectionTitle}>
-                <MaterialIcons name="chat" size={18} color="#0f172a" />{' '}
+                <MaterialIcons name="chat" size={18} color="#BD202E" />{' '}
                 Have Questions?
               </Text>
               <Text style={styles.guideText}>
@@ -1057,8 +1070,8 @@ export default function IndexScreen() {
             </View>
 
             <View style={{ marginBottom: 20, padding: 16, backgroundColor: '#f0f9ff', borderRadius: 12 }}>
-              <Text style={{ fontSize: 14, color: '#0f172a', textAlign: 'center', fontWeight: '600' }}>
-                <MaterialIcons name="favorite" size={18} color="#0f172a" />{' '}Thank you for using Sanskar Compass!{'\n'}
+              <Text style={{ fontSize: 14, color: '#BD202E', textAlign: 'center', fontWeight: '600' }}>
+                <MaterialIcons name="favorite" size={18} color="#BD202E" />{' '}Thank you for using Sanskar Compass!{'\n'}
                 <Text style={{ fontWeight: '400', fontSize: 13 }}>May your space bring prosperity and peace</Text>
               </Text>
             </View>
@@ -1082,7 +1095,7 @@ export default function IndexScreen() {
             {/* Camera Permission */}
             <View style={styles.permissionItem}>
               <View style={styles.permissionInfo}>
-                <MaterialIcons name="camera-alt" size={32} color="#0f172a" style={styles.permissionIconStyle} />
+                <MaterialIcons name="camera-alt" size={32} color="#BD202E" style={styles.permissionIconStyle} />
                 <View style={styles.permissionTextContainer}>
                   <Text style={styles.permissionName}>Camera</Text>
                   <Text style={styles.permissionDesc}>Required for capturing photos with compass overlay</Text>
@@ -1101,7 +1114,7 @@ export default function IndexScreen() {
             {/* Location Permission */}
             <View style={styles.permissionItem}>
               <View style={styles.permissionInfo}>
-                <MaterialIcons name="location-on" size={32} color="#0f172a" style={styles.permissionIconStyle} />
+                <MaterialIcons name="location-on" size={32} color="#BD202E" style={styles.permissionIconStyle} />
                 <View style={styles.permissionTextContainer}>
                   <Text style={styles.permissionName}>Location</Text>
                   <Text style={styles.permissionDesc}>Required for getting coordinates and compass direction</Text>
@@ -1120,7 +1133,7 @@ export default function IndexScreen() {
             {/* Media Library Permission */}
             <View style={styles.permissionItem}>
               <View style={styles.permissionInfo}>
-                <MaterialIcons name="image" size={32} color="#0f172a" style={styles.permissionIconStyle} />
+                <MaterialIcons name="image" size={32} color="#BD202E" style={styles.permissionIconStyle} />
                 <View style={styles.permissionTextContainer}>
                   <Text style={styles.permissionName}>Media Library</Text>
                   <Text style={styles.permissionDesc}>Required for saving photos to gallery</Text>

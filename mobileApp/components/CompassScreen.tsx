@@ -488,14 +488,14 @@ export default function CompassScreen({ type }: Props) {
         ]}
       >
         <Pressable style={[styles.quickBtn, { width: quickBtnWidth }]} onPress={openMap}>
-          <MaterialIcons name="location-on" size={width < 360 ? 24 : 30} color="#2b6cff" />
+          <MaterialIcons name="location-on" size={width < 360 ? 24 : 30} color="#2596be" />
           <Text style={[styles.quickLabel, { fontSize: width < 360 ? 10 : 11 }]}>Google map</Text>
         </Pressable>
 
         <Text style={[styles.degreeTitle, { fontSize: degreeFontSize }]}>{headingText}</Text>
 
         <Pressable style={[styles.quickBtn, { width: quickBtnWidth }]} onPress={() => openCamera("back")}>
-          <MaterialIcons name="camera-alt" size={width < 360 ? 24 : 30} color="#2b6cff" />
+          <MaterialIcons name="camera-alt" size={width < 360 ? 24 : 30} color="#2596be" />
           <Text style={[styles.quickLabel, { fontSize: width < 360 ? 10 : 11 }]}>Rear Camera</Text>
         </Pressable>
       </View>
@@ -503,7 +503,7 @@ export default function CompassScreen({ type }: Props) {
       {/* Compass display */}
       <View style={styles.compassWrap}>
         {/* small pointer on top */}
-        <MaterialIcons name="arrow-drop-down" size={width < 360 ? 14 : 18} color="#1e90ff" style={{ marginBottom: 6 }} />
+        <MaterialIcons name="arrow-drop-down" size={width < 360 ? 14 : 18} color="#2596be" style={{ marginBottom: 6 }} />
 
         {/* Dial */}
         <View style={[styles.dialContainer, { width: dialWidth, height: dialHeight }]}>
@@ -729,61 +729,61 @@ export default function CompassScreen({ type }: Props) {
 
               <View style={styles.menuList}>
                 <Pressable style={styles.menuItem}>
-                  <MaterialIcons name="info-outline" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                  <MaterialIcons name="info-outline" size={24} color="#BD202E" style={styles.menuIconStyle} />
                   <Text style={styles.menuText}>About AppliedVastu</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
 
                 <Pressable style={styles.menuItem}>
-                  <MaterialIcons name="computer" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                  <MaterialIcons name="computer" size={24} color="#BD202E" style={styles.menuIconStyle} />
                   <Text style={styles.menuText}>Access Vastu Software</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
 
                 <Pressable style={styles.menuItem}>
-                  <MaterialIcons name="smartphone" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                  <MaterialIcons name="smartphone" size={24} color="#BD202E" style={styles.menuIconStyle} />
                   <Text style={styles.menuText}>More Apps</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
 
                 <Pressable style={styles.menuItem} onPress={shareApp}>
-                  <MaterialIcons name="share" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                  <MaterialIcons name="share" size={24} color="#BD202E" style={styles.menuIconStyle} />
                   <Text style={styles.menuText}>Share</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
 
                 <Pressable style={styles.menuItem}>
-                  <MaterialIcons name="mail-outline" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                  <MaterialIcons name="mail-outline" size={24} color="#BD202E" style={styles.menuIconStyle} />
                   <Text style={styles.menuText}>Send Feedback</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
 
                 <Pressable style={styles.menuItem}>
-                  <MaterialIcons name="star-outline" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                  <MaterialIcons name="star-outline" size={24} color="#BD202E" style={styles.menuIconStyle} />
                   <Text style={styles.menuText}>Review Us</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
 
                 <Pressable style={styles.menuItem} onPress={openPermissionsManager}>
-                  <MaterialIcons name="lock-outline" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                  <MaterialIcons name="lock-outline" size={24} color="#BD202E" style={styles.menuIconStyle} />
                   <Text style={styles.menuText}>Manage Permissions</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
 
                 <Pressable style={styles.menuItem} onPress={openUserGuide}>
-                  <MaterialIcons name="help-outline" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                  <MaterialIcons name="help-outline" size={24} color="#BD202E" style={styles.menuIconStyle} />
                   <Text style={styles.menuText}>How to use Vastu Compass</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
 
                 <Pressable style={styles.menuItem}>
-                  <MaterialIcons name="school" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                  <MaterialIcons name="school" size={24} color="#BD202E" style={styles.menuIconStyle} />
                   <Text style={styles.menuText}>Join AppliedVastu Course</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
 
                 <Pressable style={styles.menuItem} onPress={() => setDrawerOpen(false)}>
-                  <MaterialIcons name="arrow-back" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                  <MaterialIcons name="arrow-back" size={24} color="#BD202E" style={styles.menuIconStyle} />
                   <Text style={styles.menuText}>Back</Text>
                   <Text style={styles.menuArrow}></Text>
                 </Pressable>
@@ -884,17 +884,17 @@ export default function CompassScreen({ type }: Props) {
           {/* Bottom Controls */}
           <View style={styles.previewControls}>
             <Pressable style={styles.previewBtn} onPress={() => setPreviewUri(null)}>
-              <MaterialIcons name="refresh" size={24} color="#2b6cff" />
+              <MaterialIcons name="refresh" size={24} color="#2596be" />
               <Text style={styles.previewBtnLabel}>Retake</Text>
             </Pressable>
 
             <Pressable style={styles.previewBtn} onPress={savePreviewPhoto}>
-              <MaterialIcons name="save" size={24} color="#2b6cff" />
+              <MaterialIcons name="save" size={24} color="#2596be" />
               <Text style={styles.previewBtnLabel}>Save</Text>
             </Pressable>
 
             <Pressable style={styles.previewBtn} onPress={sharePreviewPhoto}>
-              <MaterialIcons name="share" size={24} color="#2b6cff" />
+              <MaterialIcons name="share" size={24} color="#2596be" />
               <Text style={styles.previewBtnLabel}>Share</Text>
             </Pressable>
           </View>
@@ -913,61 +913,61 @@ export default function CompassScreen({ type }: Props) {
 
                   <View style={styles.menuList}>
                     <Pressable style={styles.menuItem}>
-                      <MaterialIcons name="info-outline" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                      <MaterialIcons name="info-outline" size={24} color="#BD202E" style={styles.menuIconStyle} />
                       <Text style={styles.menuText}>About AppliedVastu</Text>
                       <Text style={styles.menuArrow}>›</Text>
                     </Pressable>
 
                     <Pressable style={styles.menuItem}>
-                      <MaterialIcons name="computer" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                      <MaterialIcons name="computer" size={24} color="#BD202E" style={styles.menuIconStyle} />
                       <Text style={styles.menuText}>Access Vastu Software</Text>
                       <Text style={styles.menuArrow}>›</Text>
                     </Pressable>
 
                     <Pressable style={styles.menuItem}>
-                      <MaterialIcons name="smartphone" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                      <MaterialIcons name="smartphone" size={24} color="#BD202E" style={styles.menuIconStyle} />
                       <Text style={styles.menuText}>More Apps</Text>
                       <Text style={styles.menuArrow}>›</Text>
                     </Pressable>
 
                     <Pressable style={styles.menuItem} onPress={shareApp}>
-                      <MaterialIcons name="share" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                      <MaterialIcons name="share" size={24} color="#BD202E" style={styles.menuIconStyle} />
                       <Text style={styles.menuText}>Share</Text>
                       <Text style={styles.menuArrow}>›</Text>
                     </Pressable>
 
                     <Pressable style={styles.menuItem}>
-                      <MaterialIcons name="mail-outline" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                      <MaterialIcons name="mail-outline" size={24} color="#BD202E" style={styles.menuIconStyle} />
                       <Text style={styles.menuText}>Send Feedback</Text>
                       <Text style={styles.menuArrow}>›</Text>
                     </Pressable>
 
                     <Pressable style={styles.menuItem}>
-                      <MaterialIcons name="star-outline" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                      <MaterialIcons name="star-outline" size={24} color="#BD202E" style={styles.menuIconStyle} />
                       <Text style={styles.menuText}>Review Us</Text>
                       <Text style={styles.menuArrow}>›</Text>
                     </Pressable>
 
                     <Pressable style={styles.menuItem} onPress={openPermissionsManager}>
-                      <MaterialIcons name="lock-outline" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                      <MaterialIcons name="lock-outline" size={24} color="#BD202E" style={styles.menuIconStyle} />
                       <Text style={styles.menuText}>Manage Permissions</Text>
                       <Text style={styles.menuArrow}>›</Text>
                     </Pressable>
 
                     <Pressable style={styles.menuItem} onPress={openUserGuide}>
-                      <MaterialIcons name="help-outline" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                      <MaterialIcons name="help-outline" size={24} color="#BD202E" style={styles.menuIconStyle} />
                       <Text style={styles.menuText}>How to use Vastu Compass</Text>
                       <Text style={styles.menuArrow}>›</Text>
                     </Pressable>
 
                     <Pressable style={styles.menuItem}>
-                      <MaterialIcons name="school" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                      <MaterialIcons name="school" size={24} color="#BD202E" style={styles.menuIconStyle} />
                       <Text style={styles.menuText}>Join AppliedVastu Course</Text>
                       <Text style={styles.menuArrow}>›</Text>
                     </Pressable>
 
                     <Pressable style={styles.menuItem} onPress={() => setDrawerOpen(false)}>
-                      <MaterialIcons name="arrow-back" size={24} color="#0f172a" style={styles.menuIconStyle} />
+                      <MaterialIcons name="arrow-back" size={24} color="#BD202E" style={styles.menuIconStyle} />
                       <Text style={styles.menuText}>Back</Text>
                       <Text style={styles.menuArrow}></Text>
                     </Pressable>
@@ -982,16 +982,16 @@ export default function CompassScreen({ type }: Props) {
       {/* Bottom nav mock */}
       <View style={[styles.bottomNav, { paddingBottom: Math.max(insets.bottom, 8) }]}>
         <Pressable style={styles.navItem} onPress={() => router.push("/")}>
-          <MaterialIcons name="home" size={28} color="#4A9EFF" />
+          <MaterialIcons name="home" size={28} color="#2596be" />
           <Text style={styles.navLabel}>Home Page</Text>
         </Pressable>
 
         <Pressable style={styles.captureBtn} onPress={() => openCamera("back")}>
-          <MaterialIcons name="camera-alt" size={28} color="#2b6cff" />
+          <MaterialIcons name="camera-alt" size={28} color="#2596be" />
         </Pressable>
 
         <Pressable style={styles.navItem} onPress={openLastCaptured}>
-          <MaterialIcons name="image" size={28} color="#4A9EFF" />
+          <MaterialIcons name="image" size={28} color="#2596be" />
           <Text style={styles.navLabel}>Last Captured</Text>
         </Pressable>
       </View>

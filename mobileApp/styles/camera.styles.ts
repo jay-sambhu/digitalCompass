@@ -113,7 +113,7 @@ export const styles = StyleSheet.create({
     gap: 4,
   },
   navBtnText: {
-    color: "#4A9EFF",
+    color: "#2596be",
     fontSize: 12,
     fontWeight: "600",
   },
@@ -184,7 +184,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
+    borderBottomColor: "#CBD5E1",
   },
   drawerLogo: {
     width: 80,
@@ -194,7 +194,7 @@ export const styles = StyleSheet.create({
   drawerBrand: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#000",
+    color: "#BD202E",
     marginBottom: 5,
   },
   drawerVersion: {
@@ -205,7 +205,7 @@ export const styles = StyleSheet.create({
   drawerTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#000",
+    color: "#BD202E",
   },
   menuList: {
     paddingVertical: 10,
@@ -216,7 +216,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    borderBottomColor: "#CBD5E1",
   },
   menuIconStyle: {
     marginRight: 12,
@@ -225,7 +225,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: "600",
-    color: "#000",
+    color: "#BD202E",
   },
   menuArrow: {
     fontSize: 24,
@@ -281,7 +281,7 @@ export const styles = StyleSheet.create({
     textAlign: "center" 
   },
   btn: { 
-    backgroundColor: "#2b6cff", 
+    backgroundColor: "#2596be", 
     paddingHorizontal: 16, 
     paddingVertical: 12, 
     borderRadius: 10 

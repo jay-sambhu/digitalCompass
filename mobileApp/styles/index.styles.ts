@@ -3,7 +3,7 @@ import { Platform, StyleSheet } from "react-native";
 export const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: "#eef2f6"
+    backgroundColor: "#f5f5f5"
   },
   scrollContent: { 
     flexGrow: 1,
@@ -15,14 +15,14 @@ export const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: "#0f172a",
+    backgroundColor: "#BD202E",
     borderBottomWidth: 1,
-    borderBottomColor: "#1e293b",
+    borderBottomColor: "#a01b26",
   },
   appTitle: { 
     fontSize: 20, 
     fontWeight: "700", 
-    color: "#f8fafc",
+    color: "#ffffff",
     letterSpacing: 0.3,
     fontFamily: Platform.select({ ios: "ui-rounded", android: "serif", default: "serif" }),
   },
@@ -49,7 +49,7 @@ export const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
     borderRightWidth: 1,
-    borderRightColor: "#e2e8f0",
+    borderRightColor: "#CBD5E1",
   },
   drawerHeader: {
     alignItems: "center",
@@ -57,7 +57,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: "#f8fafc",
     borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
+    borderBottomColor: "#CBD5E1",
   },
   drawerLogo: {
     width: 80,
@@ -67,7 +67,7 @@ export const styles = StyleSheet.create({
   drawerBrand: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#0f172a",
+    color: "#BD202E",
     marginBottom: 5,
     letterSpacing: 0.2,
   },
@@ -79,7 +79,7 @@ export const styles = StyleSheet.create({
   drawerTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#0f172a",
+    color: "#BD202E",
     letterSpacing: 0.2,
     fontFamily: Platform.select({ ios: "ui-rounded", android: "serif", default: "serif" }),
   },
@@ -98,7 +98,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: "600",
-    color: "#0f172a",
+    color: "#BD202E",
   },
   menuArrow: {
     fontSize: 24,
@@ -106,7 +106,7 @@ export const styles = StyleSheet.create({
   },
   permissionsContainer: {
     flex: 1,
-    backgroundColor: "#eef2f6",
+    backgroundColor: "#f5f5f5",
   },
   permissionsHeader: {
     flexDirection: "row",
@@ -116,12 +116,12 @@ export const styles = StyleSheet.create({
     paddingVertical: 16,
     backgroundColor: "#f8fafc",
     borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
+    borderBottomColor: "#CBD5E1",
   },
   permissionsTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#0f172a",
+    color: "#BD202E",
     fontFamily: Platform.select({ ios: "ui-rounded", android: "serif", default: "serif" }),
   },
   permissionsClose: {
@@ -154,7 +154,7 @@ export const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: "#CBD5E1",
   },
   permissionInfo: {
     flexDirection: "row",
@@ -167,7 +167,7 @@ export const styles = StyleSheet.create({
   permissionName: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#0f172a",
+    color: "#BD202E",
     marginBottom: 4,
   },
   permissionDesc: {
@@ -179,7 +179,7 @@ export const styles = StyleSheet.create({
     marginLeft: 12,
   },
   openSettingsBtn: {
-    backgroundColor: "#2563eb",
+    backgroundColor: "#2596be",
     paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 8,
@@ -212,7 +212,7 @@ export const styles = StyleSheet.create({
   },
   userGuideContainer: {
     flex: 1,
-    backgroundColor: "#eef2f6",
+    backgroundColor: "#f5f5f5",
   },
   userGuideHeader: {
     flexDirection: "row",
@@ -222,12 +222,12 @@ export const styles = StyleSheet.create({
     paddingVertical: 16,
     backgroundColor: "#f8fafc",
     borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
+    borderBottomColor: "#CBD5E1",
   },
   userGuideTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#0f172a",
+    color: "#BD202E",
     fontFamily: Platform.select({ ios: "ui-rounded", android: "serif", default: "serif" }),
   },
   userGuideClose: {
@@ -251,12 +251,12 @@ export const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: "#CBD5E1",
   },
   guideSectionTitle: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#2563eb",
+    color: "#2596be",
     marginBottom: 12,
   },
   guideSubtitle: {
@@ -327,7 +327,7 @@ export const styles = StyleSheet.create({
   },
   logError: { borderLeftColor: "#d32f2f", backgroundColor: "#3d1f1f" },
   logWarn: { borderLeftColor: "#ff9800", backgroundColor: "#3d2a1f" },
-  logInfo: { borderLeftColor: "#2196f3", backgroundColor: "#1f2d3d" },
+  logInfo: { borderLeftColor: "#2596be", backgroundColor: "#1f2d3d" },
   logTime: { fontSize: 11, color: "#999", marginRight: 8, minWidth: 60 },
   logType: { fontSize: 11, fontWeight: "700", color: "#aaa", marginRight: 8, minWidth: 60 },
   logMessage: { fontSize: 12, color: "#ddd", flex: 1, flexWrap: "wrap" },
@@ -339,8 +339,8 @@ export const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
-    shadowColor: "#0f172a",
+    borderColor: "#CBD5E1",
+    shadowColor: "#BD202E",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 6,
@@ -349,7 +349,7 @@ export const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#0f172a",
+    color: "#BD202E",
     textAlign: "center",
     letterSpacing: 0.3,
     fontFamily: Platform.select({ ios: "ui-rounded", android: "serif", default: "serif" }),
@@ -367,14 +367,14 @@ export const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     alignItems: "center",
-    shadowColor: "#0f172a",
+    shadowColor: "#BD202E",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: "#CBD5E1",
   },
   compassImageContainer: {
     width: 120,
@@ -385,7 +385,7 @@ export const styles = StyleSheet.create({
     overflow: "hidden",
     backgroundColor: "#f8fafc",
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+      borderColor: "#CBD5E1",
   },
   compassDial: {
     width: 120,
@@ -402,7 +402,7 @@ export const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 14,
     fontWeight: "700",
-    color: "#0f172a",
+      color: "#BD202E",
     textAlign: "center",
     letterSpacing: 0.2,
   },
@@ -419,8 +419,8 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
-    shadowColor: "#0f172a",
+      borderColor: "#CBD5E1",
+      shadowColor: "#BD202E",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 6,
@@ -432,7 +432,7 @@ export const styles = StyleSheet.create({
   bottomBtnText: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#0f172a",
+      color: "#BD202E",
     textAlign: "center",
     letterSpacing: 0.2,
   },
@@ -509,7 +509,7 @@ export const styles = StyleSheet.create({
   camBtn: {
     paddingVertical: 10,
     paddingHorizontal: 16,
-    backgroundColor: "#1f2937",
+      backgroundColor: "#2596be",
     borderRadius: 8,
   },
   camBtnText: { color: "#fff", fontWeight: "600" },
@@ -519,7 +519,7 @@ export const styles = StyleSheet.create({
     borderRadius: 35,
     backgroundColor: "#fff",
     borderWidth: 4,
-    borderColor: "#d1d5db",
+      borderColor: "#CBD5E1",
   },
   cameraPermission: {
     flex: 1,
