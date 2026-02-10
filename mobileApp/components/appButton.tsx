@@ -9,7 +9,7 @@ type Props = {
   disabled?: boolean;
   style?: ViewStyle | ViewStyle[];
 };
-
+//export component
 export default function AppButton({
   title,
   onPress,
