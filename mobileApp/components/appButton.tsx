@@ -1,7 +1,7 @@
 import React from "react";
 import { Pressable, Text, ViewStyle } from "react-native";
 import { styles } from "../styles/appButton.styles";
-
+// props pass 
 type Props = {
   title: string;
   onPress?: () => void;
