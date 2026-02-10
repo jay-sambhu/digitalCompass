@@ -28,6 +28,6 @@ export default function RootLayout() {
   if (!fontsLoaded) {
     return null;
   }
-
+//returning
   return <Slot />;
 }
