@@ -45,7 +45,7 @@ export default function Compass() {
 
   const deg = Math.round(heading);
   const dir = degreeToDirection16(heading);
-
+//return part
   return (
     <View style={styles.card}>
       <Text style={styles.title}>Real-time Compass</Text>
