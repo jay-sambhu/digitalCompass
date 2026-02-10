@@ -115,6 +115,7 @@ export const SplashScreenComponent = ({
     </SafeAreaView>
   );
 };
+//function part
 
 const styles = StyleSheet.create({
   container: {
