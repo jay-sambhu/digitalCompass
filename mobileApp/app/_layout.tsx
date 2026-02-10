@@ -7,7 +7,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [fontsLoaded, setFontsLoaded] = React.useState(false);
-
+//state management
   useEffect(() => {
     async function loadFonts() {
       try {
