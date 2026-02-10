@@ -116,7 +116,7 @@ export const SplashScreenComponent = ({
   );
 };
 //function part
-
+//css for splash screen
 const styles = StyleSheet.create({
   container: {
     flex: 1,
