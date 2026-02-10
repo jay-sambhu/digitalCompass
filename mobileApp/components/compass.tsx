@@ -5,7 +5,7 @@ import { degreeToDirection16 } from "../utils/direction";
 import { styles } from "../styles/compass.styles";
 
 type MagData = { x: number; y: number; z: number };
-
+//function started
 function headingFromMag({ x, y }: MagData): number {
   let angle = Math.atan2(y, x) * (180 / Math.PI);
   angle = angle >= 0 ? angle : angle + 360;
