@@ -588,7 +588,15 @@ export default function IndexScreen() {
                     borderColor: isDarkMode ? "#CBD5E1" : "#3a3a5a",
                   },
                 ]}
-                onPress={() => router.push(item.route)}
+                onPress={() => {
+                  if (item.type === "zone16") {
+                    Alert.alert(
+                      "Under Maintenance",
+                      "16 Zone Compass is under maintenance, but you can open and test the compass."
+                    );
+                  }
+                  router.push(item.route);
+                }}
               >
                 <View style={[styles.compassImageContainer, { borderColor: isDarkMode ? "#CBD5E1" : "#3a3a5a" }]}>
                   <Image
