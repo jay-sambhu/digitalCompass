@@ -1,7 +1,7 @@
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000" },
+  container: { flex: 1, backgroundColor: "#BD202E" },
   camera: { flex: 1 },
   
   topHeader: {
@@ -34,7 +34,7 @@ export const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.2)",
   },
   searchText: {
-    color: "#fff",
+    color: "#ffffff",
     fontSize: 13,
     fontWeight: "600",
   },
@@ -87,13 +87,13 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
   },
   infoTitle: {
-    color: "#000",
+    color: "#ffffff",
     fontSize: 14,
     fontWeight: "700",
     marginBottom: 4,
   },
   infoText: {
-    color: "#000",
+    color: "#ffffff",
     fontSize: 12,
     fontWeight: "600",
   },
@@ -113,7 +113,7 @@ export const styles = StyleSheet.create({
     gap: 4,
   },
   navBtnText: {
-    color: "#BD202E",
+    color: "#ffffff",
     fontSize: 12,
     fontWeight: "600",
   },
@@ -121,7 +121,7 @@ export const styles = StyleSheet.create({
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: "#fff",
+    backgroundColor: "#BD202E",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -159,7 +159,7 @@ export const styles = StyleSheet.create({
     borderRadius: 12,
   },
   previewBtnText: {
-    color: "#fff",
+    color: "#ffffff",
     fontSize: 12,
     fontWeight: "600",
   },
@@ -171,7 +171,7 @@ export const styles = StyleSheet.create({
   drawerContainer: {
     width: "70%",
     height: "100%",
-    backgroundColor: "#fff",
+    backgroundColor: "#BD202E",
     shadowColor: "#000",
     shadowOffset: { width: 2, height: 0 },
     shadowOpacity: 0.25,
@@ -182,7 +182,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 30,
     paddingHorizontal: 20,
-    backgroundColor: "#fff",
+    backgroundColor: "#BD202E",
     borderBottomWidth: 1,
     borderBottomColor: "#CBD5E1",
   },
@@ -194,18 +194,18 @@ export const styles = StyleSheet.create({
   drawerBrand: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#BD202E",
+    color: "#ffffff",
     marginBottom: 5,
   },
   drawerVersion: {
     fontSize: 13,
-    color: "#888",
+    color: "#ffffff",
     marginBottom: 15,
   },
   drawerTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#BD202E",
+    color: "#ffffff",
   },
   menuList: {
     paddingVertical: 10,
@@ -225,10 +225,10 @@ export const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: "600",
-    color: "#BD202E",    fontFamily: "Poppins",  },
+    color: "#ffffff",    fontFamily: "Poppins",  },
   menuArrow: {
     fontSize: 24,
-    color: "#ccc",
+    color: "#ffffff",
   },
   
   cameraDialWrap: {
@@ -258,12 +258,12 @@ export const styles = StyleSheet.create({
     gap: 6,
   },
   cameraOverlayLabel: {
-    color: "#fff",
+    color: "#ffffff",
     fontSize: 12,
     fontWeight: "700",
   },
   cameraOverlayValue: {
-    color: "#fff",
+    color: "#ffffff",
     fontSize: 12,
   },
   
@@ -272,21 +272,21 @@ export const styles = StyleSheet.create({
     justifyContent: "center", 
     alignItems: "center", 
     padding: 20, 
-    backgroundColor: "#000" 
+    backgroundColor: "#BD202E" 
   },
   text: { 
-    color: "#fff", 
+    color: "#ffffff", 
     marginBottom: 12, 
     textAlign: "center" 
   },
   btn: { 
-    backgroundColor: "#2596be", 
+    backgroundColor: "#BD202E", 
     paddingHorizontal: 16, 
     paddingVertical: 12, 
     borderRadius: 10 
   },
   btnText: { 
-    color: "#fff", 
+    color: "#ffffff", 
     fontWeight: "800" 
   },
 });

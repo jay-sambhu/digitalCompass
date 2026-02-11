@@ -14,8 +14,8 @@ export const styles = StyleSheet.create({
   },
   primary: { backgroundColor: "#BD202E" },
   outline: { backgroundColor: "transparent", borderWidth: 1, borderColor: "#2596be" },
-  text: { color: "#fff", fontSize: 16, fontWeight: "700", letterSpacing: 0.2, fontFamily: "Poppins" },
-  outlineText: { color: "#BD202E" },
+  text: { color: "#ffffff", fontSize: 16, fontWeight: "700", letterSpacing: 0.2, fontFamily: "Poppins" },
+  outlineText: { color: "#ffffff" },
   pressed: { opacity: 0.85 },
   disabled: { opacity: 0.5 },
 });

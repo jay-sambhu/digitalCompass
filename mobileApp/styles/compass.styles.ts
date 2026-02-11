@@ -15,8 +15,8 @@ export const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 4,
   },
-  title: { color: "#f8fafc", fontSize: 20, marginBottom: 10, letterSpacing: 0.3, fontFamily: "Poppins" },
-  degree: { color: "#4ade80", fontSize: 54, fontWeight: "800", letterSpacing: 0.5, fontFamily: "Poppins" },
-  dir: { color: "#e2e8f0", fontSize: 28, marginTop: 6, letterSpacing: 0.4, fontFamily: "Poppins" },
-  hint: { color: "#94a3b8", marginTop: 14, fontSize: 12, fontFamily: "Poppins" },
+  title: { color: "#ffffff", fontSize: 20, marginBottom: 10, letterSpacing: 0.3, fontFamily: "Poppins" },
+  degree: { color: "#ffffff", fontSize: 54, fontWeight: "800", letterSpacing: 0.5, fontFamily: "Poppins" },
+  dir: { color: "#ffffff", fontSize: 28, marginTop: 6, letterSpacing: 0.4, fontFamily: "Poppins" },
+  hint: { color: "#ffffff", marginTop: 14, fontSize: 12, fontFamily: "Poppins" },
 });
