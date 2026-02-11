@@ -11,6 +11,7 @@ import {
   useWindowDimensions,
   ScrollView,
   Platform,
+  ImageSourcePropType,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Magnetometer } from "expo-sensors";
@@ -50,6 +51,25 @@ type Props = {
   type: CompassType;
 };
 
+const zone16StepImages: ImageSourcePropType[] = [
+  require("../assets/16ZoneVastuCompass/1.png"),
+  require("../assets/16ZoneVastuCompass/2.png"),
+  require("../assets/16ZoneVastuCompass/3.png"),
+  require("../assets/16ZoneVastuCompass/4.png"),
+  require("../assets/16ZoneVastuCompass/5.png"),
+  require("../assets/16ZoneVastuCompass/6.png"),
+  require("../assets/16ZoneVastuCompass/7.png"),
+  require("../assets/16ZoneVastuCompass/8.png"),
+  require("../assets/16ZoneVastuCompass/9.png"),
+  require("../assets/16ZoneVastuCompass/10.png"),
+  require("../assets/16ZoneVastuCompass/11.png"),
+  require("../assets/16ZoneVastuCompass/12.png"),
+  require("../assets/16ZoneVastuCompass/13.png"),
+  require("../assets/16ZoneVastuCompass/14.png"),
+  require("../assets/16ZoneVastuCompass/15.png"),
+  require("../assets/16ZoneVastuCompass/16.png"),
+];
+
 export default function CompassScreen({ type }: Props) {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -88,6 +108,7 @@ export default function CompassScreen({ type }: Props) {
   const [camPerm, requestCamPerm] = useCameraPermissions();
   const [mediaPerm, setMediaPerm] = useState<MediaLibrary.PermissionResponse | null>(null);
   const isExpoGoAndroid = Platform.OS === "android" && Constants.appOwnership === "expo";
+  const [selectedZoneStep, setSelectedZoneStep] = useState<number | null>(null);
 
   const prevHeadingRef = useRef(0);
 
@@ -172,6 +193,8 @@ export default function CompassScreen({ type }: Props) {
   }, [rotateAnim]);
 
   const headingText = useMemo(() => `${Math.round(heading)}° Degree`, [heading]);
+  const zoneImageSize = useMemo(() => Math.max(22, Math.round(dialSize * 0.12)), [dialSize]);
+  const zoneImageRadius = useMemo(() => (dialSize / 2) - (zoneImageSize * 0.7), [dialSize, zoneImageSize]);
 
   const needleRotate = rotateAnim.interpolate({
     inputRange: [0, 360],
@@ -524,6 +547,38 @@ export default function CompassScreen({ type }: Props) {
             ]}
             resizeMode="contain"
           />
+
+          {type === "zone16" &&
+            zone16StepImages.map((source, index) => {
+              const angle = (-90 + index * (360 / zone16StepImages.length)) * (Math.PI / 180);
+              const x = zoneImageRadius * Math.cos(angle);
+              const y = zoneImageRadius * Math.sin(angle);
+              const isActive = selectedZoneStep === index + 1;
+
+              return (
+                <Pressable
+                  key={`zone16-step-${index + 1}`}
+                  disabled={cameraOpen}
+                  onPress={() => {
+                    setSelectedZoneStep(index + 1);
+                    console.log(`[ZONE16] Clicked image ${index + 1}`);
+                  }}
+                  style={[
+                    styles.zoneStepItem,
+                    {
+                      width: zoneImageSize,
+                      height: zoneImageSize,
+                      left: dialWidth / 2 - zoneImageSize / 2 + x,
+                      top: dialHeight / 2 - zoneImageSize / 2 + y,
+                      opacity: cameraOpen ? 0.5 : 1,
+                    },
+                    isActive && styles.zoneStepItemActive,
+                  ]}
+                >
+                  <Image source={source} style={styles.zoneStepImage} resizeMode="contain" />
+                </Pressable>
+              );
+            })}
         </View>
         
         {/* Info below compass */}
@@ -730,7 +785,7 @@ export default function CompassScreen({ type }: Props) {
               <View style={styles.menuList}>
                 <Pressable style={styles.menuItem}>
                   <MaterialIcons name="info-outline" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                  <Text style={styles.menuText}>About AppliedVastu</Text>
+                  <Text style={styles.menuText}>About SanskarVastu</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
 
@@ -778,7 +833,7 @@ export default function CompassScreen({ type }: Props) {
 
                 <Pressable style={styles.menuItem}>
                   <MaterialIcons name="school" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                  <Text style={styles.menuText}>Join AppliedVastu Course</Text>
+                  <Text style={styles.menuText}>Join SanskarVastu Course</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
 
@@ -914,7 +969,7 @@ export default function CompassScreen({ type }: Props) {
                   <View style={styles.menuList}>
                     <Pressable style={styles.menuItem}>
                       <MaterialIcons name="info-outline" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                      <Text style={styles.menuText}>About AppliedVastu</Text>
+                      <Text style={styles.menuText}>About SanskarVastu</Text>
                       <Text style={styles.menuArrow}>›</Text>
                     </Pressable>
 
@@ -962,7 +1017,7 @@ export default function CompassScreen({ type }: Props) {
 
                     <Pressable style={styles.menuItem}>
                       <MaterialIcons name="school" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                      <Text style={styles.menuText}>Join AppliedVastu Course</Text>
+                      <Text style={styles.menuText}>Join SanskarVastu Course</Text>
                       <Text style={styles.menuArrow}>›</Text>
                     </Pressable>
 
@@ -998,5 +1053,3 @@ export default function CompassScreen({ type }: Props) {
     </SafeAreaView>
   );
 }
-
-

@@ -19,6 +19,19 @@ export const styles = StyleSheet.create({
   },
   dial: { overflow: "hidden", alignSelf: "center" },
   needle: { position: "absolute" },
+  zoneStepItem: {
+    position: "absolute",
+    borderRadius: 999,
+    overflow: "hidden",
+  },
+  zoneStepItemActive: {
+    borderWidth: 1,
+    borderColor: "#BD202E",
+  },
+  zoneStepImage: {
+    width: "100%",
+    height: "100%",
+  },
   
   infoRowBelow: { position: "absolute", left: 16, right: 16, flexDirection: "row", justifyContent: "space-between", gap: 10 },
   infoBoxBelow: { flex: 1, backgroundColor: "transparent", padding: 0, borderRadius: 0 },

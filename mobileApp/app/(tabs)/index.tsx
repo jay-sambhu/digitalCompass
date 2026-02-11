@@ -574,7 +574,7 @@ export default function IndexScreen() {
             { label: "Normal Compass", route: "/(tabs)/compass" as Href, type: "normal" },
             { label: "16 Zone Vastu\nCompass", route: "/(tabs)/compass2" as Href, type: "zone16" },
             { label: "32 Zone Vastu\nCompass", route: "/(tabs)/compass3" as Href, type: "zone32" },
-            { label: "AppliedVastu\nCharka", route: "/(tabs)/compass4" as Href, type: "chakra" },
+            { label: "SanskarVastu\nCharka", route: "/(tabs)/compass4" as Href, type: "chakra" },
           ].map((item) => {
             const assets = getCompassAssets(item.type);
             return (
@@ -823,7 +823,7 @@ export default function IndexScreen() {
               <View style={styles.menuList}>
                 <Pressable style={styles.menuItem}>
                   <MaterialIcons name="info-outline" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                  <Text style={styles.menuText}>About AppliedVastu</Text>
+                  <Text style={styles.menuText}>About SanskarVastu</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
 
@@ -871,7 +871,7 @@ export default function IndexScreen() {
 
                 <Pressable style={styles.menuItem}>
                   <MaterialIcons name="school" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                  <Text style={styles.menuText}>Join AppliedVastu Course</Text>
+                  <Text style={styles.menuText}>Join SanskarVastu Course</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
               </View>
@@ -978,11 +978,11 @@ export default function IndexScreen() {
                   <Text style={styles.guideListItem}>
                     <Text style={{fontWeight: '700', fontSize: 15}}>
                       <MaterialIcons name="flare" size={16} color="#000" />{' '}
-                      AppliedVastu Chakra
+                      SanskarVastu Chakra
                     </Text>
                   </Text>
                   <Text style={[styles.guideListText, { marginLeft: 0, marginTop: 4 }]}>
-                    A special energy wheel used in applied Vastu science. Shows energy flow patterns in your space. Perfect for Vastu experts and energy healers.
+                    A special energy wheel used in Sanskar Vastu science. Shows energy flow patterns in your space. Perfect for Vastu experts and energy healers.
                   </Text>
                 </View>
               </View>
@@ -1054,7 +1054,7 @@ export default function IndexScreen() {
                   <MaterialIcons name="apartment" size={14} color="#000" /> <Text style={{fontWeight: '700'}}>For complete home/office Vastu:</Text> Use 32 Zone Compass
                 </Text></Text>
                 <Text style={styles.guideListItem}><Text style={styles.guideListText}>
-                  <MaterialIcons name="auto-fix-high" size={14} color="#000" /> <Text style={{fontWeight: '700'}}>For energy and chakra analysis:</Text> Use AppliedVastu Chakra
+                  <MaterialIcons name="auto-fix-high" size={14} color="#000" /> <Text style={{fontWeight: '700'}}>For energy and chakra analysis:</Text> Use SanskarVastu Chakra
                 </Text></Text>
               </View>
             </View>

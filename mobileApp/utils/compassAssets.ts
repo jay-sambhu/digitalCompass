@@ -28,7 +28,7 @@ const COMPASS_ASSETS = {
     dialOffset: { x: 5, y: 4,  },
   },
   chakra: {
-    dial: require("../assets/appliedVastuChakra/dial.png"),
+    dial: require("../assets/SanskarVastuChakra/dial.png"),
     needle: require("../assets/normalCompass/needle.png"),
     icon: require("../assets/normalCompass/icon.png"),
     dialScale: 1.08,
