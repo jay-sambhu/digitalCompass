@@ -26,27 +26,7 @@ import Constants from "expo-constants";
 import { getCompassAssets, type CompassType } from "../utils/compassAssets";
 import { MaterialIcons } from "@expo/vector-icons";
 import { styles } from "../styles/CompassScreen.styles";
-
-
-
-
-function normalize360(deg: number) {
-  return (deg + 360) % 360;
-}
-
-// 🔴 NEW FUNCTION: Calculate heading from magnetic vector with 180° correction
-function headingFromMag({ x, y }: { x: number; y: number }) {
-  let deg = (Math.atan2(y, x) * 180) / Math.PI;
-  deg = deg >= 0 ? deg : deg + 360;
-  // THIS LINE FIXES OPPOSITE DIRECTION (N↔S, E↔W)
-  return (deg + 180) % 360;
-}
-
-// smooth across 0/360
-function smoothAngle(prev: number, next: number, alpha: number) {
-  const diff = ((next - prev + 540) % 360) - 180;
-  return normalize360(prev + alpha * diff);
-}
+import useCompassHeading from "../hooks/useCompassHeading";
 
 type Props = {
   type: CompassType;
@@ -95,7 +75,12 @@ export default function CompassScreen({ type }: Props) {
   const quickBtnWidth = width < 360 ? 90 : width < 600 ? 100 : 110;
   const infoBoxFontSize = width < 360 ? 12 : width < 600 ? 13 : 14;
 
-  const [heading, setHeading] = useState(0);         // 0..360
+  const heading = useCompassHeading();               // 0..360
+  const DIAL_HEADING_OFFSET = 90;
+  const displayHeading = useMemo(
+    () => (((heading + DIAL_HEADING_OFFSET) % 360) + 360) % 360,
+    [heading]
+  );
   const [strength, setStrength] = useState(0);       // microTesla approx
   const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
 
@@ -111,8 +96,6 @@ export default function CompassScreen({ type }: Props) {
   const isExpoGoAndroid = Platform.OS === "android" && Constants.appOwnership === "expo";
   const [selectedZoneStep, setSelectedZoneStep] = useState<number | null>(null);
   const [locationQuery, setLocationQuery] = useState("");
-
-  const prevHeadingRef = useRef(0);
 
   // Animated rotation (degrees)
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -171,30 +154,23 @@ export default function CompassScreen({ type }: Props) {
     const sub = Magnetometer.addListener((data) => {
       if (!data || typeof data.x !== "number" || typeof data.y !== "number" || typeof data.z !== "number") return;
 
-      // 🔴 USE NEW FUNCTION: Heading from magnetic vector with 180° correction
-      const raw = headingFromMag({ x: data.x, y: data.y });
-
-      // smooth it
-      const smooth = smoothAngle(prevHeadingRef.current, raw, 0.22);
-      prevHeadingRef.current = smooth;
-      setHeading(smooth);
-
       // field strength magnitude (approx, units depend on platform; expo usually close to µT)
       const mag = Math.sqrt(data.x * data.x + data.y * data.y + data.z * data.z);
       setStrength(mag);
-
-      // animate needle rotation
-      Animated.timing(rotateAnim, {
-        toValue: smooth,
-        duration: 60,
-        useNativeDriver: false,
-      }).start();
     });
 
     return () => sub.remove();
-  }, [rotateAnim]);
+  }, []);
 
-  const headingText = useMemo(() => `${Math.round(heading)}° Degree`, [heading]);
+  useEffect(() => {
+    Animated.timing(rotateAnim, {
+      toValue: displayHeading,
+      duration: 70,
+      useNativeDriver: false,
+    }).start();
+  }, [displayHeading, rotateAnim]);
+
+  const headingText = useMemo(() => `${Math.round(displayHeading)}° Degree`, [displayHeading]);
   const zoneImageSize = useMemo(() => Math.max(22, Math.round(dialSize * 0.12)), [dialSize]);
   const zoneImageRadius = useMemo(() => (dialSize / 2) - (zoneImageSize * 0.7), [dialSize, zoneImageSize]);
 
@@ -953,7 +929,7 @@ export default function CompassScreen({ type }: Props) {
             <View style={styles.cameraOverlay}>
               <View style={styles.cameraOverlayRow}>
                 <Text style={styles.cameraOverlayLabel}>Degree:</Text>
-                <Text style={styles.cameraOverlayValue}>{Math.round(heading)}°</Text>
+                <Text style={styles.cameraOverlayValue}>{Math.round(displayHeading)}°</Text>
               </View>
               <View style={styles.cameraOverlayRow}>
                 <Text style={styles.cameraOverlayLabel}>Lat:</Text>
@@ -971,7 +947,7 @@ export default function CompassScreen({ type }: Props) {
             
             {/* Top Center Degree Display */}
             <View style={styles.degreeTopCenter}>
-              <Text style={styles.degreeTopText}>{Math.round(heading)}° Degree</Text>
+              <Text style={styles.degreeTopText}>{Math.round(displayHeading)}° Degree</Text>
             </View>
             
             {/* Bottom Left - Geo Coordinates */}
