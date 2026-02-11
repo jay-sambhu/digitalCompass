@@ -51,6 +51,25 @@ const zone16StepImages: ImageSourcePropType[] = [
   require("../assets/16ZoneVastuCompass/16.png"),
 ];
 
+const zone16DirectionNames = [
+  "North (N)",
+  "North-NorthEast (NNE)",
+  "NorthEast (NE)",
+  "East-NorthEast (ENE)",
+  "East (E)",
+  "East-SouthEast (ESE)",
+  "SouthEast (SE)",
+  "South-SouthEast (SSE)",
+  "South (S)",
+  "South-SouthWest (SSW)",
+  "SouthWest (SW)",
+  "West-SouthWest (WSW)",
+  "West (W)",
+  "West-NorthWest (WNW)",
+  "NorthWest (NW)",
+  "North-NorthWest (NNW)",
+];
+
 export default function CompassScreen({ type }: Props) {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -76,11 +95,6 @@ export default function CompassScreen({ type }: Props) {
   const infoBoxFontSize = width < 360 ? 12 : width < 600 ? 13 : 14;
 
   const heading = useCompassHeading();               // 0..360
-  const DIAL_HEADING_OFFSET = 90;
-  const displayHeading = useMemo(
-    () => (((heading + DIAL_HEADING_OFFSET) % 360) + 360) % 360,
-    [heading]
-  );
   const [strength, setStrength] = useState(0);       // microTesla approx
   const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
 
@@ -164,19 +178,23 @@ export default function CompassScreen({ type }: Props) {
 
   useEffect(() => {
     Animated.timing(rotateAnim, {
-      toValue: displayHeading,
+      toValue: heading,
       duration: 70,
       useNativeDriver: false,
     }).start();
-  }, [displayHeading, rotateAnim]);
+  }, [heading, rotateAnim]);
 
-  const headingText = useMemo(() => `${Math.round(displayHeading)}° Degree`, [displayHeading]);
-  const zoneImageSize = useMemo(() => Math.max(22, Math.round(dialSize * 0.12)), [dialSize]);
-  const zoneImageRadius = useMemo(() => (dialSize / 2) - (zoneImageSize * 0.7), [dialSize, zoneImageSize]);
+  const headingText = useMemo(() => `${Math.round(heading)}° Degree`, [heading]);
+  const zoneTouchSize = useMemo(() => Math.max(26, Math.round(dialSize * 0.14)), [dialSize]);
+  const zoneTouchRadius = useMemo(() => (dialSize / 2) - (zoneTouchSize * 0.85), [dialSize, zoneTouchSize]);
 
   const needleRotate = rotateAnim.interpolate({
     inputRange: [0, 360],
     outputRange: ["0deg", "360deg"],
+  });
+  const dialRotate = rotateAnim.interpolate({
+    inputRange: [0, 360],
+    outputRange: ["0deg", "-360deg"],
   });
 
   const openCamera = async (preferredFacing: CameraType = "back") => {
@@ -558,55 +576,82 @@ export default function CompassScreen({ type }: Props) {
 
         {/* Dial */}
         <View style={[styles.dialContainer, { width: dialWidth, height: dialHeight }]}>
-          <Image
-            source={assets.dial}
-            style={[
-              styles.dial,
-              {
-                width: dialWidth,
-                height: dialHeight,
-                borderRadius: dialSize / 2,
-                transform: [
-                  { translateX: assets.dialOffset.x },
-                  { translateY: assets.dialOffset.y },
-                  { scale: assets.dialScale },
-                ],
-              },
-            ]}
-            resizeMode="contain"
-          />
+          <Animated.View style={{ width: dialWidth, height: dialHeight, transform: [{ rotate: dialRotate }] }}>
+            {type !== "zone16" && (
+              <Image
+                source={assets.dial}
+                style={[
+                  styles.dial,
+                  {
+                    width: dialWidth,
+                    height: dialHeight,
+                    borderRadius: dialSize / 2,
+                    transform: [
+                      { translateX: assets.dialOffset.x },
+                      { translateY: assets.dialOffset.y },
+                      { scale: assets.dialScale },
+                    ],
+                  },
+                ]}
+                resizeMode="contain"
+              />
+            )}
 
-          {type === "zone16" &&
-            zone16StepImages.map((source, index) => {
-              const angle = (-90 + index * (360 / zone16StepImages.length)) * (Math.PI / 180);
-              const x = zoneImageRadius * Math.cos(angle);
-              const y = zoneImageRadius * Math.sin(angle);
-              const isActive = selectedZoneStep === index + 1;
+            {type === "zone16" &&
+              zone16StepImages.map((source, index) => {
+                const angle = (-90 + index * (360 / zone16StepImages.length)) * (Math.PI / 180);
+                const x = zoneTouchRadius * Math.cos(angle);
+                const y = zoneTouchRadius * Math.sin(angle);
+                const isActive = selectedZoneStep === index + 1;
 
-              return (
-                <Pressable
-                  key={`zone16-step-${index + 1}`}
-                  disabled={cameraOpen}
-                  onPress={() => {
-                    setSelectedZoneStep(index + 1);
-                    console.log(`[ZONE16] Clicked image ${index + 1}`);
-                  }}
-                  style={[
-                    styles.zoneStepItem,
-                    {
-                      width: zoneImageSize,
-                      height: zoneImageSize,
-                      left: dialWidth / 2 - zoneImageSize / 2 + x,
-                      top: dialHeight / 2 - zoneImageSize / 2 + y,
-                      opacity: cameraOpen ? 0.5 : 1,
-                    },
-                    isActive && styles.zoneStepItemActive,
-                  ]}
-                >
-                  <Image source={source} style={styles.zoneStepImage} resizeMode="contain" />
-                </Pressable>
-              );
-            })}
+                return (
+                  <React.Fragment key={`zone16-step-${index + 1}`}>
+                    {/* All 16 equal-size parts are stacked to compose full 16-zone dial */}
+                    <Image
+                      source={source}
+                      style={[
+                        styles.zoneStepCompositeImage,
+                        {
+                          width: dialWidth,
+                          height: dialHeight,
+                          transform: [
+                            { translateX: assets.dialOffset.x },
+                            { translateY: assets.dialOffset.y },
+                            { scale: assets.dialScale },
+                          ],
+                        },
+                      ]}
+                      resizeMode="contain"
+                      pointerEvents="none"
+                    />
+
+                    {/* Clickable zone points (disabled while camera modal is open) */}
+                    <Pressable
+                      disabled={cameraOpen}
+                      onPress={() => {
+                        const zoneNumber = index + 1;
+                        setSelectedZoneStep(zoneNumber);
+                        Alert.alert(
+                          "16 Zone Direction",
+                          `Zone ${zoneNumber}: ${zone16DirectionNames[index]}`
+                        );
+                      }}
+                      style={[
+                        styles.zoneStepItem,
+                        {
+                          width: zoneTouchSize,
+                          height: zoneTouchSize,
+                          left: dialWidth / 2 - zoneTouchSize / 2 + x,
+                          top: dialHeight / 2 - zoneTouchSize / 2 + y,
+                          opacity: cameraOpen ? 0.5 : 1,
+                        },
+                        isActive && styles.zoneStepItemActive,
+                      ]}
+                    />
+                  </React.Fragment>
+                );
+              })}
+          </Animated.View>
         </View>
         
         {/* Info below compass */}
@@ -929,7 +974,7 @@ export default function CompassScreen({ type }: Props) {
             <View style={styles.cameraOverlay}>
               <View style={styles.cameraOverlayRow}>
                 <Text style={styles.cameraOverlayLabel}>Degree:</Text>
-                <Text style={styles.cameraOverlayValue}>{Math.round(displayHeading)}°</Text>
+                <Text style={styles.cameraOverlayValue}>{Math.round(heading)}°</Text>
               </View>
               <View style={styles.cameraOverlayRow}>
                 <Text style={styles.cameraOverlayLabel}>Lat:</Text>
@@ -947,7 +992,7 @@ export default function CompassScreen({ type }: Props) {
             
             {/* Top Center Degree Display */}
             <View style={styles.degreeTopCenter}>
-              <Text style={styles.degreeTopText}>{Math.round(displayHeading)}° Degree</Text>
+              <Text style={styles.degreeTopText}>{Math.round(heading)}° Degree</Text>
             </View>
             
             {/* Bottom Left - Geo Coordinates */}

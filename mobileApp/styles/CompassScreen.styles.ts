@@ -59,9 +59,15 @@ export const styles = StyleSheet.create({
     borderRadius: 999,
     overflow: "hidden",
   },
+  zoneStepCompositeImage: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+  },
   zoneStepItemActive: {
     borderWidth: 1,
     borderColor: "#BD202E",
+    backgroundColor: "rgba(189, 32, 46, 0.2)",
   },
   zoneStepImage: {
     width: "100%",
