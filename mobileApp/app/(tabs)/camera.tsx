@@ -42,6 +42,7 @@ export default function CameraScreen() {
   const [capturedCoords, setCapturedCoords] = useState<{ lat: number; lon: number } | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [previewUri, setPreviewUri] = useState<string | null>(null);
+  const appVersion = Constants.expoConfig?.version ?? (Constants as any)?.manifest?.version ?? "1.0.0";
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const prevHeadingRef = useRef(0);
   
@@ -493,7 +494,7 @@ export default function CameraScreen() {
                     resizeMode="contain"
                   />
                   <Text style={styles.drawerBrand}>sanskarvastu.com</Text>
-                  <Text style={styles.drawerVersion}>Version: 3.1.3</Text>
+                  <Text style={styles.drawerVersion}>Version: {appVersion}</Text>
                   <Text style={styles.drawerTitle}>Vastu Compass</Text>
                 </View>
                 <View style={styles.menuList}>
@@ -663,7 +664,7 @@ export default function CameraScreen() {
                   resizeMode="contain"
                 />
                 <Text style={styles.drawerBrand}>sanskarvastu.com</Text>
-                <Text style={styles.drawerVersion}>Version: 3.1.3</Text>
+                <Text style={styles.drawerVersion}>Version: {appVersion}</Text>
                 <Text style={styles.drawerTitle}>Vastu Compass</Text>
               </View>
 
@@ -735,5 +736,4 @@ export default function CameraScreen() {
     </View>
   );
 }
-
 

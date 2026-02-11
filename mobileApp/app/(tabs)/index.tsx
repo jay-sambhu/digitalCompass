@@ -57,6 +57,7 @@ export default function IndexScreen() {
   const [showUserGuide, setShowUserGuide] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true); // Theme state
   const [showSplash, setShowSplash] = useState(true); // Splash screen state
+  const appVersion = Constants.expoConfig?.version ?? (Constants as any)?.manifest?.version ?? "1.0.0";
 
   const [tempCameraPhoto, setTempCameraPhoto] = useState<string | null>(null);
   const compositeRef = useRef<ViewShot>(null);
@@ -815,7 +816,7 @@ export default function IndexScreen() {
                   resizeMode="contain"
                 />
                 <Text style={styles.drawerBrand}>sanskarvastu.com</Text>
-                <Text style={styles.drawerVersion}>Version: 3.1.3</Text>
+                <Text style={styles.drawerVersion}>Version: {appVersion}</Text>
                 <Text style={styles.drawerTitle}>Vastu Compass</Text>
               </View>
 

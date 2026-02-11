@@ -110,6 +110,7 @@ export default function CompassScreen({ type }: Props) {
   const isExpoGoAndroid = Platform.OS === "android" && Constants.appOwnership === "expo";
   const [selectedZoneStep, setSelectedZoneStep] = useState<number | null>(null);
   const [locationQuery, setLocationQuery] = useState("");
+  const appVersion = Constants.expoConfig?.version ?? (Constants as any)?.manifest?.version ?? "1.0.0";
 
   // Animated rotation (degrees)
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -851,7 +852,7 @@ export default function CompassScreen({ type }: Props) {
                   resizeMode="contain"
                 />
                 <Text style={styles.drawerBrand}>sanskarvastu.com</Text>
-                <Text style={styles.drawerVersion}>Version: 3.1.3</Text>
+                <Text style={styles.drawerVersion}>Version: {appVersion}</Text>
                 <Text style={styles.drawerTitle}>Vastu Compass</Text>
               </View>
 
@@ -1035,7 +1036,7 @@ export default function CompassScreen({ type }: Props) {
                   <View style={styles.drawerHeader}>
                     <Image source={assets.icon} style={styles.drawerLogo} resizeMode="contain" />
                     <Text style={styles.drawerBrand}>sanskarvastu.com</Text>
-                    <Text style={styles.drawerVersion}>Version: 3.1.3</Text>
+                    <Text style={styles.drawerVersion}>Version: {appVersion}</Text>
                     <Text style={styles.drawerTitle}>Vastu Compass</Text>
                   </View>
 
