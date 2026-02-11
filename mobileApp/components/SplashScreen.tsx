@@ -108,7 +108,7 @@ export const SplashScreenComponent = ({
         >
           <Text style={styles.sloganText}>
             नेपालमा Numerology & Vastu काे {"\n"}Course सुरुवात गर्ने नेपालको
-            {"\n"}पहिलो संस्था -- Sanskar Academy
+{"\n"}पहिलो संस्था & एक मात्र सस्था-- Sanskar Academy
           </Text>
         </Animated.View>
       </View>
