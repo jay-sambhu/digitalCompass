@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { Slot } from "expo-router";
 import * as Font from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
+import { installGlobalErrorHandlers } from "../utils/errorHandling";
 //import of different layout
 SplashScreen.preventAutoHideAsync();
 
@@ -9,6 +10,8 @@ export default function RootLayout() {
   const [fontsLoaded, setFontsLoaded] = React.useState(false);
 //state management
   useEffect(() => {
+    installGlobalErrorHandlers();
+
     async function loadFonts() {
       try {
         await Font.loadAsync({
