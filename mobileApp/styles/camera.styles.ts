@@ -215,8 +215,12 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 16,
     paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#CBD5E1",
+    marginHorizontal: 10,
+    marginVertical: 5,
+    borderRadius: 10,
+    backgroundColor: "#BD202E",
+    borderWidth: 1,
+    borderColor: "#a01b26",
   },
   menuIconStyle: {
     marginRight: 12,
@@ -225,10 +229,10 @@ export const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: "600",
-    color: "#BD202E",    fontFamily: "Poppins",  },
+    color: "#ffffff",    fontFamily: "Poppins",  },
   menuArrow: {
     fontSize: 24,
-    color: "#ccc",
+    color: "#ffffff",
   },
   
   cameraDialWrap: {
