@@ -1,16 +1,21 @@
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#BD202E" },
+  container: { flex: 1, backgroundColor: "#fff" },
 
   quickRow: { marginTop: 12, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap", zIndex: 1, minHeight: 70 },
   quickRowCompact: { justifyContent: "space-around" },
   quickBtn: { alignItems: "center" },
-  quickLabel: { marginTop: 4, fontWeight: "600", fontSize: 11, color: "#ffffff" },
+  quickLabel: { marginTop: 4, fontWeight: "600", fontSize: 11, color: "#BD202E" },
   degreeTitle: { fontWeight: "800" },
 
   compassWrap: { ...StyleSheet.absoluteFillObject, alignItems: "center", justifyContent: "center", zIndex: 0 },
-  dialContainer: { alignItems: "center", justifyContent: "center" },
+  dialContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 999,
+    overflow: "hidden",
+  },
   dial: { overflow: "hidden", alignSelf: "center" },
   needle: { position: "absolute" },
   
@@ -20,16 +25,16 @@ export const styles = StyleSheet.create({
   infoRow: { marginTop: 18, paddingHorizontal: 16, flexDirection: "row", justifyContent: "space-between", gap: 10, zIndex: 1 },
   infoRowCompact: { flexDirection: "column" },
   infoBox: { flex: 1 },
-  infoTitle: { fontWeight: "800", color: "#ffffff" },
-  infoValue: { marginTop: 4, color: "#ffffff" },
-  red: { color: "#ffffff", fontWeight: "800" },
+  infoTitle: { fontWeight: "800", color: "#000" },
+  infoValue: { marginTop: 4, color: "#000" },
+  red: { color: "#000", fontWeight: "800" },
 
   bottomNav: { marginTop: "auto", paddingVertical: 14, borderTopWidth: 1, borderColor: "#CBD5E1", flexDirection: "row", justifyContent: "space-around", alignItems: "center", zIndex: 1 },
   navItem: { alignItems: "center", flex: 1 },
-  navLabel: { marginTop: 4, color: "#ffffff", fontWeight: "700" },
-  captureBtn: { width: 60, height: 60, borderRadius: 30, backgroundColor: "#BD202E", borderWidth: 2, borderColor: "#CBD5E1", alignItems: "center", justifyContent: "center" },
+  navLabel: { marginTop: 4, color: "#BD202E", fontWeight: "700" },
+  captureBtn: { width: 60, height: 60, borderRadius: 30, backgroundColor: "#fff", borderWidth: 2, borderColor: "#CBD5E1", alignItems: "center", justifyContent: "center" },
 
-  cameraContainer: { flex: 1, backgroundColor: "#BD202E" },
+  cameraContainer: { flex: 1, backgroundColor: "#000" },
   camera: { flex: 1 },
   previewShot: { flex: 1 },
   previewImage: { flex: 1, resizeMode: "cover" },
@@ -52,8 +57,8 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
   },
   cameraOverlayRow: { flexDirection: "row", gap: 6 },
-  cameraOverlayLabel: { color: "#ffffff", fontSize: 12, fontWeight: "700" },
-  cameraOverlayValue: { color: "#ffffff", fontSize: 12 },
+  cameraOverlayLabel: { color: "#fff", fontSize: 12, fontWeight: "700" },
+  cameraOverlayValue: { color: "#fff", fontSize: 12 },
   
   /* Top Center Degree */
   degreeTopCenter: {
@@ -67,7 +72,7 @@ export const styles = StyleSheet.create({
   degreeTopText: {
     fontSize: 28,
     fontWeight: "800",
-    color: "#ffffff",
+    color: "#fff",
     textShadowColor: "rgba(0, 0, 0, 0.8)",
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 4,
@@ -86,12 +91,12 @@ export const styles = StyleSheet.create({
   geoLabel: {
     fontSize: 13,
     fontWeight: "800",
-    color: "#ffffff",
+    color: "#000",
   },
   geoValue: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#ffffff",
+    color: "#000",
     marginTop: 2,
   },
   
@@ -108,22 +113,22 @@ export const styles = StyleSheet.create({
   magneticLabel: {
     fontSize: 13,
     fontWeight: "800",
-    color: "#ffffff",
+    color: "#000",
   },
   magneticValue: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#ffffff",
+    color: "#000",
     marginTop: 2,
   },
   
-  cameraControls: { flexDirection: "row", justifyContent: "space-around", alignItems: "center", padding: 16, backgroundColor: "#BD202E" },
+  cameraControls: { flexDirection: "row", justifyContent: "space-around", alignItems: "center", padding: 16, backgroundColor: "#000" },
   camBtn: { paddingVertical: 10, paddingHorizontal: 16, backgroundColor: "#BD202E", borderRadius: 8 },
-  camBtnText: { color: "#ffffff", fontWeight: "600" },
-  capture: { width: 60, height: 60, borderRadius: 30, backgroundColor: "#BD202E", borderWidth: 4, borderColor: "#CBD5E1" },
+  camBtnText: { color: "#fff", fontWeight: "600" },
+  capture: { width: 60, height: 60, borderRadius: 30, backgroundColor: "#fff", borderWidth: 4, borderColor: "#CBD5E1" },
 
   cameraPermission: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12 },
-  permissionText: { color: "#ffffff", fontSize: 16 },
+  permissionText: { color: "#fff", fontSize: 16 },
 
   drawerOverlay: {
     flex: 1,
@@ -133,7 +138,7 @@ export const styles = StyleSheet.create({
   drawerContainer: {
     width: "70%",
     height: "100%",
-    backgroundColor: "#BD202E",
+    backgroundColor: "#fff",
     shadowColor: "#000",
     shadowOffset: { width: 2, height: 0 },
     shadowOpacity: 0.25,
@@ -144,7 +149,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 30,
     paddingHorizontal: 20,
-    backgroundColor: "#BD202E",
+    backgroundColor: "#fff",
     borderBottomWidth: 1,
     borderBottomColor: "#CBD5E1",
   },
@@ -156,18 +161,18 @@ export const styles = StyleSheet.create({
   drawerBrand: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#ffffff",
+    color: "#000",
     marginBottom: 5,
   },
   drawerVersion: {
     fontSize: 13,
-    color: "#ffffff",
+    color: "#888",
     marginBottom: 15,
   },
   drawerTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#ffffff",
+    color: "#000",
   },
   menuList: {
     paddingVertical: 10,
@@ -187,16 +192,16 @@ export const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: "600",
-    color: "#ffffff",
+    color: "#000",
     fontFamily: "Poppins",
   },
   menuArrow: {
     fontSize: 24,
-    color: "#ffffff",
+    color: "#ccc",
   },
 
-  previewContainer: { flex: 1, backgroundColor: "#BD202E" },
-  previewControls: { flexDirection: "row", justifyContent: "space-around", alignItems: "center", padding: 16, backgroundColor: "#BD202E", borderTopWidth: 1, borderTopColor: "#CBD5E1" },
+  previewContainer: { flex: 1, backgroundColor: "#000" },
+  previewControls: { flexDirection: "row", justifyContent: "space-around", alignItems: "center", padding: 16, backgroundColor: "#000", borderTopWidth: 1, borderTopColor: "#CBD5E1" },
   previewBtn: { alignItems: "center", paddingVertical: 12, paddingHorizontal: 20, backgroundColor: "#BD202E", borderRadius: 8 },
-  previewBtnLabel: { fontSize: 12, fontWeight: "600", color: "#ffffff" },
+  previewBtnLabel: { fontSize: 12, fontWeight: "600", color: "#fff" },
 });
