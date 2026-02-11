@@ -823,13 +823,13 @@ export default function IndexScreen() {
               <View style={styles.menuList}>
                 <Pressable style={styles.menuItem}>
                   <MaterialIcons name="info-outline" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                  <Text style={styles.menuText}>About SanskarVastu</Text>
+                  <Text style={styles.menuText}>About Us</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
 
                 <Pressable style={styles.menuItem}>
                   <MaterialIcons name="computer" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                  <Text style={styles.menuText}>Access Vastu Software</Text>
+                  <Text style={styles.menuText}>Access Our Website</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
 
@@ -859,13 +859,13 @@ export default function IndexScreen() {
 
                 <Pressable style={styles.menuItem} onPress={openPermissionsManager}>
                   <MaterialIcons name="lock-outline" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                  <Text style={styles.menuText}>Manage Permissions</Text>
+                  <Text style={styles.menuText}>Permissions</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
 
                 <Pressable style={styles.menuItem} onPress={() => { setDrawerOpen(false); setShowUserGuide(true); }}>
                   <MaterialIcons name="help-outline" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                  <Text style={styles.menuText}>How to use Vastu Compass</Text>
+                  <Text style={styles.menuText}>How to use Sanskar Compass</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
 

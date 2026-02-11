@@ -12,6 +12,7 @@ import {
   ScrollView,
   Platform,
   ImageSourcePropType,
+  TextInput,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Magnetometer } from "expo-sensors";
@@ -22,7 +23,7 @@ import * as Sharing from "expo-sharing";
 import ViewShot from "react-native-view-shot";
 import { Href, router } from "expo-router";
 import Constants from "expo-constants";
-import { CompassType, getCompassAssets } from "../utils/compassAssets";
+import { getCompassAssets, type CompassType } from "../utils/compassAssets";
 import { MaterialIcons } from "@expo/vector-icons";
 import { styles } from "../styles/CompassScreen.styles";
 
@@ -109,6 +110,7 @@ export default function CompassScreen({ type }: Props) {
   const [mediaPerm, setMediaPerm] = useState<MediaLibrary.PermissionResponse | null>(null);
   const isExpoGoAndroid = Platform.OS === "android" && Constants.appOwnership === "expo";
   const [selectedZoneStep, setSelectedZoneStep] = useState<number | null>(null);
+  const [locationQuery, setLocationQuery] = useState("");
 
   const prevHeadingRef = useRef(0);
 
@@ -242,6 +244,29 @@ export default function CompassScreen({ type }: Props) {
     } catch (e: any) {
       Alert.alert("Maps error", e?.message ?? "Failed to open maps");
     }
+  };
+
+  const searchLocation = async () => {
+    const query = locationQuery.trim();
+    if (!query) {
+      Alert.alert("Search required", "Enter a location in the search bar.");
+      return;
+    }
+
+    try {
+      const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+      await Linking.openURL(url);
+    } catch (e: any) {
+      Alert.alert("Search error", e?.message ?? "Failed to open search");
+    }
+  };
+
+  const openMapWithFallback = async () => {
+    if (coords) {
+      await openMap();
+      return;
+    }
+    await searchLocation();
   };
 
   const openLastCaptured = async () => {
@@ -498,6 +523,33 @@ export default function CompassScreen({ type }: Props) {
 
   return (
     <SafeAreaView style={[styles.container, { paddingTop: Math.max(insets.top, 8) }]}>
+      {/* Top Header: menu + search + location */}
+      <View style={styles.topHeader}>
+        <Pressable style={styles.menuBtn} onPress={() => setDrawerOpen(true)}>
+          <MaterialIcons name="menu" size={24} color="#ffffff" />
+        </Pressable>
+
+        <View style={styles.searchBar}>
+          <MaterialIcons name="search" size={18} color="#ffffff" />
+          <TextInput
+            style={styles.searchInput}
+            value={locationQuery}
+            onChangeText={setLocationQuery}
+            placeholder="Search location..."
+            placeholderTextColor="rgba(255,255,255,0.75)"
+            returnKeyType="search"
+            onSubmitEditing={searchLocation}
+          />
+          <Pressable onPress={searchLocation}>
+            <MaterialIcons name="arrow-forward" size={18} color="#ffffff" />
+          </Pressable>
+        </View>
+
+        <Pressable style={styles.locationBtn} onPress={openMapWithFallback}>
+          <MaterialIcons name="location-on" size={24} color="#ffffff" />
+        </Pressable>
+      </View>
+
       {/* Shortcut icons row */}
       <View
         style={[

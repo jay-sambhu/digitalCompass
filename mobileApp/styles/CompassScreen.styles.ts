@@ -2,6 +2,41 @@ import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
+  topHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: "#BD202E",
+    borderBottomWidth: 1,
+    borderBottomColor: "#a01b26",
+    zIndex: 2,
+  },
+  menuBtn: {
+    padding: 6,
+  },
+  searchBar: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.35)",
+    backgroundColor: "rgba(255,255,255,0.12)",
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    color: "#ffffff",
+    fontSize: 14,
+    paddingVertical: 0,
+  },
+  locationBtn: {
+    padding: 6,
+  },
 
   quickRow: { marginTop: 12, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap", zIndex: 1, minHeight: 70 },
   quickRowCompact: { justifyContent: "space-around" },
