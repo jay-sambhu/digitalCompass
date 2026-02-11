@@ -583,7 +583,7 @@ export default function IndexScreen() {
                 style={[
                   styles.compassCard,
                   {
-                    backgroundColor: isDarkMode ? "#ffffff" : "#2a2a4a",
+                    backgroundColor: "#BD202E",
                     borderColor: isDarkMode ? "#CBD5E1" : "#3a3a5a",
                   },
                 ]}
@@ -620,7 +620,7 @@ export default function IndexScreen() {
                     resizeMode="contain"
                   />
                 </View>
-                <Text style={[styles.compassLabel, { color: isDarkMode ? "#BD202E" : "#f5f5f5" }]}>{item.label}</Text>
+                <Text style={[styles.compassLabel, { color: "#ffffff" }]}>{item.label}</Text>
               </Pressable>
             );
           })}

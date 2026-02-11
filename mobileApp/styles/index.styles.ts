@@ -364,7 +364,7 @@ export const styles = StyleSheet.create({
   },
   compassCard: {
     width: "48%",
-    backgroundColor: "#ffffff",
+    backgroundColor: "#BD202E",
     borderRadius: 12,
     padding: 16,
     alignItems: "center",
@@ -384,6 +384,7 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     borderRadius: 60,
     overflow: "hidden",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
       borderColor: "#CBD5E1",
   },
@@ -402,7 +403,7 @@ export const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 14,
     fontWeight: "700",
-      color: "#BD202E",
+      color: "#ffffff",
     textAlign: "center",
     letterSpacing: 0.2,    fontFamily: "Poppins",  },
   bottomButtons: {

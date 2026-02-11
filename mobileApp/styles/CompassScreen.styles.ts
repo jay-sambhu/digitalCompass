@@ -13,6 +13,7 @@ export const styles = StyleSheet.create({
   dialContainer: {
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "#ffffff",
     borderRadius: 999,
     overflow: "hidden",
   },
