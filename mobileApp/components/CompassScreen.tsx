@@ -15,7 +15,7 @@ import {
   TextInput,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import MapView, { Marker } from "react-native-maps";
+import MapView, { Marker, Polyline, type LatLng, type Region } from "react-native-maps";
 import { Magnetometer } from "expo-sensors";
 import * as Location from "expo-location";
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
@@ -104,6 +104,9 @@ export default function CompassScreen({ type }: Props) {
   const [cameraOpen, setCameraOpen] = useState(false);
   const [facing, setFacing] = useState<CameraType>("back");
   const [mapVisible, setMapVisible] = useState(false);
+  const [mapRegion, setMapRegion] = useState<Region | null>(null);
+  const [drawEnabled, setDrawEnabled] = useState(false);
+  const [drawPath, setDrawPath] = useState<LatLng[]>([]);
   const cameraRef = useRef<CameraView>(null);
   const previewShotRef = useRef<ViewShot>(null);
   const [previewUri, setPreviewUri] = useState<string | null>(null);
@@ -197,15 +200,7 @@ export default function CompassScreen({ type }: Props) {
     return `${deg}° · ${direction}`;
   }, [heading, type]);
   const showInlineMap = isInlineMap && mapVisible;
-  const mapRegion = useMemo(() => {
-    if (!coords) return null;
-    return {
-      latitude: coords.lat,
-      longitude: coords.lon,
-      latitudeDelta: 0.005,
-      longitudeDelta: 0.005,
-    };
-  }, [coords]);
+  const mapControlsTop = Math.max(insets.top + 80, 80);
   const zoneTouchSize = useMemo(() => Math.max(26, Math.round(dialSize * 0.14)), [dialSize]);
   const zoneTouchRadius = useMemo(() => (dialSize / 2) - (zoneTouchSize * 0.85), [dialSize, zoneTouchSize]);
 
@@ -217,6 +212,18 @@ export default function CompassScreen({ type }: Props) {
     inputRange: [0, 360],
     outputRange: ["0deg", "-360deg"],
   });
+
+  useEffect(() => {
+    if (!coords || !isInlineMap) return;
+    if (!mapRegion) {
+      setMapRegion({
+        latitude: coords.lat,
+        longitude: coords.lon,
+        latitudeDelta: 0.005,
+        longitudeDelta: 0.005,
+      });
+    }
+  }, [coords, isInlineMap, mapRegion]);
 
   const openCamera = async (preferredFacing: CameraType = "back") => {
     try {
@@ -591,34 +598,67 @@ export default function CompassScreen({ type }: Props) {
         </Pressable>
       </View>
 
+      {showInlineMap && (
+        <View style={styles.mapFullscreen}>
+          {mapRegion ? (
+            <>
+              <MapView
+                style={styles.map}
+                mapType="satellite"
+                region={mapRegion}
+                onRegionChangeComplete={setMapRegion}
+                showsUserLocation
+                showsMyLocationButton={false}
+                toolbarEnabled={false}
+                zoomEnabled
+                zoomControlEnabled
+                rotateEnabled
+                pitchEnabled
+                scrollEnabled
+                onPress={(event) => {
+                  if (!drawEnabled) return;
+                  setDrawPath((prev) => [...prev, event.nativeEvent.coordinate]);
+                }}
+              >
+                <Marker coordinate={{ latitude: mapRegion.latitude, longitude: mapRegion.longitude }} />
+                {drawPath.length > 1 && (
+                  <Polyline coordinates={drawPath} strokeColor="#BD202E" strokeWidth={3} />
+                )}
+              </MapView>
+              <View style={[styles.mapControls, { top: mapControlsTop }]}>
+                <Pressable
+                  style={[styles.mapControlBtn, drawEnabled && styles.mapControlBtnActive]}
+                  onPress={() => setDrawEnabled((prev) => !prev)}
+                >
+                  <MaterialIcons name="edit" size={18} color={drawEnabled ? "#fff" : "#BD202E"} />
+                </Pressable>
+                <Pressable
+                  style={styles.mapControlBtn}
+                  onPress={() => setDrawPath([])}
+                >
+                  <MaterialIcons name="delete" size={18} color="#BD202E" />
+                </Pressable>
+              </View>
+            </>
+          ) : (
+            <View style={styles.mapLoading}>
+              <Text style={styles.mapLoadingText}>Locating...</Text>
+            </View>
+          )}
+        </View>
+      )}
+
       {/* Compass display */}
-      <View style={styles.compassWrap}>
+      <View style={styles.compassWrap} pointerEvents={showInlineMap ? "none" : "auto"}>
         {/* small pointer on top */}
         <MaterialIcons name="arrow-drop-down" size={width < 360 ? 14 : 18} color="#000" style={{ marginBottom: 6 }} />
 
         {/* Dial */}
         <View style={[styles.dialContainer, { width: dialWidth, height: dialHeight }]}>        
-          {showInlineMap && (
-            mapRegion ? (
-              <View style={styles.mapOverlay}>
-                <MapView
-                  style={styles.map}
-                  mapType="satellite"
-                  region={mapRegion}
-                  showsUserLocation
-                  showsMyLocationButton={false}
-                  toolbarEnabled={false}
-                >
-                  <Marker coordinate={{ latitude: mapRegion.latitude, longitude: mapRegion.longitude }} />
-                </MapView>
-              </View>
-            ) : (
-              <View style={styles.mapLoading}>
-                <Text style={styles.mapLoadingText}>Locating...</Text>
-              </View>
-            )
-          )}
-          <Animated.View style={{ width: dialWidth, height: dialHeight, transform: [{ rotate: dialRotate }] }}>
+          <Animated.View
+            style={{ width: dialWidth, height: dialHeight, transform: [{ rotate: dialRotate }] }}
+            pointerEvents={showInlineMap ? "none" : "auto"}
+          >
             {type !== "zone16" && !showInlineMap && (
               <Image
                 source={assets.dial}
@@ -696,8 +736,8 @@ export default function CompassScreen({ type }: Props) {
           </Animated.View>
         </View>
         
-        {/* Info below compass */}
-        <View style={[styles.infoRowBelow, { bottom: Math.max(120, height * 0.22) }]}>
+        {!showInlineMap && (
+          <View style={[styles.infoRowBelow, { bottom: Math.max(120, height * 0.22) }]}>
           <View style={styles.infoBoxBelow}>
             <Text style={[styles.infoTitle, { fontSize: width < 360 ? 13 : width < 600 ? 14 : 16 }]}>Geo-Coordinate:</Text>
             <Text style={[styles.infoValue, { fontSize: infoBoxFontSize }]}>
@@ -714,7 +754,8 @@ export default function CompassScreen({ type }: Props) {
               Strength: <Text style={styles.red}>{strength.toFixed(0)} µT</Text>
             </Text>
           </View>
-        </View>
+          </View>
+        )}
       </View>
 
       <Modal visible={cameraOpen} animationType="slide" presentationStyle="fullScreen" onRequestClose={() => setCameraOpen(false)}>
@@ -1149,22 +1190,24 @@ export default function CompassScreen({ type }: Props) {
         </SafeAreaView>
       </Modal>
 
-      {/* Bottom nav mock */}
-      <View style={[styles.bottomNav, { paddingBottom: Math.max(insets.bottom, 8) }]}>
-        <Pressable style={styles.navItem} onPress={() => router.push("/")}>
-          <MaterialIcons name="home" size={28} color="#000" />
-          <Text style={styles.navLabel}>Home Page</Text>
-        </Pressable>
+      {/* Bottom nav mock - hidden when map is visible */}
+      {!showInlineMap && (
+        <View style={[styles.bottomNav, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+          <Pressable style={styles.navItem} onPress={() => router.push("/")}>
+            <MaterialIcons name="home" size={28} color="#000" />
+            <Text style={styles.navLabel}>Home Page</Text>
+          </Pressable>
 
-        <Pressable style={styles.captureBtn} onPress={() => openCamera("back")}>
-          <MaterialIcons name="camera-alt" size={28} color="#000" />
-        </Pressable>
+          <Pressable style={styles.captureBtn} onPress={() => openCamera("back")}>
+            <MaterialIcons name="camera-alt" size={28} color="#000" />
+          </Pressable>
 
-        <Pressable style={styles.navItem} onPress={openLastCaptured}>
-          <MaterialIcons name="image" size={28} color="#000" />
-          <Text style={styles.navLabel}>Last Captured</Text>
-        </Pressable>
-      </View>
+          <Pressable style={styles.navItem} onPress={openLastCaptured}>
+            <MaterialIcons name="image" size={28} color="#000" />
+            <Text style={styles.navLabel}>Last Captured</Text>
+          </Pressable>
+        </View>
+      )}
     </SafeAreaView>
   );
 }

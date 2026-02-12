@@ -57,6 +57,10 @@ export const styles = StyleSheet.create({
     borderRadius: 999,
     overflow: "hidden",
   },
+  mapFullscreen: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 1,
+  },
   map: {
     flex: 1,
   },
@@ -69,6 +73,26 @@ export const styles = StyleSheet.create({
   mapLoadingText: {
     color: "#666",
     fontWeight: "600",
+  },
+  mapControls: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    flexDirection: "row",
+    gap: 8,
+  },
+  mapControlBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(255,255,255,0.9)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#BD202E",
+  },
+  mapControlBtnActive: {
+    backgroundColor: "#BD202E",
   },
   dial: { overflow: "hidden", alignSelf: "center" },
   needle: { position: "absolute" },
