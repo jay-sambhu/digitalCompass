@@ -54,7 +54,7 @@ export const styles = StyleSheet.create({
   quickRow: { marginTop: 12, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap", zIndex: 1, minHeight: 70 },
   quickRowCompact: { justifyContent: "space-around" },
   quickBtn: { alignItems: "center" },
-  quickLabel: { marginTop: 4, fontWeight: "600", fontSize: 11, color: "#BD202E" },
+  quickLabel: { marginTop: 4, fontWeight: "600", fontSize: 11, color: "#000000" },
   degreeTitle: { fontWeight: "800" },
 
   compassWrap: { ...StyleSheet.absoluteFillObject, alignItems: "center", justifyContent: "center", zIndex: 0 },
