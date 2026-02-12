@@ -251,7 +251,7 @@ export default function CompassScreen({ type }: Props) {
   };
 
   const openMap = async () => {
-    console.log("[COMPASS] 🗺️ Open Map button clicked");
+    console.log("[COMPASS] 🗺️ Toggle Map");
     try {
       let current = coords;
       if (!current) {
@@ -266,16 +266,11 @@ export default function CompassScreen({ type }: Props) {
         current = { lat: pos.coords.latitude, lon: pos.coords.longitude };
         setCoords(current);
       }
-      if (isInlineMap) {
-        setMapVisible((prev) => !prev);
-        return;
-      }
-      const url = `https://www.google.com/maps/@?api=1&map_action=map&center=${current.lat},${current.lon}&zoom=18&basemap=satellite`;
-      console.log("[COMPASS] 🗺️ Opening Google Maps:", url);
-      await Linking.openURL(url);
-      console.log("[COMPASS] ✅ Maps opened successfully");
+      // Always toggle inline map, never open external Google Maps
+      setMapVisible((prev) => !prev);
+      console.log("[COMPASS] ✅ Map toggled");
     } catch (e: any) {
-      Alert.alert("Maps error", e?.message ?? "Failed to open maps");
+      Alert.alert("Maps error", e?.message ?? "Failed to toggle map");
     }
   };
 
