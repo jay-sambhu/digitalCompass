@@ -200,7 +200,7 @@ export default function CompassScreen({ type }: Props) {
     return `${deg}° · ${direction}`;
   }, [heading, type]);
   const showInlineMap = isInlineMap && mapVisible;
-  const mapControlsTop = Math.max(insets.top + 80, 80);
+  const mapControlsTop = Math.max(insets.top + 10, 50);
   const zoneTouchSize = useMemo(() => Math.max(26, Math.round(dialSize * 0.14)), [dialSize]);
   const zoneTouchRadius = useMemo(() => (dialSize / 2) - (zoneTouchSize * 0.85), [dialSize, zoneTouchSize]);
 
@@ -543,9 +543,9 @@ export default function CompassScreen({ type }: Props) {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { paddingTop: Math.max(insets.top, 8) }]}>
+    <SafeAreaView style={[styles.container]} edges={['top']}>
       {/* Top Header: menu + search + location */}
-      <View style={styles.topHeader}>
+      <View style={[styles.topHeader, showInlineMap && styles.topHeaderCompact]}>
         <Pressable style={styles.menuBtn} onPress={() => setDrawerOpen(true)}>
           <MaterialIcons name="menu" size={24} color="#ffffff" />
         </Pressable>
@@ -610,14 +610,15 @@ export default function CompassScreen({ type }: Props) {
                 showsUserLocation
                 showsMyLocationButton={false}
                 toolbarEnabled={false}
-                zoomEnabled
+                zoomEnabled={!drawEnabled}
                 zoomControlEnabled
-                rotateEnabled
-                pitchEnabled
-                scrollEnabled
+                rotateEnabled={!drawEnabled}
+                pitchEnabled={!drawEnabled}
+                scrollEnabled={!drawEnabled}
                 onPress={(event) => {
                   if (!drawEnabled) return;
-                  setDrawPath((prev) => [...prev, event.nativeEvent.coordinate]);
+                  const coordinate = event.nativeEvent.coordinate;
+                  setDrawPath((prev) => [...prev, coordinate]);
                 }}
               >
                 <Marker coordinate={{ latitude: mapRegion.latitude, longitude: mapRegion.longitude }} />
@@ -631,6 +632,7 @@ export default function CompassScreen({ type }: Props) {
                   onPress={() => setDrawEnabled((prev) => !prev)}
                 >
                   <MaterialIcons name="edit" size={18} color={drawEnabled ? "#fff" : "#BD202E"} />
+                  {drawEnabled && <View style={styles.drawColorIndicator} />}
                 </Pressable>
                 <Pressable
                   style={styles.mapControlBtn}
@@ -638,6 +640,7 @@ export default function CompassScreen({ type }: Props) {
                 >
                   <MaterialIcons name="delete" size={18} color="#BD202E" />
                 </Pressable>
+                {drawEnabled && <Text style={styles.drawColorLabel}>Red Pen</Text>}
               </View>
             </>
           ) : (
@@ -941,13 +944,13 @@ export default function CompassScreen({ type }: Props) {
               <View style={styles.menuList}>
                 <Pressable style={styles.menuItem}>
                   <MaterialIcons name="info-outline" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                  <Text style={styles.menuText}>About SanskarVastu</Text>
+                  <Text style={styles.menuText}>About Us</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
 
                 <Pressable style={styles.menuItem}>
                   <MaterialIcons name="computer" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                  <Text style={styles.menuText}>Access Vastu Software</Text>
+                  <Text style={styles.menuText}>Access Our Website</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
 
@@ -977,13 +980,13 @@ export default function CompassScreen({ type }: Props) {
 
                 <Pressable style={styles.menuItem} onPress={openPermissionsManager}>
                   <MaterialIcons name="lock-outline" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                  <Text style={styles.menuText}>Manage Permissions</Text>
+                  <Text style={styles.menuText}>Permissions</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
 
                 <Pressable style={styles.menuItem} onPress={openUserGuide}>
                   <MaterialIcons name="help-outline" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                  <Text style={styles.menuText}>How to use Vastu Compass</Text>
+                  <Text style={styles.menuText}>How to use Sanskar Compass</Text>
                   <Text style={styles.menuArrow}>›</Text>
                 </Pressable>
 
@@ -1191,8 +1194,7 @@ export default function CompassScreen({ type }: Props) {
       </Modal>
 
       {/* Bottom nav mock - hidden when map is visible */}
-      {!showInlineMap && (
-        <View style={[styles.bottomNav, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+      <View style={[styles.bottomNav, showInlineMap && styles.bottomNavOnMap, { paddingBottom: Math.max(insets.bottom, 8) }]}>
           <Pressable style={styles.navItem} onPress={() => router.push("/")}>
             <MaterialIcons name="home" size={28} color="#000" />
             <Text style={styles.navLabel}>Home Page</Text>
@@ -1206,8 +1208,7 @@ export default function CompassScreen({ type }: Props) {
             <MaterialIcons name="image" size={28} color="#000" />
             <Text style={styles.navLabel}>Last Captured</Text>
           </Pressable>
-        </View>
-      )}
+      </View>
     </SafeAreaView>
   );
 }
