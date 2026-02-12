@@ -27,6 +27,7 @@ import { getCompassAssets, type CompassType } from "../utils/compassAssets";
 import { MaterialIcons } from "@expo/vector-icons";
 import { styles } from "../styles/CompassScreen.styles";
 import useAdvancedCompass from "../hooks/useAdvancedCompass";
+import { degreeToDirection16 } from "../utils/direction";
 
 type Props = {
   type: CompassType;
@@ -185,7 +186,10 @@ export default function CompassScreen({ type }: Props) {
     }).start();
   }, [heading, rotateAnim]);
 
-  const headingText = useMemo(() => `${Math.round(heading)}° Degree`, [heading]);
+  const headingText = useMemo(() => {
+    const deg = Math.round(heading);
+    return `${deg}° · ${degreeToDirection16(heading)}`;
+  }, [heading]);
   const zoneTouchSize = useMemo(() => Math.max(26, Math.round(dialSize * 0.14)), [dialSize]);
   const zoneTouchRadius = useMemo(() => (dialSize / 2) - (zoneTouchSize * 0.85), [dialSize, zoneTouchSize]);
 
@@ -974,8 +978,8 @@ export default function CompassScreen({ type }: Props) {
             {/* Magnetic field and coordinates overlay */}
             <View style={styles.cameraOverlay}>
               <View style={styles.cameraOverlayRow}>
-                <Text style={styles.cameraOverlayLabel}>Degree:</Text>
-                <Text style={styles.cameraOverlayValue}>{Math.round(heading)}°</Text>
+                <Text style={styles.cameraOverlayLabel}>Direction:</Text>
+                <Text style={styles.cameraOverlayValue}>{headingText}</Text>
               </View>
               <View style={styles.cameraOverlayRow}>
                 <Text style={styles.cameraOverlayLabel}>Lat:</Text>
@@ -993,7 +997,7 @@ export default function CompassScreen({ type }: Props) {
             
             {/* Top Center Degree Display */}
             <View style={styles.degreeTopCenter}>
-              <Text style={styles.degreeTopText}>{Math.round(heading)}° Degree</Text>
+              <Text style={styles.degreeTopText}>{headingText}</Text>
             </View>
             
             {/* Bottom Left - Geo Coordinates */}
