@@ -109,6 +109,7 @@ export default function CompassScreen({ type }: Props) {
   const [drawPath, setDrawPath] = useState<LatLng[]>([]);
   const cameraRef = useRef<CameraView>(null);
   const previewShotRef = useRef<ViewShot>(null);
+  const mapShotRef = useRef<ViewShot>(null);
   const [previewUri, setPreviewUri] = useState<string | null>(null);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -545,6 +546,46 @@ export default function CompassScreen({ type }: Props) {
     }
   };
 
+  const captureMapDrawing = async () => {
+    console.log("[COMPASS] 🗺️ Capture Map Drawing button clicked");
+    try {
+      if (!mapShotRef.current) {
+        console.log("[COMPASS] ❌ Map ref not available");
+        Alert.alert("Error", "Unable to capture map. Please try again.");
+        return;
+      }
+
+      console.log("[COMPASS] 📸 Capturing map with drawings...");
+      const mapImage = await mapShotRef.current.capture?.();
+
+      if (!mapImage) {
+        console.log("[COMPASS] ❌ Map capture returned null");
+        Alert.alert("Capture Error", "Failed to capture map. Please try again.");
+        return;
+      }
+
+      console.log("[COMPASS] ✅ Map drawing captured:", mapImage);
+      setPreviewUri(mapImage);
+      Alert.alert("✅ Captured", "Map drawing captured successfully! You can now save or share it.", [
+        { text: "Save", onPress: savePreviewPhoto },
+        { text: "Share", onPress: sharePreviewPhoto },
+        { text: "Close", onPress: () => {} },
+      ]);
+    } catch (e: any) {
+      console.error("[COMPASS] ❌ Map capture error:", e?.message);
+      Alert.alert("Capture Error", e?.message ?? "Failed to capture map");
+    }
+  };
+
+  const centerButtonAction = async () => {
+    // If map is visible, capture the drawn map; otherwise open camera
+    if (showInlineMap) {
+      await captureMapDrawing();
+    } else {
+      await openCamera("back");
+    }
+  };
+
   return (
     <SafeAreaView style={[styles.container]} edges={['top']}>
       {/* Top Header: menu + search + location */}
@@ -595,9 +636,11 @@ export default function CompassScreen({ type }: Props) {
 
         <Text style={[styles.degreeTitle, { fontSize: degreeFontSize }]}>{headingText}</Text>
 
-        <Pressable style={[styles.quickBtn, { width: quickBtnWidth }]} onPress={() => openCamera("back")}>
+        <Pressable style={[styles.quickBtn, { width: quickBtnWidth }]} onPress={centerButtonAction}>
           <MaterialIcons name="camera-alt" size={width < 360 ? 24 : 30} color="#000" />
-          <Text style={[styles.quickLabel, { fontSize: width < 360 ? 10 : 11 }]}>Rear Camera</Text>
+          <Text style={[styles.quickLabel, { fontSize: width < 360 ? 10 : 11 }]}>
+            {showInlineMap ? "Capture Map" : "Rear Camera"}
+          </Text>
         </Pressable>
       </View>
 
@@ -605,30 +648,32 @@ export default function CompassScreen({ type }: Props) {
         <View style={styles.mapFullscreen}>
           {mapRegion ? (
             <>
-              <MapView
-                style={styles.map}
-                mapType="satellite"
-                region={mapRegion}
-                onRegionChangeComplete={setMapRegion}
-                showsUserLocation
-                showsMyLocationButton={false}
-                toolbarEnabled={false}
-                zoomEnabled={!drawEnabled}
-                zoomControlEnabled
-                rotateEnabled={!drawEnabled}
-                pitchEnabled={!drawEnabled}
-                scrollEnabled={!drawEnabled}
-                onPress={(event) => {
-                  if (!drawEnabled) return;
-                  const coordinate = event.nativeEvent.coordinate;
-                  setDrawPath((prev) => [...prev, coordinate]);
-                }}
-              >
-                <Marker coordinate={{ latitude: mapRegion.latitude, longitude: mapRegion.longitude }} />
-                {drawPath.length > 1 && (
-                  <Polyline coordinates={drawPath} strokeColor="#BD202E" strokeWidth={3} />
-                )}
-              </MapView>
+              <ViewShot ref={mapShotRef} style={styles.map} options={{ format: "jpg", quality: 0.95 }}>
+                <MapView
+                  style={styles.map}
+                  mapType="satellite"
+                  region={mapRegion}
+                  onRegionChangeComplete={setMapRegion}
+                  showsUserLocation
+                  showsMyLocationButton={false}
+                  toolbarEnabled={false}
+                  zoomEnabled={!drawEnabled}
+                  zoomControlEnabled
+                  rotateEnabled={!drawEnabled}
+                  pitchEnabled={!drawEnabled}
+                  scrollEnabled={!drawEnabled}
+                  onPress={(event) => {
+                    if (!drawEnabled) return;
+                    const coordinate = event.nativeEvent.coordinate;
+                    setDrawPath((prev) => [...prev, coordinate]);
+                  }}
+                >
+                  <Marker coordinate={{ latitude: mapRegion.latitude, longitude: mapRegion.longitude }} />
+                  {drawPath.length > 1 && (
+                    <Polyline coordinates={drawPath} strokeColor="#BD202E" strokeWidth={3} />
+                  )}
+                </MapView>
+              </ViewShot>
               <View style={[styles.mapControls, { top: mapControlsTop }]}>
                 <Pressable
                   style={[styles.mapControlBtn, drawEnabled && styles.mapControlBtnActive]}
@@ -1216,7 +1261,7 @@ export default function CompassScreen({ type }: Props) {
             <Text style={styles.navLabel}>Home Page</Text>
           </Pressable>
 
-          <Pressable style={styles.captureBtn} onPress={() => openCamera("back")}>
+          <Pressable style={styles.captureBtn} onPress={centerButtonAction}>
             <MaterialIcons name="camera-alt" size={28} color="#000000" />
           </Pressable>
 
