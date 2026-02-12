@@ -8,7 +8,6 @@ import {
   StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import useAdvancedCompass from "../hooks/useAdvancedCompass";
 
 interface SplashScreenProps {
   onFinish: () => void;
@@ -24,7 +23,6 @@ export const SplashScreenComponent = ({
   const sloganOpacity = useRef(new Animated.Value(0)).current;
   const logoScale = useRef(new Animated.Value(0.8)).current;
   const sloganTranslateY = useRef(new Animated.Value(20)).current;
-  const heading = useAdvancedCompass(); // Returns 0-360°
 
   useEffect(() => {
     const animations = Animated.sequence([
@@ -114,11 +112,6 @@ export const SplashScreenComponent = ({
           </Text>
         </Animated.View>
       </View>
-      <View style={styles.headingContainer}>
-        <Text style={styles.headingText}>
-          Heading: {heading.toFixed(0)}°
-        </Text>
-      </View>
     </SafeAreaView>
   );
 };
@@ -151,18 +144,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   sloganText: {
-    fontSize: 14,
-    fontWeight: "600",
-    textAlign: "center",
-    color: "#333333",
-    lineHeight: 22,
-    letterSpacing: 0.3,
-  },
-  headingContainer: {
-    alignItems: "center",
-    marginTop: 20,
-  },
-  headingText: {
     fontSize: 14,
     fontWeight: "600",
     textAlign: "center",
