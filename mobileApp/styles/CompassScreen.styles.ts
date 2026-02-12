@@ -52,6 +52,24 @@ export const styles = StyleSheet.create({
     borderRadius: 999,
     overflow: "hidden",
   },
+  mapOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 999,
+    overflow: "hidden",
+  },
+  map: {
+    flex: 1,
+  },
+  mapLoading: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f2f2f2",
+  },
+  mapLoadingText: {
+    color: "#666",
+    fontWeight: "600",
+  },
   dial: { overflow: "hidden", alignSelf: "center" },
   needle: { position: "absolute" },
   zoneStepItem: {

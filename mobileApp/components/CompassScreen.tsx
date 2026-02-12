@@ -15,6 +15,7 @@ import {
   TextInput,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import MapView, { Marker } from "react-native-maps";
 import { Magnetometer } from "expo-sensors";
 import * as Location from "expo-location";
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
@@ -76,6 +77,7 @@ export default function CompassScreen({ type }: Props) {
   const insets = useSafeAreaInsets();
   const isCompact = width < 360;
   const assets = getCompassAssets(type);
+  const isInlineMap = type === "normal";
   
   // Calculate responsive dial size based on available space
   const topBarHeight = 0;
@@ -101,6 +103,7 @@ export default function CompassScreen({ type }: Props) {
 
   const [cameraOpen, setCameraOpen] = useState(false);
   const [facing, setFacing] = useState<CameraType>("back");
+  const [mapVisible, setMapVisible] = useState(false);
   const cameraRef = useRef<CameraView>(null);
   const previewShotRef = useRef<ViewShot>(null);
   const [previewUri, setPreviewUri] = useState<string | null>(null);
@@ -193,6 +196,16 @@ export default function CompassScreen({ type }: Props) {
       : degreeToDirection16(heading);
     return `${deg}° · ${direction}`;
   }, [heading, type]);
+  const showInlineMap = isInlineMap && mapVisible;
+  const mapRegion = useMemo(() => {
+    if (!coords) return null;
+    return {
+      latitude: coords.lat,
+      longitude: coords.lon,
+      latitudeDelta: 0.005,
+      longitudeDelta: 0.005,
+    };
+  }, [coords]);
   const zoneTouchSize = useMemo(() => Math.max(26, Math.round(dialSize * 0.14)), [dialSize]);
   const zoneTouchRadius = useMemo(() => (dialSize / 2) - (zoneTouchSize * 0.85), [dialSize, zoneTouchSize]);
 
@@ -238,7 +251,10 @@ export default function CompassScreen({ type }: Props) {
         current = { lat: pos.coords.latitude, lon: pos.coords.longitude };
         setCoords(current);
       }
-      const query = `${current.lat},${current.lon}`;
+      if (isInlineMap) {
+        setMapVisible((prev) => !prev);
+        return;
+      }
       const url = `https://www.google.com/maps/@?api=1&map_action=map&center=${current.lat},${current.lon}&zoom=18&basemap=satellite`;
       console.log("[COMPASS] 🗺️ Opening Google Maps:", url);
       await Linking.openURL(url);
@@ -264,11 +280,7 @@ export default function CompassScreen({ type }: Props) {
   };
 
   const openMapWithFallback = async () => {
-    if (coords) {
-      await openMap();
-      return;
-    }
-    await searchLocation();
+    await openMap();
   };
 
   const openLastCaptured = async () => {
@@ -566,7 +578,9 @@ export default function CompassScreen({ type }: Props) {
       >
         <Pressable style={[styles.quickBtn, { width: quickBtnWidth }]} onPress={openMap}>
           <MaterialIcons name="location-on" size={width < 360 ? 24 : 30} color="#000" />
-          <Text style={[styles.quickLabel, { fontSize: width < 360 ? 10 : 11 }]}>Google map</Text>
+          <Text style={[styles.quickLabel, { fontSize: width < 360 ? 10 : 11 }]}>
+            {showInlineMap ? "Hide map" : "Google map"}
+          </Text>
         </Pressable>
 
         <Text style={[styles.degreeTitle, { fontSize: degreeFontSize }]}>{headingText}</Text>
@@ -583,9 +597,29 @@ export default function CompassScreen({ type }: Props) {
         <MaterialIcons name="arrow-drop-down" size={width < 360 ? 14 : 18} color="#000" style={{ marginBottom: 6 }} />
 
         {/* Dial */}
-        <View style={[styles.dialContainer, { width: dialWidth, height: dialHeight }]}>
+        <View style={[styles.dialContainer, { width: dialWidth, height: dialHeight }]}>        
+          {showInlineMap && (
+            mapRegion ? (
+              <View style={styles.mapOverlay}>
+                <MapView
+                  style={styles.map}
+                  mapType="satellite"
+                  region={mapRegion}
+                  showsUserLocation
+                  showsMyLocationButton={false}
+                  toolbarEnabled={false}
+                >
+                  <Marker coordinate={{ latitude: mapRegion.latitude, longitude: mapRegion.longitude }} />
+                </MapView>
+              </View>
+            ) : (
+              <View style={styles.mapLoading}>
+                <Text style={styles.mapLoadingText}>Locating...</Text>
+              </View>
+            )
+          )}
           <Animated.View style={{ width: dialWidth, height: dialHeight, transform: [{ rotate: dialRotate }] }}>
-            {type !== "zone16" && (
+            {type !== "zone16" && !showInlineMap && (
               <Image
                 source={assets.dial}
                 style={[
