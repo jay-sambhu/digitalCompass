@@ -533,6 +533,8 @@ export default function IndexScreen() {
     );
   }
 
+  const headerIconColor = isDarkMode ? "#ffffff" : "#BD202E";
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? "#f5f5f5" : "#1a1a2e" }]} edges={['top']}>
       <ScrollView 
@@ -548,18 +550,18 @@ export default function IndexScreen() {
           },
         ]}>
           <Pressable onPress={() => setDrawerOpen(true)}>
-            <MaterialIcons name="menu" size={28} color="#000" />
+            <MaterialIcons name="menu" size={28} color={headerIconColor} />
           </Pressable>
           <Text style={[styles.appTitle, { color: isDarkMode ? "#ffffff" : "#BD202E" }]}>Sanskar Compass</Text>
           <View style={styles.headerIcons}>
             <Pressable style={styles.iconBtn} onPress={() => setIsDarkMode(!isDarkMode)}>
-              <MaterialIcons name={isDarkMode ? "lightbulb-outline" : "lightbulb"} size={24} color="#000" />
+              <MaterialIcons name={isDarkMode ? "lightbulb-outline" : "lightbulb"} size={24} color={headerIconColor} />
             </Pressable>
             <Pressable style={styles.iconBtn}>
-              <MaterialIcons name="star-outline" size={24} color="#000" />
+              <MaterialIcons name="star-outline" size={24} color={headerIconColor} />
             </Pressable>
             <Pressable style={styles.iconBtn} onPress={shareApp}>
-              <MaterialIcons name="share" size={24} color="#000" />
+              <MaterialIcons name="share" size={24} color={headerIconColor} />
             </Pressable>
           </View>
         </View>
