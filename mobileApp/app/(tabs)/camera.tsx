@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, Alert, Image, Animated, useWindowDimensions, Linking, Modal, ScrollView, Share, Platform } from "react-native";
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as MediaLibrary from "expo-media-library";
 import * as Location from "expo-location";
 import { Magnetometer } from "expo-sensors";
@@ -24,6 +25,7 @@ function headingFromMag({ x, y }: { x: number; y: number }) {
 
 export default function CameraScreen() {
   const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const { type } = useLocalSearchParams<{ type?: string }>();
   const cameraRef = useRef<CameraView>(null);
   const previewShotRef = useRef<ViewShot>(null);
@@ -561,20 +563,20 @@ export default function CameraScreen() {
       <CameraView ref={cameraRef} style={styles.camera} facing={facing} />
 
       {/* Top Header with Menu, Search, and Location */}
-      <View style={styles.topHeader}>
+      <View style={[styles.topHeader, { paddingTop: Math.max(insets.top, 8) }]}>
         <Pressable onPress={() => setDrawerOpen(true)} style={styles.menuBtn}>
-          <MaterialIcons name="menu" size={24} color="#fff" />
+          <MaterialIcons name="menu" size={28} color="#fff" />
         </Pressable>
         
         <View style={styles.searchBar}>
-          <MaterialIcons name="search" size={18} color="#fff" style={{ marginRight: 8 }} />
+          <MaterialIcons name="search" size={22} color="#fff" style={{ marginRight: 8 }} />
           <Text style={styles.searchText}>
             {coords ? `${coords.lat.toFixed(4)}, ${coords.lon.toFixed(4)}` : "Locating..."}
           </Text>
         </View>
 
         <Pressable style={styles.locationBtn} onPress={openMap}>
-          <MaterialIcons name="location-on" size={24} color="#FF4444" />
+          <MaterialIcons name="location-on" size={28} color="#FF4444" />
         </Pressable>
       </View>
 

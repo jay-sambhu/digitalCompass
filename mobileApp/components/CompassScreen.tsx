@@ -121,6 +121,14 @@ export default function CompassScreen({ type }: Props) {
 
   // Animated rotation (degrees)
   const rotateAnim = useRef(new Animated.Value(0)).current;
+  
+  // Reset map state when component mounts
+  useEffect(() => {
+    setMapVisible(false);
+    setDrawEnabled(false);
+    setDrawPath([]);
+  }, []);
+
   const requestMediaPerm = async () => {
     if (isExpoGoAndroid) {
       const denied = {
@@ -1195,7 +1203,20 @@ export default function CompassScreen({ type }: Props) {
 
       {/* Bottom nav mock - hidden when map is visible */}
       <View style={[styles.bottomNav, showInlineMap && styles.bottomNavOnMap, { paddingBottom: Math.max(insets.bottom, 8) }]}>
-          <Pressable style={styles.navItem} onPress={() => router.push("/")}>
+          <Pressable
+            style={styles.navItem}
+            onPress={() => {
+              if (mapVisible) {
+                // If map is open, just close it
+                setMapVisible(false);
+                setDrawEnabled(false);
+                setDrawPath([]);
+              } else {
+                // If map is closed, navigate to home
+                router.push("/");
+              }
+            }}
+          >
             <MaterialIcons name="home" size={28} color="#000000" />
             <Text style={styles.navLabel}>Home Page</Text>
           </Pressable>

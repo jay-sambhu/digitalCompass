@@ -11,14 +11,18 @@ export const styles = StyleSheet.create({
     right: 0,
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
     backgroundColor: "rgba(0,0,0,0.7)",
     zIndex: 10,
   },
   
   menuBtn: {
-    padding: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
   },
   
   searchBar: {
@@ -26,10 +30,11 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginHorizontal: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    minHeight: 34,
     backgroundColor: "rgba(255,255,255,0.1)",
-    borderRadius: 8,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.2)",
   },
@@ -40,12 +45,16 @@ export const styles = StyleSheet.create({
   },
   
   locationBtn: {
-    padding: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
   },
   
   flipBtn: {
     position: "absolute",
-    top: 70,
+    top: 95,
     right: 20,
     width: 48,
     height: 48,
