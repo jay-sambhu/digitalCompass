@@ -77,7 +77,7 @@ export default function CompassScreen({ type }: Props) {
   const insets = useSafeAreaInsets();
   const isCompact = width < 360;
   const assets = getCompassAssets(type);
-  const isInlineMap = type === "normal";
+  const isInlineMap = true; // Enable map for all compass types
   
   // Calculate responsive dial size based on available space
   const topBarHeight = 0;
