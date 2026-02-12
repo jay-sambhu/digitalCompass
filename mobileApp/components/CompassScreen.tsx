@@ -27,7 +27,7 @@ import { getCompassAssets, type CompassType } from "../utils/compassAssets";
 import { MaterialIcons } from "@expo/vector-icons";
 import { styles } from "../styles/CompassScreen.styles";
 import useAdvancedCompass from "../hooks/useAdvancedCompass";
-import { degreeToDirection16 } from "../utils/direction";
+import { degreeToDirection16, degreeToDirection8 } from "../utils/direction";
 
 type Props = {
   type: CompassType;
@@ -188,8 +188,11 @@ export default function CompassScreen({ type }: Props) {
 
   const headingText = useMemo(() => {
     const deg = Math.round(heading);
-    return `${deg}° · ${degreeToDirection16(heading)}`;
-  }, [heading]);
+    const direction = type === "normal"
+      ? degreeToDirection8(heading)
+      : degreeToDirection16(heading);
+    return `${deg}° · ${direction}`;
+  }, [heading, type]);
   const zoneTouchSize = useMemo(() => Math.max(26, Math.round(dialSize * 0.14)), [dialSize]);
   const zoneTouchRadius = useMemo(() => (dialSize / 2) - (zoneTouchSize * 0.85), [dialSize, zoneTouchSize]);
 
