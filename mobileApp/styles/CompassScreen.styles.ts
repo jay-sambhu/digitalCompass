@@ -17,7 +17,11 @@ export const styles = StyleSheet.create({
     height: 36,
   },
   menuBtn: {
-    padding: 6,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
   },
   searchBar: {
     flex: 1,
@@ -25,7 +29,8 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     marginHorizontal: 8,
     paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingVertical: 7,
+    minHeight: 34,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.35)",
@@ -35,11 +40,15 @@ export const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     color: "#ffffff",
-    fontSize: 14,
+    fontSize: 13,
     paddingVertical: 0,
   },
   locationBtn: {
-    padding: 6,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   quickRow: { marginTop: 12, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap", zIndex: 1, minHeight: 70 },

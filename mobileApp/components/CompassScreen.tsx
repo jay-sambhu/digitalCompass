@@ -200,7 +200,7 @@ export default function CompassScreen({ type }: Props) {
     return `${deg}° · ${direction}`;
   }, [heading, type]);
   const showInlineMap = isInlineMap && mapVisible;
-  const mapControlsTop = Math.max(insets.top + 10, 50);
+  const mapControlsTop = Math.max(insets.top + 80, 120);
   const zoneTouchSize = useMemo(() => Math.max(26, Math.round(dialSize * 0.14)), [dialSize]);
   const zoneTouchRadius = useMemo(() => (dialSize / 2) - (zoneTouchSize * 0.85), [dialSize, zoneTouchSize]);
 
@@ -547,11 +547,11 @@ export default function CompassScreen({ type }: Props) {
       {/* Top Header: menu + search + location */}
       <View style={[styles.topHeader, showInlineMap && styles.topHeaderCompact]}>
         <Pressable style={styles.menuBtn} onPress={() => setDrawerOpen(true)}>
-          <MaterialIcons name="menu" size={24} color="#ffffff" />
+          <MaterialIcons name="menu" size={28} color="#ffffff" />
         </Pressable>
 
         <View style={styles.searchBar}>
-          <MaterialIcons name="search" size={18} color="#ffffff" />
+          <MaterialIcons name="search" size={22} color="#ffffff" />
           <TextInput
             style={styles.searchInput}
             value={locationQuery}
@@ -562,12 +562,12 @@ export default function CompassScreen({ type }: Props) {
             onSubmitEditing={searchLocation}
           />
           <Pressable onPress={searchLocation}>
-            <MaterialIcons name="arrow-forward" size={18} color="#ffffff" />
+            <MaterialIcons name="arrow-forward" size={22} color="#ffffff" />
           </Pressable>
         </View>
 
         <Pressable style={styles.locationBtn} onPress={openMapWithFallback}>
-          <MaterialIcons name="location-on" size={24} color="#ffffff" />
+          <MaterialIcons name="location-on" size={28} color="#ffffff" />
         </Pressable>
       </View>
 
