@@ -1196,16 +1196,16 @@ export default function CompassScreen({ type }: Props) {
       {/* Bottom nav mock - hidden when map is visible */}
       <View style={[styles.bottomNav, showInlineMap && styles.bottomNavOnMap, { paddingBottom: Math.max(insets.bottom, 8) }]}>
           <Pressable style={styles.navItem} onPress={() => router.push("/")}>
-            <MaterialIcons name="home" size={28} color="#000" />
+            <MaterialIcons name="home" size={28} color="#000000" />
             <Text style={styles.navLabel}>Home Page</Text>
           </Pressable>
 
           <Pressable style={styles.captureBtn} onPress={() => openCamera("back")}>
-            <MaterialIcons name="camera-alt" size={28} color="#000" />
+            <MaterialIcons name="camera-alt" size={28} color="#000000" />
           </Pressable>
 
           <Pressable style={styles.navItem} onPress={openLastCaptured}>
-            <MaterialIcons name="image" size={28} color="#000" />
+            <MaterialIcons name="image" size={28} color="#000000" />
             <Text style={styles.navLabel}>Last Captured</Text>
           </Pressable>
       </View>
