@@ -26,7 +26,7 @@ import Constants from "expo-constants";
 import { getCompassAssets, type CompassType } from "../utils/compassAssets";
 import { MaterialIcons } from "@expo/vector-icons";
 import { styles } from "../styles/CompassScreen.styles";
-import useCompassHeading from "../hooks/useCompassHeading";
+import useAdvancedCompass from "../hooks/useAdvancedCompass";
 
 type Props = {
   type: CompassType;
@@ -94,7 +94,7 @@ export default function CompassScreen({ type }: Props) {
   const quickBtnWidth = width < 360 ? 90 : width < 600 ? 100 : 110;
   const infoBoxFontSize = width < 360 ? 12 : width < 600 ? 13 : 14;
 
-  const heading = useCompassHeading();               // 0..360
+  const heading = useAdvancedCompass();             // 0..360 - uses gyroscope + accelerometer + magnetometer
   const [strength, setStrength] = useState(0);       // microTesla approx
   const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
 

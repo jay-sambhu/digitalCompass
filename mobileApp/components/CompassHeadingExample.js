@@ -1,9 +1,9 @@
 import React, { useEffect, useRef } from "react";
 import { View, Text, Image, StyleSheet, Animated } from "react-native";
-import useCompassHeading from "../hooks/useCompassHeading";
+import useAdvancedCompass from "../hooks/useAdvancedCompass";
 
 export default function CompassHeadingExample() {
-  const heading = useCompassHeading();
+  const heading = useAdvancedCompass();
   const rotation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
