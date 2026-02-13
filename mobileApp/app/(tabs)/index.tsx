@@ -703,6 +703,22 @@ export default function IndexScreen() {
             </View>
           ) : capturedPhoto ? (
             <View style={styles.previewContainer}>
+              {/* Back/Home Button at Top */}
+              <View style={styles.previewHeader}>
+                <Pressable 
+                  style={styles.backButton} 
+                  onPress={closeCamera}
+                >
+                  <MaterialIcons name="arrow-back" size={28} color="#ffffff" />
+                  <Text style={styles.backButtonText}>Back to Home</Text>
+                </Pressable>
+                <Pressable 
+                  style={styles.closeButtonTop} 
+                  onPress={closeCamera}
+                >
+                  <MaterialIcons name="close" size={28} color="#ffffff" />
+                </Pressable>
+              </View>
               <ViewShot
                 ref={previewShotRef}
                 options={{ format: "jpg", quality: 0.9 }}

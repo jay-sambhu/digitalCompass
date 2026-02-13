@@ -414,6 +414,25 @@ export default function CameraScreen() {
 
     return (
       <View style={styles.container}>
+        {/* Back/Home Header Button */}
+        <View style={styles.previewHeader}>
+          <Pressable 
+            style={styles.backButton} 
+            onPress={() => {
+              setPreviewUri(null);
+              router.back();
+            }}
+          >
+            <MaterialIcons name="arrow-back" size={28} color="#ffffff" />
+            <Text style={styles.backButtonText}>Back to Home</Text>
+          </Pressable>
+          <Pressable 
+            style={styles.closeButtonTop} 
+            onPress={() => setPreviewUri(null)}
+          >
+            <MaterialIcons name="close" size={28} color="#ffffff" />
+          </Pressable>
+        </View>
         <ViewShot
           ref={previewShotRef}
           options={{ format: "jpg", quality: 0.9 }}
@@ -499,6 +518,10 @@ export default function CameraScreen() {
           <Pressable style={styles.previewBtn} onPress={sharePreviewPhoto}>
             <MaterialIcons name="share" size={28} color="#fff" />
             <Text style={styles.previewBtnText}>Share</Text>
+          </Pressable>
+          <Pressable style={styles.previewBtn} onPress={() => setPreviewUri(null)}>
+            <MaterialIcons name="close" size={28} color="#fff" />
+            <Text style={styles.previewBtnText}>Close</Text>
           </Pressable>
         </View>
 
