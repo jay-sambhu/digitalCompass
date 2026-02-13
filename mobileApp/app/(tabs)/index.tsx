@@ -928,6 +928,36 @@ export default function IndexScreen() {
           </View>
           
           <ScrollView style={styles.userGuideContent} showsVerticalScrollIndicator={false}>
+            {/* What's New */}
+            <View style={[styles.guideSection, { backgroundColor: '#E3F2FD', padding: 16, borderRadius: 12, marginBottom: 16 }]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                <MaterialIcons name="new-releases" size={24} color="#1976D2" style={{ marginRight: 8 }} />
+                <Text style={[styles.guideSectionTitle, { color: '#1565C0', fontSize: 18 }]}>What's New - Enhanced Safety!</Text>
+              </View>
+              <View style={styles.guideList}>
+                <Text style={[styles.guideListItem, { marginBottom: 8 }]}>
+                  <Text style={[styles.guideListText, { color: '#0D47A1' }]}>
+                    <MaterialIcons name="check-circle" size={16} color="#4CAF50" /> <Text style={{ fontWeight: '700' }}>Never Crashes:</Text> Advanced error protection prevents all permission-related crashes
+                  </Text>
+                </Text>
+                <Text style={[styles.guideListItem, { marginBottom: 8 }]}>
+                  <Text style={[styles.guideListText, { color: '#0D47A1' }]}>
+                    <MaterialIcons name="check-circle" size={16} color="#4CAF50" /> <Text style={{ fontWeight: '700' }}>Works Without Permissions:</Text> All features gracefully degrade if you deny permissions
+                  </Text>
+                </Text>
+                <Text style={[styles.guideListItem, { marginBottom: 8 }]}>
+                  <Text style={[styles.guideListText, { color: '#0D47A1' }]}>
+                    <MaterialIcons name="check-circle" size={16} color="#4CAF50" /> <Text style={{ fontWeight: '700' }}>Smart Fallbacks:</Text> Automatically uses alternative sensors when permissions denied
+                  </Text>
+                </Text>
+                <Text style={styles.guideListItem}>
+                  <Text style={[styles.guideListText, { color: '#0D47A1' }]}>
+                    <MaterialIcons name="check-circle" size={16} color="#4CAF50" /> <Text style={{ fontWeight: '700' }}>Clear Messages:</Text> User-friendly alerts instead of technical errors
+                  </Text>
+                </Text>
+              </View>
+            </View>
+
             {/* Getting Started */}
             <View style={styles.guideSection}>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
@@ -943,25 +973,39 @@ export default function IndexScreen() {
             <View style={styles.guideSection}>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
                 <MaterialIcons name="lock" size={20} color="#000" style={{ marginRight: 8 }} />
-                <Text style={styles.guideSectionTitle}>What We Need</Text>
+                <Text style={styles.guideSectionTitle}>Permissions - Smart & Safe</Text>
               </View>
-              <Text style={styles.guideSubtitle}>To work properly, we need a few permissions:</Text>
+              <Text style={styles.guideSubtitle}>To give you the best experience, we request a few permissions:</Text>
               <View style={styles.guideList}>
                 <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 }}>
-                  <MaterialIcons name="camera-alt" size={16} color="#000" style={{ marginRight: 8, marginTop: 2 }} />
-                  <Text style={styles.guideListText}>Camera - Take photos with compass directions on them</Text>
+                  <MaterialIcons name="camera-alt" size={16} color="#4CAF50" style={{ marginRight: 8, marginTop: 2 }} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.guideListText, { fontWeight: '600' }]}>Camera (Optional)</Text>
+                    <Text style={[styles.guideListText, { fontSize: 12, color: '#666' }]}>Take photos with compass directions overlaid. If denied, compass still works - you just can't take photos.</Text>
+                  </View>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 }}>
-                  <MaterialIcons name="location-on" size={16} color="#000" style={{ marginRight: 8, marginTop: 2 }} />
-                  <Text style={styles.guideListText}>Location - Show where you are and which way you're facing</Text>
+                  <MaterialIcons name="location-on" size={16} color="#2196F3" style={{ marginRight: 8, marginTop: 2 }} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.guideListText, { fontWeight: '600' }]}>Location (Recommended)</Text>
+                    <Text style={[styles.guideListText, { fontSize: 12, color: '#666' }]}>Improves compass accuracy with true heading. If denied, app uses magnetometer sensors - compass still works!</Text>
+                  </View>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 }}>
-                  <MaterialIcons name="image" size={16} color="#000" style={{ marginRight: 8, marginTop: 2 }} />
-                  <Text style={styles.guideListText}>Photos - Save your compass pictures to your gallery</Text>
+                  <MaterialIcons name="image" size={16} color="#FF9800" style={{ marginRight: 8, marginTop: 2 }} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.guideListText, { fontWeight: '600' }]}>Media Library (Optional)</Text>
+                    <Text style={[styles.guideListText, { fontSize: 12, color: '#666' }]}>Save compass photos to your gallery. If denied, you can still share photos without saving.</Text>
+                  </View>
                 </View>
               </View>
+              <View style={{ backgroundColor: '#E8F5E9', padding: 12, borderRadius: 8, marginTop: 8, marginBottom: 8 }}>
+                <Text style={[styles.guideText, { fontSize: 13, color: '#2E7D32' }]}>
+                  <MaterialIcons name="check-circle" size={14} color="#4CAF50" /> <Text style={{ fontWeight: '600' }}>Good News:</Text> The app works even if you deny all permissions! Basic compass functionality always available.
+                </Text>
+              </View>
               <Text style={styles.guideText}>
-                You can turn these on or off anytime from the menu → "Manage Permissions".
+                Manage permissions anytime: Menu (☰) → "Manage Permissions". You can toggle them on/off as needed.
               </Text>
             </View>
 
@@ -1055,6 +1099,9 @@ export default function IndexScreen() {
                 <Text style={styles.guideListItem}><Text style={styles.guideListText}><MaterialIcons name="battery-full" size={14} color="#000" /> <Text style={{fontWeight: '700'}}>Signal Strength:</Text> Shows how strong the magnetic field is around you</Text></Text>
                 <Text style={styles.guideListItem}><Text style={styles.guideListText}><MaterialIcons name="photo-camera" size={14} color="#000" /> <Text style={{fontWeight: '700'}}>Save Photos:</Text> Take pictures with compass directions on them - save and share easily</Text></Text>
                 <Text style={styles.guideListItem}><Text style={styles.guideListText}><MaterialIcons name="share" size={14} color="#000" /> <Text style={{fontWeight: '700'}}>Share App:</Text> Love the app? Share it with friends and family from the menu</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}><MaterialIcons name="shield" size={14} color="#4CAF50" /> <Text style={{fontWeight: '700'}}>Smart Error Protection:</Text> Never crashes! Built-in safety handles permission errors gracefully</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}><MaterialIcons name="settings" size={14} color="#FF9800" /> <Text style={{fontWeight: '700'}}>Easy Permission Control:</Text> Toggle permissions on/off anytime from the menu</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}><MaterialIcons name="layers" size={14} color="#2196F3" /> <Text style={{fontWeight: '700'}}>Sensor Fusion:</Text> Uses gyroscope + accelerometer + magnetometer for maximum accuracy</Text></Text>
               </View>
             </View>
 
@@ -1070,7 +1117,81 @@ export default function IndexScreen() {
                 <Text style={styles.guideListItem}><Text style={styles.guideListText}>✓ Works best outside or near windows (better GPS signal)</Text></Text>
                 <Text style={styles.guideListItem}><Text style={styles.guideListText}>✓ Wait 3-5 seconds for the needle to stop moving before taking a photo</Text></Text>
                 <Text style={styles.guideListItem}><Text style={styles.guideListText}>✓ Compass acting weird? Wave your phone in a figure-8 pattern to reset it</Text></Text>
-                <Text style={styles.guideListItem}><Text style={styles.guideListText}>✓ Make sure location services are ON in your phone settings</Text></Text>
+                <Text style={styles.guideListItem}><Text style={styles.guideListText}>✓ Grant location permission for best accuracy (but compass works without it too!)</Text></Text>
+              </View>
+            </View>
+
+            {/* Troubleshooting */}
+            <View style={styles.guideSection}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                <MaterialIcons name="build" size={20} color="#000" style={{ marginRight: 8 }} />
+                <Text style={styles.guideSectionTitle}>Troubleshooting & Common Issues</Text>
+              </View>
+              
+              <Text style={[styles.guideSubtitle, { marginTop: 8 }]}>Permission Issues:</Text>
+              <View style={styles.guideList}>
+                <View style={{ marginBottom: 12 }}>
+                  <Text style={[styles.guideListText, { fontWeight: '600' }]}>
+                    <MaterialIcons name="block" size={14} color="#F44336" /> App asks for permission but I denied it:
+                  </Text>
+                  <Text style={[styles.guideListText, { marginLeft: 0, marginTop: 4, fontSize: 13 }]}>
+                    Don't worry! The app will continue working with reduced features. You can grant permission later from Menu → Manage Permissions or your phone's Settings → Apps → Sanskar Compass → Permissions.
+                  </Text>
+                </View>
+                
+                <View style={{ marginBottom: 12 }}>
+                  <Text style={[styles.guideListText, { fontWeight: '600' }]}>
+                    <MaterialIcons name="error-outline" size={14} color="#FF9800" /> Getting "Permission Denied" errors:
+                  </Text>
+                  <Text style={[styles.guideListText, { marginLeft: 0, marginTop: 4, fontSize: 13 }]}>
+                    This is normal and won't crash the app! We've built smart error handling. The app automatically switches to backup sensors when permissions are denied. Just tap "Open Settings" in the alert to enable permissions if you want full features.
+                  </Text>
+                </View>
+                
+                <View style={{ marginBottom: 12 }}>
+                  <Text style={[styles.guideListText, { fontWeight: '600' }]}>
+                    <MaterialIcons name="warning" size={14} color="#FF5722" /> Can't save photos even with permission:
+                  </Text>
+                  <Text style={[styles.guideListText, { marginLeft: 0, marginTop: 4, fontSize: 13 }]}>
+                    If you're using Expo Go on Android, media library isn't supported. Use the "Share" button instead to send photos to other apps. For full functionality, ask your developer for a development build.
+                  </Text>
+                </View>
+              </View>
+
+              <Text style={[styles.guideSubtitle, { marginTop: 16 }]}>Compass Issues:</Text>
+              <View style={styles.guideList}>
+                <View style={{ marginBottom: 12 }}>
+                  <Text style={[styles.guideListText, { fontWeight: '600' }]}>
+                    <MaterialIcons name="rotate-left" size={14} color="#2196F3" /> Needle spinning or jumping around:
+                  </Text>
+                  <Text style={[styles.guideListText, { marginLeft: 0, marginTop: 4, fontSize: 13 }]}>
+                    Move away from magnetic interference (metal furniture, speakers, chargers). Calibrate your phone's compass by moving it in a figure-8 pattern in the air.
+                  </Text>
+                </View>
+                
+                <View style={{ marginBottom: 12 }}>
+                  <Text style={[styles.guideListText, { fontWeight: '600' }]}>
+                    <MaterialIcons name="gps-off" size={14} color="#9E9E9E" /> Shows wrong direction:
+                  </Text>
+                  <Text style={[styles.guideListText, { marginLeft: 0, marginTop: 4, fontSize: 13 }]}>
+                    Enable location permission for true heading accuracy. Without it, the compass uses magnetic north which can vary by location. Also ensure you're holding the phone flat, not tilted.
+                  </Text>
+                </View>
+                
+                <View style={{ marginBottom: 12 }}>
+                  <Text style={[styles.guideListText, { fontWeight: '600' }]}>
+                    <MaterialIcons name="camera-alt" size={14} color="#4CAF50" /> Camera won't open:
+                  </Text>
+                  <Text style={[styles.guideListText, { marginLeft: 0, marginTop: 4, fontSize: 13 }]}>
+                    Grant camera permission when asked. If you accidentally denied it, go to Menu → Manage Permissions and toggle Camera ON. If still not working, check phone Settings → Apps → Sanskar Compass → Permissions.
+                  </Text>
+                </View>
+              </View>
+
+              <View style={{ backgroundColor: '#FFF3E0', padding: 12, borderRadius: 8, marginTop: 12 }}>
+                <Text style={[styles.guideText, { fontSize: 13, color: '#E65100' }]}>
+                  <MaterialIcons name="info" size={14} color="#FF9800" /> <Text style={{ fontWeight: '600' }}>Remember:</Text> Even if something goes wrong, the app won't crash! We've added advanced error protection so you can always use the basic compass features.
+                </Text>
               </View>
             </View>
 
