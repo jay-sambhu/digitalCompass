@@ -702,7 +702,7 @@ export default function IndexScreen() {
               </Pressable>
             </View>
           ) : capturedPhoto ? (
-            <View style={styles.previewContainer}>
+            <SafeAreaView style={styles.previewContainer} edges={['top']}>
               {/* Back/Home Button at Top */}
               <View style={styles.previewHeader}>
                 <Pressable 
@@ -786,7 +786,7 @@ export default function IndexScreen() {
                   <Text style={styles.camBtnText}>Close</Text>
                 </Pressable>
               </View>
-            </View>
+            </SafeAreaView>
           ) : (
             <>
               <CameraView ref={cameraRef} style={styles.camera} facing={facing}>

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, Alert, Image, Animated, useWindowDimensions, Linking, Modal, ScrollView, Share, Platform } from "react-native";
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import * as MediaLibrary from "expo-media-library";
 import * as Location from "expo-location";
 import { Magnetometer } from "expo-sensors";
@@ -413,9 +413,10 @@ export default function CameraScreen() {
     const previewNeedleRotate = `${-previewHeading}deg`;
 
     return (
-      <View style={styles.container}>
-        {/* Back/Home Header Button */}
-        <View style={styles.previewHeader}>
+      <>
+        <SafeAreaView style={styles.previewContainer} edges={['top']}>
+          {/* Back/Home Header Button */}
+          <View style={styles.previewHeader}>
           <Pressable 
             style={styles.backButton} 
             onPress={() => {
@@ -524,10 +525,11 @@ export default function CameraScreen() {
             <Text style={styles.previewBtnText}>Close</Text>
           </Pressable>
         </View>
+      </SafeAreaView>
 
-        <Modal
-          visible={drawerOpen}
-          animationType="slide"
+      <Modal
+        visible={drawerOpen}
+        animationType="slide"
           transparent
           onRequestClose={() => setDrawerOpen(false)}
         >
@@ -599,7 +601,7 @@ export default function CameraScreen() {
             </Pressable>
           </Pressable>
         </Modal>
-      </View>
+      </>
     );
   }
 
