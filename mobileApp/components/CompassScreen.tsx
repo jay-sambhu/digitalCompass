@@ -840,25 +840,6 @@ export default function CompassScreen({ type }: Props) {
             </View>
           ) : previewUri ? (
             <>
-              {/* Back/Home Header Button */}
-              <View style={styles.previewHeader}>
-                <Pressable 
-                  style={styles.backButton} 
-                  onPress={() => {
-                    setPreviewUri(null);
-                    setCameraOpen(false);
-                  }}
-                >
-                  <MaterialIcons name="arrow-back" size={28} color="#ffffff" />
-                  <Text style={styles.backButtonText}>Back</Text>
-                </Pressable>
-                <Pressable 
-                  style={styles.closeButtonTop} 
-                  onPress={() => setPreviewUri(null)}
-                >
-                  <MaterialIcons name="close" size={28} color="#ffffff" />
-                </Pressable>
-              </View>
               <Image source={{ uri: previewUri }} style={styles.previewImage} />
               <View
                 style={[

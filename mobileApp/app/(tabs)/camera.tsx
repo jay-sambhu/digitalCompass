@@ -413,27 +413,7 @@ export default function CameraScreen() {
     const previewNeedleRotate = `${-previewHeading}deg`;
 
     return (
-      <>
-        <SafeAreaView style={styles.previewContainer} edges={['top']}>
-          {/* Back/Home Header Button */}
-          <View style={styles.previewHeader}>
-          <Pressable 
-            style={styles.backButton} 
-            onPress={() => {
-              setPreviewUri(null);
-              router.back();
-            }}
-          >
-            <MaterialIcons name="arrow-back" size={28} color="#ffffff" />
-            <Text style={styles.backButtonText}>Back to Home</Text>
-          </Pressable>
-          <Pressable 
-            style={styles.closeButtonTop} 
-            onPress={() => setPreviewUri(null)}
-          >
-            <MaterialIcons name="close" size={28} color="#ffffff" />
-          </Pressable>
-        </View>
+      <View style={styles.container}>
         <ViewShot
           ref={previewShotRef}
           options={{ format: "jpg", quality: 0.9 }}
@@ -525,8 +505,90 @@ export default function CameraScreen() {
             <Text style={styles.previewBtnText}>Close</Text>
           </Pressable>
         </View>
-      </SafeAreaView>
+      </View>
+    );
+  }
 
+  return (
+    <View style={styles.container}>
+      <CameraView ref={cameraRef} style={styles.camera} facing={facing} />
+
+      {/* Top Header with Menu, Search, and Location */}
+      <View style={[styles.topHeader, { paddingTop: Math.max(insets.top, 8) }]}>
+        <Pressable onPress={() => setDrawerOpen(true)} style={styles.menuBtn}>
+          <MaterialIcons name="menu" size={28} color="#fff" />
+        </Pressable>
+        
+        <View style={styles.searchBar}>
+          <MaterialIcons name="search" size={22} color="#fff" style={{ marginRight: 8 }} />
+          <Text style={styles.searchText}>
+            {coords ? `${coords.lat.toFixed(4)}, ${coords.lon.toFixed(4)}` : "Locating..."}
+          </Text>
+        </View>
+
+        <Pressable style={styles.locationBtn} onPress={openMap}>
+          <MaterialIcons name="location-on" size={28} color="#FF4444" />
+        </Pressable>
+      </View>
+
+      {/* Flip button - moved away from top bar */}
+      <Pressable
+        style={styles.flipBtn}
+        onPress={() => setFacing((p) => (p === "back" ? "front" : "back"))}
+      >
+        <MaterialCommunityIcons name="camera-flip" size={28} color="#fff" />
+      </Pressable>
+
+      {/* Compass dial overlay */}
+      <View style={[styles.compassContainer, { transform: [{ translateY: -dialSize / 2 }] }]}>
+        <Animated.Image
+          source={assets.dial}
+          style={[
+            styles.compassDial,
+            { width: dialSize, height: dialSize },
+            {
+              transform: [
+                { translateX: assets.dialOffset.x },
+                { translateY: assets.dialOffset.y },
+                { scale: assets.dialScale },
+                { rotate: rotateAnim.interpolate({ inputRange: [0, 360], outputRange: ["0deg", "360deg"] }) },
+              ],
+            },
+          ]}
+          resizeMode="contain"
+        />
+        <Animated.Image
+          source={assets.needle}
+          style={[
+            styles.compassNeedle,
+            { width: needleSize, height: needleSize },
+            {
+              transform: [
+                { translateX: assets.needleTranslate.x },
+                { translateY: assets.needleTranslate.y },
+                { scale:assets.needleScale },
+                { rotate: needleRotate },
+              ],
+            },
+          ]}
+          resizeMode="contain"
+        />
+      </View>
+
+      {/* Magnetic field display */}
+      <View style={styles.magStrengthBox}>
+        <Text style={styles.magStrengthLabel}>Magnetic Field:</Text>
+        <Text style={styles.magStrengthVal}>{strength.toFixed(0)} µT</Text>
+      </View>
+
+      {/* Capture button */}
+      <Pressable style={styles.captureBtn} onPress={takePhoto}>
+        <View style={styles.captureBtnRing}>
+          <View style={styles.captureBtnInner} />
+        </View>
+      </Pressable>
+
+      {/* Drawer / Menu */}
       <Modal
         visible={drawerOpen}
         animationType="slide"
@@ -601,188 +663,8 @@ export default function CameraScreen() {
             </Pressable>
           </Pressable>
         </Modal>
-      </>
+      </View>
     );
-  }
-
-  return (
-    <View style={styles.container}>
-      <CameraView ref={cameraRef} style={styles.camera} facing={facing} />
-
-      {/* Top Header with Menu, Search, and Location */}
-      <View style={[styles.topHeader, { paddingTop: Math.max(insets.top, 8) }]}>
-        <Pressable onPress={() => setDrawerOpen(true)} style={styles.menuBtn}>
-          <MaterialIcons name="menu" size={28} color="#fff" />
-        </Pressable>
-        
-        <View style={styles.searchBar}>
-          <MaterialIcons name="search" size={22} color="#fff" style={{ marginRight: 8 }} />
-          <Text style={styles.searchText}>
-            {coords ? `${coords.lat.toFixed(4)}, ${coords.lon.toFixed(4)}` : "Locating..."}
-          </Text>
-        </View>
-
-        <Pressable style={styles.locationBtn} onPress={openMap}>
-          <MaterialIcons name="location-on" size={28} color="#FF4444" />
-        </Pressable>
-      </View>
-
-      {/* Flip button - moved away from top bar */}
-      <Pressable
-        style={styles.flipBtn}
-        onPress={() => setFacing((p) => (p === "back" ? "front" : "back"))}
-      >
-        <MaterialCommunityIcons name="camera-flip" size={28} color="#fff" />
-      </Pressable>
-
-      {/* Compass dial overlay */}
-      <View style={[styles.compassContainer, { transform: [{ translateY: -dialSize / 2 }] }]}>
-        <Animated.Image
-          source={assets.dial}
-          style={[
-            styles.compassDial,
-            { width: dialSize, height: dialSize },
-            {
-              transform: [
-                { translateX: assets.dialOffset.x },
-                { translateY: assets.dialOffset.y },
-                { scale: assets.dialScale },
-                { rotate: rotateAnim.interpolate({ inputRange: [0, 360], outputRange: ["0deg", "360deg"] }) },
-              ],
-            },
-          ]}
-          resizeMode="contain"
-        />
-        <Animated.Image
-          source={assets.needle}
-          style={[
-            styles.compassNeedle,
-            {
-              width: needleSize,
-              height: needleSize,
-              transform: [{ rotate: rotateAnim.interpolate({ inputRange: [0, 360], outputRange: ["0deg", "360deg"] }) }],
-            },
-          ]}
-          resizeMode="contain"
-        />
-      </View>
-
-      {/* Bottom left - Geo-Coordinate */}
-      <View style={styles.bottomLeftInfo}>
-        <Text style={styles.infoTitle}>Geo-Coordinate:</Text>
-        <Text style={styles.infoText}>Latitude: {coords ? coords.lat.toFixed(7) : "—"}</Text>
-        <Text style={styles.infoText}>Longitude: {coords ? coords.lon.toFixed(7) : "—"}</Text>
-      </View>
-
-      {/* Bottom right - Magnetic Field */}
-      <View style={styles.bottomRightInfo}>
-        <Text style={styles.infoTitle}>Magnetic Field:</Text>
-        <Text style={styles.infoText}>Strength: {strength.toFixed(0)} µT</Text>
-      </View>
-
-      {/* Bottom controls */}
-      <View style={styles.controls}>
-        <Pressable style={styles.navBtn} onPress={() => router.push("/(tabs)")}>
-          <MaterialIcons name="home" size={32} color="#000" />
-          <Text style={styles.navBtnText}>Home Page</Text>
-        </Pressable>
-
-        <Pressable style={styles.captureBtn} onPress={takePhoto}>
-          <MaterialIcons name="camera" size={40} color="#000" />
-        </Pressable>
-
-        <Pressable style={styles.navBtn} onPress={openLastCaptured}>
-          <MaterialIcons name="photo-library" size={32} color="#000" />
-          <Text style={styles.navBtnText}>Last Captured</Text>
-        </Pressable>
-      </View>
-
-      <Modal
-        visible={drawerOpen}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setDrawerOpen(false)}
-      >
-        <Pressable style={styles.drawerOverlay} onPress={() => setDrawerOpen(false)}>
-          <Pressable style={styles.drawerContainer} onPress={(e) => e.stopPropagation()}>
-            <ScrollView>
-              <View style={styles.drawerHeader}>
-                <Image
-                  source={assets.icon}
-                  style={styles.drawerLogo}
-                  resizeMode="contain"
-                />
-                <Text style={styles.drawerBrand}>sanskarvastu.com</Text>
-                <Text style={styles.drawerVersion}>Version: {appVersion}</Text>
-                <Text style={styles.drawerTitle}>Vastu Compass</Text>
-              </View>
-
-              <View style={styles.menuList}>
-                <Pressable style={styles.menuItem}>
-                  <MaterialIcons name="info-outline" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                  <Text style={styles.menuText}>About Us</Text>
-                  <Text style={styles.menuArrow}>›</Text>
-                </Pressable>
-
-                <Pressable style={styles.menuItem}>
-                  <MaterialIcons name="computer" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                  <Text style={styles.menuText}>Access Our Website</Text>
-                  <Text style={styles.menuArrow}>›</Text>
-                </Pressable>
-
-                <Pressable style={styles.menuItem}>
-                  <MaterialIcons name="smartphone" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                  <Text style={styles.menuText}>More Apps</Text>
-                  <Text style={styles.menuArrow}>›</Text>
-                </Pressable>
-
-                <Pressable style={styles.menuItem} onPress={shareApp}>
-                  <MaterialIcons name="share" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                  <Text style={styles.menuText}>Share</Text>
-                  <Text style={styles.menuArrow}>›</Text>
-                </Pressable>
-
-                <Pressable style={styles.menuItem}>
-                  <MaterialIcons name="mail-outline" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                  <Text style={styles.menuText}>Send Feedback</Text>
-                  <Text style={styles.menuArrow}>›</Text>
-                </Pressable>
-
-                <Pressable style={styles.menuItem}>
-                  <MaterialIcons name="star-outline" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                  <Text style={styles.menuText}>Review Us</Text>
-                  <Text style={styles.menuArrow}>›</Text>
-                </Pressable>
-
-                <Pressable style={styles.menuItem} onPress={openPermissionsManager}>
-                  <MaterialIcons name="lock-outline" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                  <Text style={styles.menuText}>Permissions</Text>
-                  <Text style={styles.menuArrow}>›</Text>
-                </Pressable>
-
-                <Pressable style={styles.menuItem} onPress={openUserGuide}>
-                  <MaterialIcons name="help-outline" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                  <Text style={styles.menuText}>How to use Sanskar Compass</Text>
-                  <Text style={styles.menuArrow}>›</Text>
-                </Pressable>
-
-                <Pressable style={styles.menuItem}>
-                  <MaterialIcons name="school" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                  <Text style={styles.menuText}>Join SanskarVastu Course</Text>
-                  <Text style={styles.menuArrow}>›</Text>
-                </Pressable>
-
-                <Pressable style={styles.menuItem} onPress={() => setDrawerOpen(false)}>
-                  <MaterialIcons name="arrow-back" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                  <Text style={styles.menuText}>Back</Text>
-                  <Text style={styles.menuArrow}></Text>
-                </Pressable>
-              </View>
-            </ScrollView>
-          </Pressable>
-        </Pressable>
-      </Modal>
-    </View>
-  );
 }
+
 
