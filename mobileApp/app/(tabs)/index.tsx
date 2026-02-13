@@ -47,6 +47,12 @@ function smoothAngle(prev: number, next: number, alpha: number) {
   return (prev + alpha * diff + 360) % 360;
 }
 
+// Map activeCompass index to compass type
+const COMPASS_TYPES = ["normal", "zone16", "zone32", "chakra"] as const;
+function getCompassTypeByIndex(index: number): string {
+  return COMPASS_TYPES[index] || "normal";
+}
+
 export default function IndexScreen() {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -714,12 +720,12 @@ export default function IndexScreen() {
                     <View style={styles.fullScreenOverlay}>
                       <View style={styles.compassOverlay}>
                         <Image
-                          source={activeCompass === 1 ? require("../../assets/16ZoneVastuCompass/dial.png") : require("../../assets/normalCompass/dial.png")}
+                          source={getCompassAssets(getCompassTypeByIndex(activeCompass)).dial}
                           style={{ width: overlayDialSize, height: overlayDialSize }}
                           resizeMode="contain"
                         />
                         <Animated.Image
-                          source={activeCompass === 1 ? require("../../assets/16ZoneVastuCompass/needle.png") : require("../../assets/normalCompass/needle.png")}
+                          source={getCompassAssets(getCompassTypeByIndex(activeCompass)).needle}
                           style={[
                             styles.overlayNeedle,
                             {
@@ -777,12 +783,12 @@ export default function IndexScreen() {
                 <View style={styles.fullScreenOverlay}>
                   <View style={styles.compassOverlay}>
                     <Image
-                      source={activeCompass === 1 ? require("../../assets/16ZoneVastuCompass/dial.png") : require("../../assets/normalCompass/dial.png")}
+                      source={getCompassAssets(getCompassTypeByIndex(activeCompass)).dial}
                       style={{ width: overlayDialSize, height: overlayDialSize }}
                       resizeMode="contain"
                     />
                     <Animated.Image
-                      source={activeCompass === 1 ? require("../../assets/16ZoneVastuCompass/needle.png") : require("../../assets/normalCompass/needle.png")}
+                      source={getCompassAssets(getCompassTypeByIndex(activeCompass)).needle}
                       style={[
                         styles.overlayNeedle,
                         {
@@ -1385,12 +1391,12 @@ export default function IndexScreen() {
               <View style={[styles.fullScreenOverlay, { width, height }]}>
                 <View style={styles.compassOverlay}>
                   <Image
-                    source={activeCompass === 1 ? require("../../assets/16ZoneVastuCompass/dial.png") : require("../../assets/normalCompass/dial.png")}
+                    source={getCompassAssets(getCompassTypeByIndex(activeCompass)).dial}
                     style={{ width: overlayDialSize, height: overlayDialSize }}
                     resizeMode="contain"
                   />
                   <Animated.Image
-                    source={activeCompass === 1 ? require("../../assets/16ZoneVastuCompass/needle.png") : require("../../assets/normalCompass/needle.png")}
+                    source={getCompassAssets(getCompassTypeByIndex(activeCompass)).needle}
                     style={[
                       styles.overlayNeedle,
                       {

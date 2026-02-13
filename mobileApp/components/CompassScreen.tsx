@@ -39,43 +39,11 @@ type Props = {
   type: CompassType;
 };
 
-const zone16StepImages: ImageSourcePropType[] = [
-  require("../assets/16ZoneVastuCompass/1.png"),
-  require("../assets/16ZoneVastuCompass/2.png"),
-  require("../assets/16ZoneVastuCompass/3.png"),
-  require("../assets/16ZoneVastuCompass/4.png"),
-  require("../assets/16ZoneVastuCompass/5.png"),
-  require("../assets/16ZoneVastuCompass/6.png"),
-  require("../assets/16ZoneVastuCompass/7.png"),
-  require("../assets/16ZoneVastuCompass/8.png"),
-  require("../assets/16ZoneVastuCompass/9.png"),
-  require("../assets/16ZoneVastuCompass/10.png"),
-  require("../assets/16ZoneVastuCompass/11.png"),
-  require("../assets/16ZoneVastuCompass/12.png"),
-  require("../assets/16ZoneVastuCompass/13.png"),
-  require("../assets/16ZoneVastuCompass/14.png"),
-  require("../assets/16ZoneVastuCompass/15.png"),
-  require("../assets/16ZoneVastuCompass/16.png"),
-];
+// zone16-specific compass assets - no longer used, replaced with single dial
+// Keeping references for backwards compatibility
+const zone16StepImages: ImageSourcePropType[] = [];
 
-const zone16DirectionNames = [
-  "North (N)",
-  "North-NorthEast (NNE)",
-  "NorthEast (NE)",
-  "East-NorthEast (ENE)",
-  "East (E)",
-  "East-SouthEast (ESE)",
-  "SouthEast (SE)",
-  "South-SouthEast (SSE)",
-  "South (S)",
-  "South-SouthWest (SSW)",
-  "SouthWest (SW)",
-  "West-SouthWest (WSW)",
-  "West (W)",
-  "West-NorthWest (WNW)",
-  "NorthWest (NW)",
-  "North-NorthWest (NNW)",
-];
+const zone16DirectionNames = [];
 
 export default function CompassScreen({ type }: Props) {
   const { width, height } = useWindowDimensions();
@@ -750,7 +718,8 @@ export default function CompassScreen({ type }: Props) {
               />
             )}
 
-            {type === "zone16" &&
+            {/* zone16 compass disabled - using single dial for all compassses */}
+            {false &&
               zone16StepImages.map((source, index) => {
                 const angle = (-90 + index * (360 / zone16StepImages.length)) * (Math.PI / 180);
                 const x = zoneTouchRadius * Math.cos(angle);
