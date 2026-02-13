@@ -29,6 +29,11 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { styles } from "../styles/CompassScreen.styles";
 import useAdvancedCompass from "../hooks/useAdvancedCompass";
 import { degreeToDirection16, degreeToDirection8 } from "../utils/direction";
+import {
+  requestMediaLibraryPermission,
+  getMediaLibraryPermissionStatus,
+  requestLocationPermission,
+} from "../utils/permissionHandler";
 
 type Props = {
   type: CompassType;
@@ -131,23 +136,25 @@ export default function CompassScreen({ type }: Props) {
   }, []);
 
   const requestMediaPerm = async () => {
-    if (isExpoGoAndroid) {
-      const denied = {
-        status: "denied",
-        granted: false,
-        canAskAgain: false,
+    try {
+      const status = await getMediaLibraryPermissionStatus();
+      if (status) {
+        setMediaPerm(status);
+        return status;
+      }
+      
+      const result = await requestMediaLibraryPermission();
+      const permResponse: MediaLibrary.PermissionResponse = {
+        status: result.granted ? "granted" : "denied",
+        granted: result.granted,
+        canAskAgain: result.canAskAgain,
         expires: "never",
       } as MediaLibrary.PermissionResponse;
-      setMediaPerm(denied);
-      return denied;
-    }
-
-    try {
-      const result = await MediaLibrary.requestPermissionsAsync();
-      setMediaPerm(result);
-      return result;
+      
+      setMediaPerm(permResponse);
+      return permResponse;
     } catch (e: any) {
-      console.log("Media permission request failed:", e?.message ?? "Unknown error");
+      console.error("[Permission Error] Media permission request failed:", e?.message ?? "Unknown error");
       const denied = {
         status: "denied",
         granted: false,
@@ -163,19 +170,32 @@ export default function CompassScreen({ type }: Props) {
     let locSub: Location.LocationSubscription | null = null;
 
     (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === "granted") {
-        locSub = await Location.watchPositionAsync(
-          { accuracy: Location.Accuracy.High, timeInterval: 1000, distanceInterval: 1 },
-          (pos) => {
-            setCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude });
-          }
-        );
+      try {
+        const permissionResponse = await requestLocationPermission();
+        if (permissionResponse.granted) {
+          locSub = await Location.watchPositionAsync(
+            { accuracy: Location.Accuracy.High, timeInterval: 1000, distanceInterval: 1 },
+            (pos) => {
+              setCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+            }
+          ).catch((error) => {
+            console.warn("[Location Error] Watch position failed:", error?.message ?? "Unknown error");
+            return null;
+          });
+        } else {
+          console.log("Location permission not granted");
+        }
+      } catch (e: any) {
+        console.error("[Permission Error] Location setup failed:", e?.message ?? "Unknown error");
       }
     })();
 
     return () => {
-      locSub?.remove();
+      try {
+        locSub?.remove();
+      } catch (e: any) {
+        console.warn("[Location Error] Failed to remove location subscription:", e?.message ?? "Unknown error");
+      }
     };
   }, []);
 

@@ -12,6 +12,11 @@ import ViewShot from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
 import { getCompassAssets } from "../../utils/compassAssets";
 import { styles } from "../../styles/camera.styles";
+import {
+  requestMediaLibraryPermission,
+  getMediaLibraryPermissionStatus,
+  requestLocationPermission,
+} from "../../utils/permissionHandler";
 
 function normalize360(deg: number) {
   return (deg + 360) % 360;
@@ -58,23 +63,25 @@ export default function CameraScreen() {
   });
 
   const requestMediaPerm = async () => {
-    if (isExpoGoAndroid) {
-      const denied = {
-        status: "denied",
-        granted: false,
-        canAskAgain: false,
+    try {
+      const status = await getMediaLibraryPermissionStatus();
+      if (status) {
+        setMediaPerm(status);
+        return status;
+      }
+      
+      const result = await requestMediaLibraryPermission();
+      const permResponse: MediaLibrary.PermissionResponse = {
+        status: result.granted ? "granted" : "denied",
+        granted: result.granted,
+        canAskAgain: result.canAskAgain,
         expires: "never",
       } as MediaLibrary.PermissionResponse;
-      setMediaPerm(denied);
-      return denied;
-    }
-
-    try {
-      const result = await MediaLibrary.requestPermissionsAsync();
-      setMediaPerm(result);
-      return result;
+      
+      setMediaPerm(permResponse);
+      return permResponse;
     } catch (e: any) {
-      console.log("Media permission request failed:", e?.message ?? "Unknown error");
+      console.error("[Permission Error] Media permission request failed:", e?.message ?? "Unknown error");
       const denied = {
         status: "denied",
         granted: false,
@@ -115,10 +122,12 @@ export default function CameraScreen() {
     const requestPermissions = async () => {
       try {
         if (camPerm && !camPerm.granted) {
-          await requestCamPerm();
+          await requestCamPerm().catch((error) => {
+            console.warn("[Permission Error] Camera permission request failed:", error?.message ?? "Unknown error");
+          });
         }
       } catch (e: any) {
-        console.log("Permission request skipped:", e?.message ?? "Unknown error");
+        console.error("[Permission Error] Permission request skipped:", e?.message ?? "Unknown error");
       }
     };
     requestPermissions();
@@ -128,18 +137,31 @@ export default function CameraScreen() {
   useEffect(() => {
     let locSub: Location.LocationSubscription | null = null;
     (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === "granted") {
-        locSub = await Location.watchPositionAsync(
-          { accuracy: Location.Accuracy.High, timeInterval: 1000, distanceInterval: 1 },
-          (pos) => {
-            setCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude });
-          }
-        );
+      try {
+        const permissionResponse = await requestLocationPermission();
+        if (permissionResponse.granted) {
+          locSub = await Location.watchPositionAsync(
+            { accuracy: Location.Accuracy.High, timeInterval: 1000, distanceInterval: 1 },
+            (pos) => {
+              setCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+            }
+          ).catch((error) => {
+            console.warn("[Location Error] Watch position failed:", error?.message ?? "Unknown error");
+            return null;
+          });
+        } else {
+          console.log("Location permission not granted");
+        }
+      } catch (e: any) {
+        console.error("[Permission Error] Location setup failed:", e?.message ?? "Unknown error");
       }
     })();
     return () => {
-      locSub?.remove();
+      try {
+        locSub?.remove();
+      } catch (e: any) {
+        console.warn("[Location Error] Failed to remove location subscription:", e?.message ?? "Unknown error");
+      }
     };
   }, []);
 

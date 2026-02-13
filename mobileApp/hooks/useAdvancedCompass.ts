@@ -159,9 +159,12 @@ export function useAdvancedCompass() {
     const startSensors = async () => {
       try {
         // Request location permissions for true heading
-        const { status } = await Location.requestForegroundPermissionsAsync();
+        const permissionResponse = await Location.requestForegroundPermissionsAsync().catch((error) => {
+          console.warn("Location permission request error:", error?.message || "Unknown error");
+          return { status: "denied", granted: false, canAskAgain: false } as Location.LocationPermissionResponse;
+        });
         
-        if (status === "granted") {
+        if (permissionResponse?.granted) {
           try {
             locationHeadingSub = await Location.watchHeadingAsync((data) => {
               const hasTrueHeading =
@@ -182,13 +185,18 @@ export function useAdvancedCompass() {
                 integratedHeadingRef.current = data.magHeading;
                 updateHeading(data.magHeading, 0.2);
               }
+            }).catch((error) => {
+              console.warn("Location heading watch failed:", error?.message || "Unknown error");
+              return null;
             });
-          } catch (e) {
-            console.warn("Location heading watch failed:", e);
+          } catch (e: any) {
+            console.warn("Location heading watch setup failed:", e?.message || "Unknown error");
           }
+        } else {
+          console.log("Location permission not granted, using sensor fallback");
         }
-      } catch (e) {
-        console.warn("Location permission failed, using sensor fallback:", e);
+      } catch (e: any) {
+        console.warn("Location permission failed, using sensor fallback:", e?.message || "Unknown error");
       }
 
       // Set sensor update intervals

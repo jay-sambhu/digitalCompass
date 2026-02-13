@@ -77,40 +77,71 @@ export function useCompassHeading() {
 
     const start = async () => {
       try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status === "granted") {
-          locationHeadingSub = await Location.watchHeadingAsync((data) => {
-            // trueHeading is preferred when available (>= 0).
-            // On some devices trueHeading may be -1; then we use magHeading/fallback.
-            const hasTrueHeading =
-              typeof data?.trueHeading === "number" && data.trueHeading >= 0;
-            if (hasTrueHeading) {
-              lastTrueHeadingTsRef.current = Date.now();
-              pushHeading(data.trueHeading, 0.25);
-              return;
-            }
+        const permissionResponse = await Location.requestForegroundPermissionsAsync().catch((error) => {
+          console.warn("[Permission Error] Location permission request failed:", error?.message || "Unknown error");
+          return { status: "denied", granted: false, canAskAgain: false };
+        });
+        
+        if (permissionResponse?.granted) {
+          try {
+            locationHeadingSub = await Location.watchHeadingAsync((data) => {
+              // trueHeading is preferred when available (>= 0).
+              // On some devices trueHeading may be -1; then we use magHeading/fallback.
+              const hasTrueHeading =
+                typeof data?.trueHeading === "number" && data.trueHeading >= 0;
+              if (hasTrueHeading) {
+                lastTrueHeadingTsRef.current = Date.now();
+                pushHeading(data.trueHeading, 0.25);
+                return;
+              }
 
-            if (typeof data?.magHeading === "number") {
-              pushHeading(data.magHeading, 0.2);
-            }
-          });
+              if (typeof data?.magHeading === "number") {
+                pushHeading(data.magHeading, 0.2);
+              }
+            }).catch((error) => {
+              console.warn("[Location Error] Watch heading failed:", error?.message || "Unknown error");
+              return null;
+            });
+          } catch (watchError) {
+            console.warn("[Location Error] Failed to setup heading watch:", watchError?.message || "Unknown error");
+          }
+        } else {
+          console.log("Location permission not granted, using sensor fallback");
         }
-      } catch {
+      } catch (error) {
         // Ignore and keep sensor fallback.
+        console.warn("[Permission Error] Location setup failed, using sensor fallback:", error?.message || "Unknown error");
       }
 
-      Accelerometer.setUpdateInterval(50);
-      Magnetometer.setUpdateInterval(50);
+      try {
+        Accelerometer.setUpdateInterval(50);
+      } catch (error) {
+        console.warn("[Sensor Error] Failed to set accelerometer interval:", error?.message || "Unknown error");
+      }
 
-      accelSub = Accelerometer.addListener((accData) => {
-        latestAccRef.current = accData;
-        maybeUpdateFallback();
-      });
+      try {
+        Magnetometer.setUpdateInterval(50);
+      } catch (error) {
+        console.warn("[Sensor Error] Failed to set magnetometer interval:", error?.message || "Unknown error");
+      }
 
-      magSub = Magnetometer.addListener((magData) => {
-        latestMagRef.current = magData;
-        maybeUpdateFallback();
-      });
+      try {
+        accelSub = Accelerometer.addListener((accData) => {
+          latestAccRef.current = accData;
+          maybeUpdateFallback();
+        });
+      } catch (error) {
+        console.warn("[Sensor Error] Accelerometer subscription failed:", error?.message || "Unknown error");
+      }
+
+      try {
+        magSub = Magnetometer.addListener((magData) => {
+          latestMagRef.current = magData;
+          maybeUpdateFallback();
+        });
+      } catch (error) {
+        console.warn("[Sensor Error] Magnetometer subscription failed:", error?.message || "Unknown error");
+      }
     };
 
     start();

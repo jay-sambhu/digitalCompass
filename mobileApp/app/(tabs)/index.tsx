@@ -27,6 +27,14 @@ import { getCompassAssets } from "../../utils/compassAssets";
 import { MaterialIcons } from "@expo/vector-icons";
 import { styles } from "../../styles/index.styles";
 import { SplashScreenComponent } from "../../components/SplashScreen";
+import {
+  requestMediaLibraryPermission,
+  getMediaLibraryPermissionStatus,
+  requestCameraWithFeedback,
+  requestLocationWithFeedback,
+  requestMediaLibraryWithFeedback,
+  getLocationPermissionStatus,
+} from "../../utils/permissionHandler";
 
 function headingFromMag({ x, y }: { x: number; y: number }) {
   let deg = (Math.atan2(y, x) * 180) / Math.PI;
@@ -70,23 +78,25 @@ export default function IndexScreen() {
   const isExpoGoAndroid = Platform.OS === "android" && Constants.appOwnership === "expo";
 
   const requestMediaPerm = async () => {
-    if (isExpoGoAndroid) {
-      const denied = {
-        status: "denied",
-        granted: false,
-        canAskAgain: false,
+    try {
+      const status = await getMediaLibraryPermissionStatus();
+      if (status) {
+        setMediaPerm(status);
+        return status;
+      }
+      
+      const result = await requestMediaLibraryPermission();
+      const permResponse: MediaLibrary.PermissionResponse = {
+        status: result.granted ? "granted" : "denied",
+        granted: result.granted,
+        canAskAgain: result.canAskAgain,
         expires: "never",
       } as MediaLibrary.PermissionResponse;
-      setMediaPerm(denied);
-      return denied;
-    }
-
-    try {
-      const result = await MediaLibrary.requestPermissionsAsync();
-      setMediaPerm(result);
-      return result;
+      
+      setMediaPerm(permResponse);
+      return permResponse;
     } catch (e: any) {
-      console.log("Media permission request failed:", e?.message ?? "Unknown error");
+      console.error("[Permission Error] Media permission request failed:", e?.message ?? "Unknown error");
       const denied = {
         status: "denied",
         granted: false,
@@ -99,11 +109,15 @@ export default function IndexScreen() {
   };
 
   const refreshMediaPerm = async () => {
-    if (isExpoGoAndroid) return mediaPerm;
     try {
-      return await requestMediaPerm();
+      const status = await getMediaLibraryPermissionStatus();
+      if (status) {
+        setMediaPerm(status);
+        return status;
+      }
+      return mediaPerm;
     } catch (e: any) {
-      console.log("Failed to refresh media permission:", e?.message ?? "Unknown error");
+      console.error("[Permission Error] Failed to refresh media permission:", e?.message ?? "Unknown error");
       return mediaPerm;
     }
   };
@@ -231,17 +245,31 @@ export default function IndexScreen() {
 
   const openCompassCamera = async (compassIndex: number) => {
     try {
-      const camGranted = camPerm?.granted ?? (await requestCamPerm()).granted;
-      if (!camGranted) {
-        Alert.alert("Permission required", "Camera permission is required.");
+      if (camPerm?.granted) {
+        setActiveCompass(compassIndex);
+        setCapturedPhoto(null);
+        setIsCompositePhoto(false);
+        setCameraOpen(true);
         return;
       }
-      setActiveCompass(compassIndex);
-      setCapturedPhoto(null);
-      setIsCompositePhoto(false);
-      setCameraOpen(true);
+
+      // Request camera permission with safe error handling
+      const granted = await requestCameraWithFeedback(
+        requestCamPerm,
+        () => {
+          setActiveCompass(compassIndex);
+          setCapturedPhoto(null);
+          setIsCompositePhoto(false);
+          setCameraOpen(true);
+        }
+      );
+      
+      if (!granted) {
+        console.log("Camera permission not granted");
+      }
     } catch (e: any) {
-      Alert.alert("Camera error", e?.message ?? "Failed to open camera");
+      console.error("[Camera Error] Failed to open camera:", e?.message ?? "Unknown error");
+      Alert.alert("Camera error", "Failed to open camera. Please try again.");
     }
   };
 
@@ -439,65 +467,63 @@ export default function IndexScreen() {
   };
 
   const openPermissionsManager = async () => {
-    // Refresh all permissions status
-    const locPerm = await Location.getForegroundPermissionsAsync();
-    setLocationPerm(locPerm);
-    await refreshMediaPerm();
-    setShowPermissions(true);
+    try {
+      // Refresh all permissions status safely
+      const locPerm = await getLocationPermissionStatus();
+      setLocationPerm(locPerm);
+      await refreshMediaPerm();
+      setShowPermissions(true);
+    } catch (e: any) {
+      console.error("[Permission Error] Failed to open permissions manager:", e?.message ?? "Unknown error");
+      Alert.alert("Error", "Failed to load permission status. Please try again.");
+    }
   };
 
   const handleCameraPermission = async (value: boolean) => {
-    if (value && !camPerm?.granted) {
-      const result = await requestCamPerm();
-      if (!result.granted) {
-        Alert.alert(
-          "Permission Denied",
-          "Camera permission was denied. Please enable it from device settings.",
-          [
-            { text: "Cancel", style: "cancel" },
-            { text: "Open Settings", onPress: () => Linking.openSettings() },
-          ]
-        );
+    try {
+      if (value && !camPerm?.granted) {
+        await requestCameraWithFeedback(requestCamPerm);
+      } else if (!value && camPerm?.granted) {
+        openAppSettings();
       }
-    } else if (!value && camPerm?.granted) {
-      openAppSettings();
+    } catch (e: any) {
+      console.error("[Permission Error] Camera permission toggle failed:", e?.message ?? "Unknown error");
+      Alert.alert("Error", "Failed to update camera permission. Please try again.");
     }
   };
 
   const handleLocationPermission = async (value: boolean) => {
-    if (value && !locationPerm?.granted) {
-      const result = await Location.requestForegroundPermissionsAsync();
-      setLocationPerm(result);
-      if (!result.granted) {
-        Alert.alert(
-          "Permission Denied",
-          "Location permission was denied. Please enable it from device settings.",
-          [
-            { text: "Cancel", style: "cancel" },
-            { text: "Open Settings", onPress: () => Linking.openSettings() },
-          ]
+    try {
+      if (value && !locationPerm?.granted) {
+        await requestLocationWithFeedback(
+          async () => {
+            const status = await getLocationPermissionStatus();
+            setLocationPerm(status);
+          }
         );
+      } else if (!value && locationPerm?.granted) {
+        openAppSettings();
       }
-    } else if (!value && locationPerm?.granted) {
-      openAppSettings();
+    } catch (e: any) {
+      console.error("[Permission Error] Location permission toggle failed:", e?.message ?? "Unknown error");
+      Alert.alert("Error", "Failed to update location permission. Please try again.");
     }
   };
 
   const handleMediaLibraryPermission = async (value: boolean) => {
-    if (value && !mediaPerm?.granted) {
-      const result = await requestMediaPerm();
-      if (!result?.granted) {
-        Alert.alert(
-          "Permission Denied",
-          "Media library permission was denied. Please enable it from device settings.",
-          [
-            { text: "Cancel", style: "cancel" },
-            { text: "Open Settings", onPress: () => Linking.openSettings() },
-          ]
+    try {
+      if (value && !mediaPerm?.granted) {
+        await requestMediaLibraryWithFeedback(
+          async () => {
+            await refreshMediaPerm();
+          }
         );
+      } else if (!value && mediaPerm?.granted) {
+        openAppSettings();
       }
-    } else if (!value && mediaPerm?.granted) {
-      openAppSettings();
+    } catch (e: any) {
+      console.error("[Permission Error] Media library permission toggle failed:", e?.message ?? "Unknown error");
+      Alert.alert("Error", "Failed to update media library permission. Please try again.");
     }
   };
 
