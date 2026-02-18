@@ -708,7 +708,7 @@ export default function CompassScreen({ type }: Props) {
             style={{ width: dialWidth, height: dialHeight, transform: [{ rotate: dialRotate }] }}
             pointerEvents={showInlineMap ? "none" : "auto"}
           >
-            {type !== "zone16" && !showInlineMap && (
+            {!showInlineMap && (
               <Image
                 source={assets.dial}
                 style={[

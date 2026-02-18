@@ -623,12 +623,6 @@ export default function IndexScreen() {
                   },
                 ]}
                 onPress={() => {
-                  if (item.type === "zone16") {
-                    Alert.alert(
-                      "Under Maintenance",
-                      "16 Zone Compass is under maintenance, but you can open and test the compass."
-                    );
-                  }
                   router.push(item.route);
                 }}
               >
