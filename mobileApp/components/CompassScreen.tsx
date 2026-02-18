@@ -55,11 +55,16 @@ export default function CompassScreen({ type }: Props) {
   // Calculate responsive dial size based on available space
   const topBarHeight = 0;
   const bottomNavHeight = 80;
-  const availableHeight = height - insets.top - insets.bottom - topBarHeight - bottomNavHeight;
+  const baseAvailableHeight = height - insets.top - insets.bottom - topBarHeight - bottomNavHeight;
+  const zone16ReservedVerticalSpace = 220;
+  const zone16AvailableHeight = height - insets.top - insets.bottom - zone16ReservedVerticalSpace;
+  const availableHeight = type === "zone16" ? zone16AvailableHeight : baseAvailableHeight;
   const dialHorizontalPadding = width < 360 ? 6 : 10;
   const availableWidth = width - dialHorizontalPadding * 2;
-  const dialSize = Math.max(220, Math.min(availableWidth, availableHeight * 0.98));
-  const compassVerticalOffset = Math.max(8, Math.round(height * 0.02));
+  const dialSize =
+    type === "zone16"
+      ? Math.max(200, Math.min(availableWidth, availableHeight))
+      : Math.max(220, Math.min(availableWidth, availableHeight * 0.98));
   const dialWidth = dialSize;
   const dialHeight = dialSize;
   const needleSize = Math.round(dialSize * 0.68);
@@ -699,10 +704,7 @@ export default function CompassScreen({ type }: Props) {
       )}
 
       {/* Compass display */}
-      <View
-        style={[styles.compassWrap, { transform: [{ translateY: -compassVerticalOffset }] }]}
-        pointerEvents={showInlineMap ? "none" : "auto"}
-      >
+      <View style={styles.compassWrap} pointerEvents={showInlineMap ? "none" : "auto"}>
         {/* small pointer on top */}
         <MaterialIcons name="arrow-drop-down" size={width < 360 ? 14 : 18} color="#000" style={{ marginBottom: 6 }} />
 
@@ -790,7 +792,7 @@ export default function CompassScreen({ type }: Props) {
           </Animated.View>
         </View>
         
-        {!showInlineMap && (
+        {!showInlineMap && type !== "zone16" && (
           <View style={[styles.infoRowBelow, { bottom: Math.max(120, height * 0.22) }]}>
           <View style={styles.infoBoxBelow}>
             <Text style={[styles.infoTitle, { fontSize: width < 360 ? 13 : width < 600 ? 14 : 16 }]}>Geo-Coordinate:</Text>
