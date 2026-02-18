@@ -12,10 +12,9 @@ import {
   ScrollView,
   Platform,
   ImageSourcePropType,
-  TextInput,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import MapView, { Marker, Polyline, type LatLng, type Region } from "react-native-maps";
+import MapView, { Marker, Polygon, Polyline, type LatLng, type Region } from "react-native-maps";
 import { Magnetometer } from "expo-sensors";
 import * as Location from "expo-location";
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
@@ -84,8 +83,8 @@ export default function CompassScreen({ type }: Props) {
   const [facing, setFacing] = useState<CameraType>("back");
   const [mapVisible, setMapVisible] = useState(false);
   const [mapRegion, setMapRegion] = useState<Region | null>(null);
-  const [drawEnabled, setDrawEnabled] = useState(false);
   const [drawPath, setDrawPath] = useState<LatLng[]>([]);
+  const [redoPath, setRedoPath] = useState<LatLng[]>([]);
   const cameraRef = useRef<CameraView>(null);
   const previewShotRef = useRef<ViewShot>(null);
   const mapShotRef = useRef<ViewShot>(null);
@@ -96,7 +95,6 @@ export default function CompassScreen({ type }: Props) {
   const [mediaPerm, setMediaPerm] = useState<MediaLibrary.PermissionResponse | null>(null);
   const isExpoGoAndroid = Platform.OS === "android" && Constants.appOwnership === "expo";
   const [selectedZoneStep, setSelectedZoneStep] = useState<number | null>(null);
-  const [locationQuery, setLocationQuery] = useState("");
   const appVersion = Constants.expoConfig?.version ?? (Constants as any)?.manifest?.version ?? "1.0.0";
 
   // Animated rotation (degrees)
@@ -105,8 +103,8 @@ export default function CompassScreen({ type }: Props) {
   // Reset map state when component mounts
   useEffect(() => {
     setMapVisible(false);
-    setDrawEnabled(false);
     setDrawPath([]);
+    setRedoPath([]);
   }, []);
 
   const requestMediaPerm = async () => {
@@ -203,6 +201,7 @@ export default function CompassScreen({ type }: Props) {
     return `${deg}° · ${direction}`;
   }, [heading, type]);
   const showInlineMap = isInlineMap && mapVisible;
+  const isMapLocked = drawPath.length > 0;
   const mapControlsTop = Math.max(insets.top + 80, 120);
   const zoneTouchSize = useMemo(() => Math.max(26, Math.round(dialSize * 0.14)), [dialSize]);
   const zoneTouchRadius = useMemo(() => (dialSize / 2) - (zoneTouchSize * 0.85), [dialSize, zoneTouchSize]);
@@ -262,30 +261,45 @@ export default function CompassScreen({ type }: Props) {
         setCoords(current);
       }
 
-      setMapVisible((prev) => !prev);
+      setMapVisible((prev) => {
+        const next = !prev;
+        if (!next) {
+          setDrawPath([]);
+          setRedoPath([]);
+        }
+        return next;
+      });
       console.log("[COMPASS] ✅ In-app map toggled");
     } catch (e: any) {
       Alert.alert("Maps error", e?.message ?? "Failed to toggle map");
     }
   };
 
-  const searchLocation = async () => {
-    const query = locationQuery.trim();
-    if (!query) {
-      Alert.alert("Search required", "Enter a location in the search bar.");
-      return;
-    }
-
+  const centerMapOnCurrentLocation = async () => {
     try {
-      const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
-      await Linking.openURL(url);
+      let current = coords;
+      if (!current) {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          Alert.alert("Permission required", "Location permission is required.");
+          return;
+        }
+        const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+        current = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+        setCoords(current);
+      }
+      setMapRegion({
+        latitude: current.lat,
+        longitude: current.lon,
+        latitudeDelta: mapRegion?.latitudeDelta ?? 0.005,
+        longitudeDelta: mapRegion?.longitudeDelta ?? 0.005,
+      });
+      if (!showInlineMap) {
+        setMapVisible(true);
+      }
     } catch (e: any) {
-      Alert.alert("Search error", e?.message ?? "Failed to open search");
+      Alert.alert("Location error", e?.message ?? "Failed to center map");
     }
-  };
-
-  const openMapWithFallback = async () => {
-    await openMap();
   };
 
   const openLastCaptured = async () => {
@@ -588,24 +602,20 @@ export default function CompassScreen({ type }: Props) {
           <MaterialIcons name="menu" size={28} color="#ffffff" />
         </Pressable>
 
-        <View style={styles.searchBar}>
-          <MaterialIcons name="search" size={22} color="#ffffff" />
-          <TextInput
-            style={styles.searchInput}
-            value={locationQuery}
-            onChangeText={setLocationQuery}
-            placeholder="Search location..."
-            placeholderTextColor="rgba(255,255,255,0.75)"
-            returnKeyType="search"
-            onSubmitEditing={searchLocation}
-          />
-          <Pressable onPress={searchLocation}>
-            <MaterialIcons name="arrow-forward" size={22} color="#ffffff" />
+        <View style={styles.topActionGroup}>
+          <Pressable style={styles.topActionBtn} onPress={openMap}>
+            <MaterialIcons name={showInlineMap ? "map" : "public"} size={20} color="#ffffff" />
+          </Pressable>
+          <Pressable style={styles.topActionBtn} onPress={centerMapOnCurrentLocation}>
+            <MaterialIcons name="my-location" size={20} color="#ffffff" />
+          </Pressable>
+          <Pressable style={styles.topActionBtn} onPress={openLastCaptured}>
+            <MaterialIcons name="photo-library" size={20} color="#ffffff" />
           </Pressable>
         </View>
 
-        <Pressable style={styles.locationBtn} onPress={openMapWithFallback}>
-          <MaterialIcons name="location-on" size={28} color="#ffffff" />
+        <Pressable style={styles.locationBtn} onPress={openMap}>
+          <MaterialIcons name="location-on" size={26} color="#ffffff" />
         </Pressable>
       </View>
 
@@ -647,42 +657,87 @@ export default function CompassScreen({ type }: Props) {
                   style={styles.map}
                   mapType="satellite"
                   region={mapRegion}
-                  onRegionChangeComplete={setMapRegion}
+                  onRegionChangeComplete={(region) => {
+                    if (isMapLocked) return;
+                    setMapRegion(region);
+                  }}
                   showsUserLocation
                   showsMyLocationButton={false}
                   toolbarEnabled={false}
-                  zoomEnabled={!drawEnabled}
+                  zoomEnabled
                   zoomControlEnabled
-                  rotateEnabled={!drawEnabled}
-                  pitchEnabled={!drawEnabled}
-                  scrollEnabled={!drawEnabled}
+                  rotateEnabled={!isMapLocked}
+                  pitchEnabled={!isMapLocked}
+                  scrollEnabled={!isMapLocked}
                   onPress={(event) => {
-                    if (!drawEnabled) return;
                     const coordinate = event.nativeEvent.coordinate;
                     setDrawPath((prev) => [...prev, coordinate]);
+                    setRedoPath([]);
                   }}
                 >
                   <Marker coordinate={{ latitude: mapRegion.latitude, longitude: mapRegion.longitude }} />
+                  {drawPath.map((point, index) => (
+                    <Marker
+                      key={`draw-point-${index}`}
+                      coordinate={point}
+                      pinColor="#2563eb"
+                    />
+                  ))}
                   {drawPath.length > 1 && (
                     <Polyline coordinates={drawPath} strokeColor="#BD202E" strokeWidth={3} />
+                  )}
+                  {drawPath.length > 2 && (
+                    <Polygon
+                      coordinates={drawPath}
+                      strokeColor="#BD202E"
+                      fillColor="rgba(189, 32, 46, 0.25)"
+                      strokeWidth={2}
+                    />
                   )}
                 </MapView>
               </ViewShot>
               <View style={[styles.mapControls, { top: mapControlsTop }]}>
                 <Pressable
-                  style={[styles.mapControlBtn, drawEnabled && styles.mapControlBtnActive]}
-                  onPress={() => setDrawEnabled((prev) => !prev)}
+                  style={[styles.mapControlBtn, drawPath.length === 0 && { opacity: 0.45 }]}
+                  disabled={drawPath.length === 0}
+                  onPress={() => {
+                    setDrawPath((prev) => {
+                      if (prev.length === 0) return prev;
+                      const next = prev.slice(0, -1);
+                      const removedPoint = prev[prev.length - 1];
+                      setRedoPath((redoPrev) => [...redoPrev, removedPoint]);
+                      return next;
+                    });
+                  }}
                 >
-                  <MaterialIcons name="edit" size={18} color={drawEnabled ? "#fff" : "#BD202E"} />
-                  {drawEnabled && <View style={styles.drawColorIndicator} />}
+                  <MaterialIcons name="undo" size={18} color="#BD202E" />
+                </Pressable>
+                <Pressable
+                  style={[styles.mapControlBtn, redoPath.length === 0 && { opacity: 0.45 }]}
+                  disabled={redoPath.length === 0}
+                  onPress={() => {
+                    setRedoPath((prevRedo) => {
+                      if (prevRedo.length === 0) return prevRedo;
+                      const restoredPoint = prevRedo[prevRedo.length - 1];
+                      setDrawPath((prevDraw) => [...prevDraw, restoredPoint]);
+                      return prevRedo.slice(0, -1);
+                    });
+                  }}
+                >
+                  <MaterialIcons name="redo" size={18} color="#BD202E" />
                 </Pressable>
                 <Pressable
                   style={styles.mapControlBtn}
-                  onPress={() => setDrawPath([])}
+                  onPress={() => {
+                    setDrawPath([]);
+                    setRedoPath([]);
+                  }}
                 >
                   <MaterialIcons name="delete" size={18} color="#BD202E" />
                 </Pressable>
-                {drawEnabled && <Text style={styles.drawColorLabel}>Red Pen</Text>}
+                <Text style={styles.drawColorLabel}>
+                  {isMapLocked ? "Polygon locked: undo/delete to move map" : "Polygon: tap map to add points"}
+                </Text>
               </View>
             </>
           ) : (
@@ -1244,7 +1299,6 @@ export default function CompassScreen({ type }: Props) {
               if (mapVisible) {
                 // If map is open, just close it
                 setMapVisible(false);
-                setDrawEnabled(false);
                 setDrawPath([]);
               } else {
                 // If map is closed, navigate to home
