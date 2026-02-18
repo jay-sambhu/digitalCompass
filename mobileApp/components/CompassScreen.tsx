@@ -92,6 +92,7 @@ export default function CompassScreen({ type }: Props) {
   const [selectedZoneStep, setSelectedZoneStep] = useState<number | null>(null);
   const [locationQuery, setLocationQuery] = useState("");
   const appVersion = Constants.expoConfig?.version ?? (Constants as any)?.manifest?.version ?? "1.0.0";
+  const hasGoogleMapsApiKey = Boolean(Constants.expoConfig?.android?.config?.googleMaps?.apiKey);
 
   // Animated rotation (degrees)
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -196,7 +197,7 @@ export default function CompassScreen({ type }: Props) {
       : degreeToDirection16(heading);
     return `${deg}° · ${direction}`;
   }, [heading, type]);
-  const showInlineMap = isInlineMap && mapVisible;
+  const showInlineMap = isInlineMap && mapVisible && hasGoogleMapsApiKey;
   const mapControlsTop = Math.max(insets.top + 80, 120);
   const zoneTouchSize = useMemo(() => Math.max(26, Math.round(dialSize * 0.14)), [dialSize]);
   const zoneTouchRadius = useMemo(() => (dialSize / 2) - (zoneTouchSize * 0.85), [dialSize, zoneTouchSize]);
@@ -255,9 +256,18 @@ export default function CompassScreen({ type }: Props) {
         current = { lat: pos.coords.latitude, lon: pos.coords.longitude };
         setCoords(current);
       }
-      // Always toggle inline map, never open external Google Maps
+      if (!hasGoogleMapsApiKey) {
+        const query = current ? `${current.lat},${current.lon}` : "";
+        const url = query
+          ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
+          : "https://www.google.com/maps";
+        await Linking.openURL(url);
+        console.log("[COMPASS] ✅ Opened external Google Maps");
+        return;
+      }
+
       setMapVisible((prev) => !prev);
-      console.log("[COMPASS] ✅ Map toggled");
+      console.log("[COMPASS] ✅ Inline map toggled");
     } catch (e: any) {
       Alert.alert("Maps error", e?.message ?? "Failed to toggle map");
     }

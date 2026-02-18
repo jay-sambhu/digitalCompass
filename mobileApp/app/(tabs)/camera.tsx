@@ -6,7 +6,7 @@ import * as MediaLibrary from "expo-media-library";
 import * as Location from "expo-location";
 import { Magnetometer } from "expo-sensors";
 import { Href, router, useLocalSearchParams } from "expo-router";
-import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 import Constants from "expo-constants";
 import ViewShot from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
@@ -36,6 +36,8 @@ export default function CameraScreen() {
   const previewShotRef = useRef<ViewShot>(null);
   const [facing, setFacing] = useState<CameraType>("back");
   const assets = getCompassAssets(type);
+  const needleTranslate = assets.needleTranslate ?? { x: 0, y: 0 };
+  const needleScale = assets.needleScale ?? 1;
 
   const [camPerm, requestCamPerm] = useCameraPermissions();
   const [mediaPerm, setMediaPerm] = useState<MediaLibrary.PermissionResponse | null>(null);
@@ -373,6 +375,10 @@ export default function CameraScreen() {
       Alert.alert("Map error", e?.message ?? "Failed to open map");
     }
   };
+  
+  const goBack = () => {
+    router.back();
+  };
 
   const shareApp = async () => {
     try {
@@ -531,14 +537,6 @@ export default function CameraScreen() {
         </Pressable>
       </View>
 
-      {/* Flip button - moved away from top bar */}
-      <Pressable
-        style={styles.flipBtn}
-        onPress={() => setFacing((p) => (p === "back" ? "front" : "back"))}
-      >
-        <MaterialCommunityIcons name="camera-flip" size={28} color="#fff" />
-      </Pressable>
-
       {/* Compass dial overlay */}
       <View style={[styles.compassContainer, { transform: [{ translateY: -dialSize / 2 }] }]}>
         <Animated.Image
@@ -564,9 +562,9 @@ export default function CameraScreen() {
             { width: needleSize, height: needleSize },
             {
               transform: [
-                { translateX: assets.needleTranslate.x },
-                { translateY: assets.needleTranslate.y },
-                { scale:assets.needleScale },
+                { translateX: needleTranslate.x },
+                { translateY: needleTranslate.y },
+                { scale: needleScale },
                 { rotate: needleRotate },
               ],
             },
@@ -581,12 +579,24 @@ export default function CameraScreen() {
         <Text style={styles.magStrengthVal}>{strength.toFixed(0)} µT</Text>
       </View>
 
-      {/* Capture button */}
-      <Pressable style={styles.captureBtn} onPress={takePhoto}>
-        <View style={styles.captureBtnRing}>
-          <View style={styles.captureBtnInner} />
-        </View>
-      </Pressable>
+      {/* Bottom controls */}
+      <View style={[styles.controls, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        <Pressable style={styles.navBtn} onPress={goBack}>
+          <MaterialIcons name="arrow-back" size={28} color="#fff" />
+          <Text style={styles.navBtnText}>Back</Text>
+        </Pressable>
+
+        <Pressable style={styles.captureBtn} onPress={takePhoto}>
+          <View style={styles.captureBtnRing}>
+            <View style={styles.captureBtnInner} />
+          </View>
+        </Pressable>
+
+        <Pressable style={styles.navBtn} onPress={openLastCaptured}>
+          <MaterialIcons name="photo-library" size={28} color="#fff" />
+          <Text style={styles.navBtnText}>Gallery</Text>
+        </Pressable>
+      </View>
 
       {/* Drawer / Menu */}
       <Modal
@@ -666,5 +676,3 @@ export default function CameraScreen() {
       </View>
     );
 }
-
-

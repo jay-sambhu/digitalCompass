@@ -27,6 +27,11 @@
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/normalCompass/icon.png"
       },
+      "config": {
+        "googleMaps": {
+          "apiKey": ""
+        }
+      },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "permissions": [

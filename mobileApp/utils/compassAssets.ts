@@ -3,6 +3,8 @@ export type CompassType = "normal" | "zone16" | "zone32" | "chakra";
 type DialTuning = {
   dialScale: number;
   dialOffset: { x: number; y: number;  };
+  needleScale: number;
+  needleTranslate: { x: number; y: number };
 };
 // compass part for how many zones and the dial tuning for each type of compass
 const COMPASS_ASSETS = {
@@ -12,13 +14,17 @@ const COMPASS_ASSETS = {
     icon: require("../assets/normalCompass/icon.png"),
     dialScale: 1.08,
     dialOffset: { x: 0, y: 0,  },
+    needleScale: 1,
+    needleTranslate: { x: 0, y: 0 },
   },
   zone16: {
-    dial: require("../assets/32ZoneVastuCompass/dial.png"),
+    dial: require("../assets/16ZoneVastuCompass/dial.png"),
     needle: require("../assets/normalCompass/needle.png"),
     icon: require("../assets/normalCompass/icon.png"),
     dialScale: 1.08,
     dialOffset: {  x: 5, y: 4 },
+    needleScale: 1,
+    needleTranslate: { x: 0, y: 0 },
   },
   zone32: {
     dial: require("../assets/32ZoneVastuCompass/dial.png"),
@@ -26,6 +32,8 @@ const COMPASS_ASSETS = {
     icon: require("../assets/normalCompass/icon.png"),
     dialScale: 1.08,
     dialOffset: { x: 5, y: 4,  },
+    needleScale: 1,
+    needleTranslate: { x: 0, y: 0 },
   },
   chakra: {
     dial: require("../assets/sanskarVastuChakra/dial.png"),
@@ -33,6 +41,8 @@ const COMPASS_ASSETS = {
     icon: require("../assets/normalCompass/icon.png"),
     dialScale: 1.08,
     dialOffset: { x: 5, y: 4,  },
+    needleScale: 1,
+    needleTranslate: { x: 0, y: 0 },
   },
 } as const satisfies Record<CompassType, DialTuning & { dial: any; needle: any; icon: any }>;
 

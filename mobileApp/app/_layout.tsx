@@ -1,36 +1,28 @@
 import React, { useEffect } from "react";
 import { Slot } from "expo-router";
-import * as Font from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { installGlobalErrorHandlers } from "../utils/errorHandling";
-//import of different layout
+// Keep native splash visible until base app setup is done.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [fontsLoaded, setFontsLoaded] = React.useState(false);
-//state management
+  const [ready, setReady] = React.useState(false);
+
   useEffect(() => {
     installGlobalErrorHandlers();
-
-    async function loadFonts() {
-      try {
-        await Font.loadAsync({
-          Poppins: require("../assets/normalCompass/icon.png"), // Fallback - Poppins is system font on most devices
-        });
-      } catch (e) {
-        console.warn("Font loading error:", e);
-      } finally {
-        setFontsLoaded(true);
-        await SplashScreen.hideAsync();
-      }
-    }
-
-    loadFonts();
+    setReady(true);
   }, []);
 
-  if (!fontsLoaded) {
+  useEffect(() => {
+    if (!ready) return;
+    SplashScreen.hideAsync().catch((e) => {
+      console.warn("Splash hide error:", e);
+    });
+  }, [ready]);
+
+  if (!ready) {
     return null;
   }
-//returning
+
   return <Slot />;
 }
