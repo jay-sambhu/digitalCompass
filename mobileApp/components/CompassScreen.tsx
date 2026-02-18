@@ -98,7 +98,6 @@ export default function CompassScreen({ type }: Props) {
   const [selectedZoneStep, setSelectedZoneStep] = useState<number | null>(null);
   const [locationQuery, setLocationQuery] = useState("");
   const appVersion = Constants.expoConfig?.version ?? (Constants as any)?.manifest?.version ?? "1.0.0";
-  const hasGoogleMapsApiKey = Boolean(Constants.expoConfig?.android?.config?.googleMaps?.apiKey);
 
   // Animated rotation (degrees)
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -203,7 +202,7 @@ export default function CompassScreen({ type }: Props) {
       : degreeToDirection16(heading);
     return `${deg}° · ${direction}`;
   }, [heading, type]);
-  const showInlineMap = isInlineMap && mapVisible && hasGoogleMapsApiKey;
+  const showInlineMap = isInlineMap && mapVisible;
   const mapControlsTop = Math.max(insets.top + 80, 120);
   const zoneTouchSize = useMemo(() => Math.max(26, Math.round(dialSize * 0.14)), [dialSize]);
   const zoneTouchRadius = useMemo(() => (dialSize / 2) - (zoneTouchSize * 0.85), [dialSize, zoneTouchSize]);
@@ -264,9 +263,6 @@ export default function CompassScreen({ type }: Props) {
       }
 
       setMapVisible((prev) => !prev);
-      if (!hasGoogleMapsApiKey) {
-        console.log("[COMPASS] ⚠️ Google Maps API key missing; inline map may not render in production builds.");
-      }
       console.log("[COMPASS] ✅ In-app map toggled");
     } catch (e: any) {
       Alert.alert("Maps error", e?.message ?? "Failed to toggle map");
