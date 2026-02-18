@@ -262,18 +262,12 @@ export default function CompassScreen({ type }: Props) {
         current = { lat: pos.coords.latitude, lon: pos.coords.longitude };
         setCoords(current);
       }
-      if (!hasGoogleMapsApiKey) {
-        const query = current ? `${current.lat},${current.lon}` : "";
-        const url = query
-          ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
-          : "https://www.google.com/maps";
-        await Linking.openURL(url);
-        console.log("[COMPASS] ✅ Opened external Google Maps");
-        return;
-      }
 
       setMapVisible((prev) => !prev);
-      console.log("[COMPASS] ✅ Inline map toggled");
+      if (!hasGoogleMapsApiKey) {
+        console.log("[COMPASS] ⚠️ Google Maps API key missing; inline map may not render in production builds.");
+      }
+      console.log("[COMPASS] ✅ In-app map toggled");
     } catch (e: any) {
       Alert.alert("Maps error", e?.message ?? "Failed to toggle map");
     }
