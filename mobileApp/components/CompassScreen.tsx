@@ -56,9 +56,10 @@ export default function CompassScreen({ type }: Props) {
   const topBarHeight = 0;
   const bottomNavHeight = 80;
   const availableHeight = height - insets.top - insets.bottom - topBarHeight - bottomNavHeight;
-  const availableWidth = width - 32; // 16px padding on each side
-  const maxDialSize = Math.min(availableWidth, availableHeight);
-  const dialSize = Math.max(200, Math.min(maxDialSize * 0.92, 420));
+  const dialHorizontalPadding = width < 360 ? 6 : 10;
+  const availableWidth = width - dialHorizontalPadding * 2;
+  const dialSize = Math.max(220, Math.min(availableWidth, availableHeight * 0.98));
+  const compassVerticalOffset = Math.max(8, Math.round(height * 0.02));
   const dialWidth = dialSize;
   const dialHeight = dialSize;
   const needleSize = Math.round(dialSize * 0.68);
@@ -192,7 +193,7 @@ export default function CompassScreen({ type }: Props) {
 
   const headingText = useMemo(() => {
     const deg = Math.round(heading);
-    const direction = type === "normal"
+    const direction = type === "normal" || type === "zone16"
       ? degreeToDirection8(heading)
       : degreeToDirection16(heading);
     return `${deg}° · ${direction}`;
@@ -698,7 +699,10 @@ export default function CompassScreen({ type }: Props) {
       )}
 
       {/* Compass display */}
-      <View style={styles.compassWrap} pointerEvents={showInlineMap ? "none" : "auto"}>
+      <View
+        style={[styles.compassWrap, { transform: [{ translateY: -compassVerticalOffset }] }]}
+        pointerEvents={showInlineMap ? "none" : "auto"}
+      >
         {/* small pointer on top */}
         <MaterialIcons name="arrow-drop-down" size={width < 360 ? 14 : 18} color="#000" style={{ marginBottom: 6 }} />
 
