@@ -20,6 +20,9 @@
         "NSLocationWhenInUseUsageDescription": "This app needs access to your location to provide accurate compass heading.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs access to your location to provide accurate compass heading."
       },
+      "config": {
+        "googleMapsApiKey": "YOUR_IOS_GOOGLE_MAPS_API_KEY_HERE"
+      },
       "bundleIdentifier": "com.bobthedeveloper.mobileApp"
     },
     "android": {
@@ -29,7 +32,7 @@
       },
       "config": {
         "googleMaps": {
-          "apiKey": ""
+          "apiKey": "YOUR_ANDROID_GOOGLE_MAPS_API_KEY_HERE"
         }
       },
       "edgeToEdgeEnabled": true,

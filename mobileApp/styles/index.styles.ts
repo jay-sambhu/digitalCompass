@@ -27,6 +27,16 @@ export const styles = StyleSheet.create({
     fontFamily: "Poppins",
   },
   headerIcons: { flexDirection: "row", gap: 8 },
+  menuBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.14)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.35)",
+  },
   iconBtn: { padding: 4 },
   menuIconStyle: {
     marginRight: 12,

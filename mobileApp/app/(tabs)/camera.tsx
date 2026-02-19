@@ -1,21 +1,36 @@
-import React, { useEffect, useRef, useState } from "react";
-import { View, Text, Pressable, Alert, Image, Animated, useWindowDimensions, Linking, Modal, ScrollView, Share, Platform } from "react-native";
-import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import * as MediaLibrary from "expo-media-library";
-import * as Location from "expo-location";
-import { Magnetometer } from "expo-sensors";
-import { Href, router, useLocalSearchParams } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
+import { CameraType, CameraView, useCameraPermissions } from "expo-camera";
 import Constants from "expo-constants";
-import ViewShot from "react-native-view-shot";
+import * as Location from "expo-location";
+import * as MediaLibrary from "expo-media-library";
+import { Href, router, useLocalSearchParams } from "expo-router";
+import { Magnetometer } from "expo-sensors";
 import * as Sharing from "expo-sharing";
-import { getCompassAssets } from "../../utils/compassAssets";
-import { styles } from "../../styles/camera.styles";
+import React, { useEffect, useRef, useState } from "react";
 import {
-  requestMediaLibraryPermission,
-  getMediaLibraryPermissionStatus,
-  requestLocationPermission,
+    Alert,
+    Animated,
+    Image,
+    Linking,
+    Modal,
+    Platform,
+    Pressable,
+    ScrollView,
+    Share,
+    Text,
+    useWindowDimensions,
+    View,
+} from "react-native";
+import {
+    useSafeAreaInsets
+} from "react-native-safe-area-context";
+import ViewShot from "react-native-view-shot";
+import { styles } from "../../styles/camera.styles";
+import { getCompassAssets } from "../../utils/compassAssets";
+import {
+    getMediaLibraryPermissionStatus,
+    requestLocationPermission,
+    requestMediaLibraryPermission,
 } from "../../utils/permissionHandler";
 
 function normalize360(deg: number) {
@@ -40,28 +55,38 @@ export default function CameraScreen() {
   const needleScale = assets.needleScale ?? 1;
 
   const [camPerm, requestCamPerm] = useCameraPermissions();
-  const [mediaPerm, setMediaPerm] = useState<MediaLibrary.PermissionResponse | null>(null);
-  const isExpoGoAndroid = Platform.OS === "android" && Constants.appOwnership === "expo";
-  
+  const [mediaPerm, setMediaPerm] =
+    useState<MediaLibrary.PermissionResponse | null>(null);
+  const isExpoGoAndroid =
+    Platform.OS === "android" && Constants.appOwnership === "expo";
+
   const [heading, setHeading] = useState(0);
   const [strength, setStrength] = useState(0);
-  const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
+  const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(
+    null,
+  );
   const [capturedHeading, setCapturedHeading] = useState<number | null>(null);
   const [capturedStrength, setCapturedStrength] = useState<number | null>(null);
-  const [capturedCoords, setCapturedCoords] = useState<{ lat: number; lon: number } | null>(null);
+  const [capturedCoords, setCapturedCoords] = useState<{
+    lat: number;
+    lon: number;
+  } | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [previewUri, setPreviewUri] = useState<string | null>(null);
-  const appVersion = Constants.expoConfig?.version ?? (Constants as any)?.manifest?.version ?? "1.0.0";
+  const appVersion =
+    Constants.expoConfig?.version ??
+    (Constants as any)?.manifest?.version ??
+    "1.0.0";
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const prevHeadingRef = useRef(0);
-  
+
   const dialSize = Math.max(200, Math.min(Math.min(width, height) * 0.92, 420));
   const needleSize = Math.round(dialSize * 0.68);
 
   // Create interpolated rotation string for animated value
   const needleRotate = rotateAnim.interpolate({
     inputRange: [0, 360],
-    outputRange: ['0deg', '360deg'],
+    outputRange: ["0deg", "360deg"],
   });
 
   const requestMediaPerm = async () => {
@@ -71,7 +96,7 @@ export default function CameraScreen() {
         setMediaPerm(status);
         return status;
       }
-      
+
       const result = await requestMediaLibraryPermission();
       const permResponse: MediaLibrary.PermissionResponse = {
         status: result.granted ? "granted" : "denied",
@@ -79,11 +104,14 @@ export default function CameraScreen() {
         canAskAgain: result.canAskAgain,
         expires: "never",
       } as MediaLibrary.PermissionResponse;
-      
+
       setMediaPerm(permResponse);
       return permResponse;
     } catch (e: any) {
-      console.error("[Permission Error] Media permission request failed:", e?.message ?? "Unknown error");
+      console.error(
+        "[Permission Error] Media permission request failed:",
+        e?.message ?? "Unknown error",
+      );
       const denied = {
         status: "denied",
         granted: false,
@@ -100,11 +128,11 @@ export default function CameraScreen() {
       console.warn("ViewShot capture not available, returning raw image");
       return previewUri;
     }
-    
+
     try {
       // Add a small delay to ensure rendering
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       const uri = await previewShotRef.current.capture();
       if (uri) {
         console.log("✅ Successfully captured overlay image:", uri);
@@ -114,7 +142,7 @@ export default function CameraScreen() {
       console.warn("❌ ViewShot capture failed:", e?.message || e);
       console.warn("Stack:", e?.stack);
     }
-    
+
     // Fallback to raw image
     console.warn("⚠️ Falling back to raw preview image");
     return previewUri;
@@ -125,11 +153,17 @@ export default function CameraScreen() {
       try {
         if (camPerm && !camPerm.granted) {
           await requestCamPerm().catch((error) => {
-            console.warn("[Permission Error] Camera permission request failed:", error?.message ?? "Unknown error");
+            console.warn(
+              "[Permission Error] Camera permission request failed:",
+              error?.message ?? "Unknown error",
+            );
           });
         }
       } catch (e: any) {
-        console.error("[Permission Error] Permission request skipped:", e?.message ?? "Unknown error");
+        console.error(
+          "[Permission Error] Permission request skipped:",
+          e?.message ?? "Unknown error",
+        );
       }
     };
     requestPermissions();
@@ -143,26 +177,42 @@ export default function CameraScreen() {
         const permissionResponse = await requestLocationPermission();
         if (permissionResponse.granted) {
           locSub = await Location.watchPositionAsync(
-            { accuracy: Location.Accuracy.High, timeInterval: 1000, distanceInterval: 1 },
+            {
+              accuracy: Location.Accuracy.High,
+              timeInterval: 1000,
+              distanceInterval: 1,
+            },
             (pos) => {
-              setCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude });
-            }
+              setCoords({
+                lat: pos.coords.latitude,
+                lon: pos.coords.longitude,
+              });
+            },
           ).catch((error) => {
-            console.warn("[Location Error] Watch position failed:", error?.message ?? "Unknown error");
+            console.warn(
+              "[Location Error] Watch position failed:",
+              error?.message ?? "Unknown error",
+            );
             return null;
           });
         } else {
           console.log("Location permission not granted");
         }
       } catch (e: any) {
-        console.error("[Permission Error] Location setup failed:", e?.message ?? "Unknown error");
+        console.error(
+          "[Permission Error] Location setup failed:",
+          e?.message ?? "Unknown error",
+        );
       }
     })();
     return () => {
       try {
         locSub?.remove();
       } catch (e: any) {
-        console.warn("[Location Error] Failed to remove location subscription:", e?.message ?? "Unknown error");
+        console.warn(
+          "[Location Error] Failed to remove location subscription:",
+          e?.message ?? "Unknown error",
+        );
       }
     };
   }, []);
@@ -198,7 +248,10 @@ export default function CameraScreen() {
       }
       const finalUri = await capturePreviewWithOverlay();
       if (!finalUri) {
-        Alert.alert("Save Error", "Unable to capture the overlaid image. Please try again.");
+        Alert.alert(
+          "Save Error",
+          "Unable to capture the overlaid image. Please try again.",
+        );
         return;
       }
 
@@ -207,11 +260,11 @@ export default function CameraScreen() {
       // Try to save directly without requesting permission first
       try {
         console.log("Attempting to create asset from URI");
-        
+
         // Create the asset - this saves to the gallery
         const asset = await MediaLibrary.createAssetAsync(finalUri);
         console.log("Asset created successfully:", asset.id);
-        
+
         // Try to add to Camera album, but don't fail if it doesn't work
         // Skip album operations in Expo Go on Android - not supported
         if (!isExpoGoAndroid) {
@@ -226,70 +279,109 @@ export default function CameraScreen() {
               console.log("[CAMERA] ✅ Camera album created with photo");
             }
           } catch (albumErr: any) {
-            console.log("[CAMERA] ⚠️ Album operation failed:", albumErr?.message ?? "Unknown error");
+            console.log(
+              "[CAMERA] ⚠️ Album operation failed:",
+              albumErr?.message ?? "Unknown error",
+            );
             // Silently ignore - asset is already saved to gallery
           }
         } else {
-          console.log("[CAMERA] ℹ️ Album operation skipped: Expo Go limitation");
+          console.log(
+            "[CAMERA] ℹ️ Album operation skipped: Expo Go limitation",
+          );
         }
 
-        Alert.alert("✅ Saved", "Photo saved to your device gallery successfully!");
+        Alert.alert(
+          "✅ Saved",
+          "Photo saved to your device gallery successfully!",
+        );
       } catch (saveErr: any) {
         // If save fails due to permissions, try requesting permission
         console.error("Save photo error:", saveErr?.message);
-        
-        if (saveErr?.message?.includes("Permission") || saveErr?.message?.includes("permission")) {
+
+        if (
+          saveErr?.message?.includes("Permission") ||
+          saveErr?.message?.includes("permission")
+        ) {
           console.log("Permission error detected, requesting permission");
           try {
             const permission = await requestMediaPerm();
             if (permission?.granted) {
               // Retry saving with permission granted
               const asset = await MediaLibrary.createAssetAsync(finalUri);
-              console.log("Asset created successfully after permission:", asset.id);
-              
+              console.log(
+                "Asset created successfully after permission:",
+                asset.id,
+              );
+
               // Skip album operations in Expo Go on Android
               if (!isExpoGoAndroid) {
                 try {
                   console.log("[CAMERA] 📁 Adding photo to Camera album...");
                   const album = await MediaLibrary.getAlbumAsync("Camera");
                   if (album) {
-                    await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
+                    await MediaLibrary.addAssetsToAlbumAsync(
+                      [asset],
+                      album,
+                      false,
+                    );
                     console.log("[CAMERA] ✅ Photo added to Camera album");
                   } else {
                     await MediaLibrary.createAlbumAsync("Camera", asset, false);
                     console.log("[CAMERA] ✅ Camera album created with photo");
                   }
                 } catch (albumErr: any) {
-                  console.log("[CAMERA] ⚠️ Album operation failed:", albumErr?.message ?? "Unknown error");
+                  console.log(
+                    "[CAMERA] ⚠️ Album operation failed:",
+                    albumErr?.message ?? "Unknown error",
+                  );
                   // Silently ignore - asset is already saved to gallery
                 }
               } else {
-                console.log("[CAMERA] ℹ️ Album operation skipped: Expo Go limitation");
+                console.log(
+                  "[CAMERA] ℹ️ Album operation skipped: Expo Go limitation",
+                );
               }
-              
-              Alert.alert("✅ Saved", "Photo saved to your device gallery successfully!");
+
+              Alert.alert(
+                "✅ Saved",
+                "Photo saved to your device gallery successfully!",
+              );
             } else {
-              Alert.alert("Permission Required", "Media library permission is required. Please enable it in app settings.", [
-                { text: "OK", onPress: () => {} },
-              ]);
+              Alert.alert(
+                "Permission Required",
+                "Media library permission is required. Please enable it in app settings.",
+                [{ text: "OK", onPress: () => {} }],
+              );
             }
           } catch (permErr: any) {
             console.error("Permission request error:", permErr?.message);
-            Alert.alert("Save Error", "Unable to save photo. Please check app permissions in settings.", [
-              { text: "Try Again", onPress: savePreviewPhoto },
-              { text: "Cancel", onPress: () => setPreviewUri(null) },
-            ]);
+            Alert.alert(
+              "Save Error",
+              "Unable to save photo. Please check app permissions in settings.",
+              [
+                { text: "Try Again", onPress: savePreviewPhoto },
+                { text: "Cancel", onPress: () => setPreviewUri(null) },
+              ],
+            );
           }
         } else {
-          Alert.alert("Save Error", `Unable to save photo: ${saveErr?.message || "Unknown error"}`, [
-            { text: "Try Again", onPress: savePreviewPhoto },
-            { text: "Cancel", onPress: () => setPreviewUri(null) },
-          ]);
+          Alert.alert(
+            "Save Error",
+            `Unable to save photo: ${saveErr?.message || "Unknown error"}`,
+            [
+              { text: "Try Again", onPress: savePreviewPhoto },
+              { text: "Cancel", onPress: () => setPreviewUri(null) },
+            ],
+          );
         }
       }
     } catch (e: any) {
       console.error("Outer error in savePreviewPhoto:", e?.message);
-      Alert.alert("Error", `An unexpected error occurred: ${e?.message || "Unknown error"}. Please try again.`);
+      Alert.alert(
+        "Error",
+        `An unexpected error occurred: ${e?.message || "Unknown error"}. Please try again.`,
+      );
     }
   };
 
@@ -301,12 +393,18 @@ export default function CameraScreen() {
       }
       const canShare = await Sharing.isAvailableAsync();
       if (!canShare) {
-        Alert.alert("Share unavailable", "Sharing is not available on this device.");
+        Alert.alert(
+          "Share unavailable",
+          "Sharing is not available on this device.",
+        );
         return;
       }
       const finalUri = await capturePreviewWithOverlay();
       if (!finalUri) {
-        Alert.alert("Share Error", "Unable to capture the overlaid image. Please try again.");
+        Alert.alert(
+          "Share Error",
+          "Unable to capture the overlaid image. Please try again.",
+        );
         return;
       }
       await Sharing.shareAsync(finalUri, {
@@ -340,7 +438,10 @@ export default function CameraScreen() {
   const openLastCaptured = async () => {
     try {
       if (!mediaPerm?.granted) {
-        Alert.alert("Permission required", "Media library permission is required.");
+        Alert.alert(
+          "Permission required",
+          "Media library permission is required.",
+        );
         return;
       }
       try {
@@ -357,25 +458,24 @@ export default function CameraScreen() {
         }
       } catch (albumErr: any) {
         console.log("Could not access media library:", albumErr?.message);
-        Alert.alert("Error", "Unable to access gallery. This feature requires a development build.");
+        Alert.alert(
+          "Error",
+          "Unable to access gallery. This feature requires a development build.",
+        );
       }
     } catch (e: any) {
       Alert.alert("Error", e?.message ?? "Failed to get last photo");
     }
   };
 
-  const openMap = async () => {
+  const openMap = () => {
     try {
-      const query = coords ? `${coords.lat},${coords.lon}` : "";
-      const url = query
-        ? `https://www.google.com/maps/search/?api=1&query=${query}`
-        : "https://www.google.com/maps";
-      await Linking.openURL(url);
+      router.push("/(tabs)/map" as Href);
     } catch (e: any) {
       Alert.alert("Map error", e?.message ?? "Failed to open map");
     }
   };
-  
+
   const goBack = () => {
     router.back();
   };
@@ -395,7 +495,10 @@ export default function CameraScreen() {
   };
 
   const openUserGuide = () => {
-    router.push({ pathname: "/(tabs)", params: { openUserGuide: "1" } } as Href);
+    router.push({
+      pathname: "/(tabs)",
+      params: { openUserGuide: "1" },
+    } as Href);
   };
 
   if (!camPerm) return null;
@@ -474,19 +577,27 @@ export default function CameraScreen() {
             <View style={styles.cameraOverlay}>
               <View style={styles.cameraOverlayRow}>
                 <Text style={styles.cameraOverlayLabel}>Degree:</Text>
-                <Text style={styles.cameraOverlayValue}>{Math.round(previewHeading)}°</Text>
+                <Text style={styles.cameraOverlayValue}>
+                  {Math.round(previewHeading)}°
+                </Text>
               </View>
               <View style={styles.cameraOverlayRow}>
                 <Text style={styles.cameraOverlayLabel}>Lat:</Text>
-                <Text style={styles.cameraOverlayValue}>{previewCoords ? previewCoords.lat.toFixed(6) : "—"}</Text>
+                <Text style={styles.cameraOverlayValue}>
+                  {previewCoords ? previewCoords.lat.toFixed(6) : "—"}
+                </Text>
               </View>
               <View style={styles.cameraOverlayRow}>
                 <Text style={styles.cameraOverlayLabel}>Lon:</Text>
-                <Text style={styles.cameraOverlayValue}>{previewCoords ? previewCoords.lon.toFixed(6) : "—"}</Text>
+                <Text style={styles.cameraOverlayValue}>
+                  {previewCoords ? previewCoords.lon.toFixed(6) : "—"}
+                </Text>
               </View>
               <View style={styles.cameraOverlayRow}>
                 <Text style={styles.cameraOverlayLabel}>Mag:</Text>
-                <Text style={styles.cameraOverlayValue}>{previewStrength.toFixed(0)} µT</Text>
+                <Text style={styles.cameraOverlayValue}>
+                  {previewStrength.toFixed(0)} µT
+                </Text>
               </View>
             </View>
           </View>
@@ -494,7 +605,10 @@ export default function CameraScreen() {
 
         {/* Bottom preview controls */}
         <View style={styles.previewControls}>
-          <Pressable style={styles.previewBtn} onPress={() => setPreviewUri(null)}>
+          <Pressable
+            style={styles.previewBtn}
+            onPress={() => setPreviewUri(null)}
+          >
             <MaterialIcons name="refresh" size={28} color="#fff" />
             <Text style={styles.previewBtnText}>Retake</Text>
           </Pressable>
@@ -506,7 +620,10 @@ export default function CameraScreen() {
             <MaterialIcons name="share" size={28} color="#fff" />
             <Text style={styles.previewBtnText}>Share</Text>
           </Pressable>
-          <Pressable style={styles.previewBtn} onPress={() => setPreviewUri(null)}>
+          <Pressable
+            style={styles.previewBtn}
+            onPress={() => setPreviewUri(null)}
+          >
             <MaterialIcons name="close" size={28} color="#fff" />
             <Text style={styles.previewBtnText}>Close</Text>
           </Pressable>
@@ -524,11 +641,18 @@ export default function CameraScreen() {
         <Pressable onPress={() => setDrawerOpen(true)} style={styles.menuBtn}>
           <MaterialIcons name="menu" size={28} color="#fff" />
         </Pressable>
-        
+
         <View style={styles.searchBar}>
-          <MaterialIcons name="search" size={22} color="#fff" style={{ marginRight: 8 }} />
+          <MaterialIcons
+            name="search"
+            size={22}
+            color="#fff"
+            style={{ marginRight: 8 }}
+          />
           <Text style={styles.searchText}>
-            {coords ? `${coords.lat.toFixed(4)}, ${coords.lon.toFixed(4)}` : "Locating..."}
+            {coords
+              ? `${coords.lat.toFixed(4)}, ${coords.lon.toFixed(4)}`
+              : "Locating..."}
           </Text>
         </View>
 
@@ -538,7 +662,12 @@ export default function CameraScreen() {
       </View>
 
       {/* Compass dial overlay */}
-      <View style={[styles.compassContainer, { transform: [{ translateY: -dialSize / 2 }] }]}>
+      <View
+        style={[
+          styles.compassContainer,
+          { transform: [{ translateY: -dialSize / 2 }] },
+        ]}
+      >
         <Animated.Image
           source={assets.dial}
           style={[
@@ -549,7 +678,12 @@ export default function CameraScreen() {
                 { translateX: assets.dialOffset.x },
                 { translateY: assets.dialOffset.y },
                 { scale: assets.dialScale },
-                { rotate: rotateAnim.interpolate({ inputRange: [0, 360], outputRange: ["0deg", "360deg"] }) },
+                {
+                  rotate: rotateAnim.interpolate({
+                    inputRange: [0, 360],
+                    outputRange: ["0deg", "360deg"],
+                  }),
+                },
               ],
             },
           ]}
@@ -580,7 +714,12 @@ export default function CameraScreen() {
       </View>
 
       {/* Bottom controls */}
-      <View style={[styles.controls, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+      <View
+        style={[
+          styles.controls,
+          { paddingBottom: Math.max(insets.bottom, 12) },
+        ]}
+      >
         <Pressable style={styles.navBtn} onPress={goBack}>
           <MaterialIcons name="arrow-back" size={28} color="#fff" />
           <Text style={styles.navBtnText}>Back</Text>
@@ -602,77 +741,141 @@ export default function CameraScreen() {
       <Modal
         visible={drawerOpen}
         animationType="slide"
-          transparent
-          onRequestClose={() => setDrawerOpen(false)}
+        transparent
+        onRequestClose={() => setDrawerOpen(false)}
+      >
+        <Pressable
+          style={styles.drawerOverlay}
+          onPress={() => setDrawerOpen(false)}
         >
-          <Pressable style={styles.drawerOverlay} onPress={() => setDrawerOpen(false)}>
-            <Pressable style={styles.drawerContainer} onPress={(e) => e.stopPropagation()}>
-              <ScrollView>
-                <View style={styles.drawerHeader}>
-                  <Image
-                    source={assets.icon}
-                    style={styles.drawerLogo}
-                    resizeMode="contain"
+          <Pressable
+            style={styles.drawerContainer}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <ScrollView>
+              <View style={styles.drawerHeader}>
+                <Image
+                  source={assets.icon}
+                  style={styles.drawerLogo}
+                  resizeMode="contain"
+                />
+                <Text style={styles.drawerBrand}>sanskarvastu.com</Text>
+                <Text style={styles.drawerVersion}>Version: {appVersion}</Text>
+                <Text style={styles.drawerTitle}>Vastu Compass</Text>
+              </View>
+              <View style={styles.menuList}>
+                <Pressable style={styles.menuItem}>
+                  <MaterialIcons
+                    name="info-outline"
+                    size={24}
+                    color="#ffffff"
+                    style={styles.menuIconStyle}
                   />
-                  <Text style={styles.drawerBrand}>sanskarvastu.com</Text>
-                  <Text style={styles.drawerVersion}>Version: {appVersion}</Text>
-                  <Text style={styles.drawerTitle}>Vastu Compass</Text>
-                </View>
-                <View style={styles.menuList}>
-                  <Pressable style={styles.menuItem}>
-                    <MaterialIcons name="info-outline" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                    <Text style={styles.menuText}>About Us</Text>
-                    <Text style={styles.menuArrow}>›</Text>
-                  </Pressable>
-                  <Pressable style={styles.menuItem}>
-                    <MaterialIcons name="computer" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                    <Text style={styles.menuText}>Access Our Website</Text>
-                    <Text style={styles.menuArrow}>›</Text>
-                  </Pressable>
-                  <Pressable style={styles.menuItem}>
-                    <MaterialIcons name="smartphone" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                    <Text style={styles.menuText}>More Apps</Text>
-                    <Text style={styles.menuArrow}>›</Text>
-                  </Pressable>
-                  <Pressable style={styles.menuItem} onPress={shareApp}>
-                    <MaterialIcons name="share" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                    <Text style={styles.menuText}>Share</Text>
-                    <Text style={styles.menuArrow}>›</Text>
-                  </Pressable>
-                  <Pressable style={styles.menuItem}>
-                    <MaterialIcons name="mail-outline" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                    <Text style={styles.menuText}>Send Feedback</Text>
-                    <Text style={styles.menuArrow}>›</Text>
-                  </Pressable>
-                  <Pressable style={styles.menuItem}>
-                    <MaterialIcons name="star-outline" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                    <Text style={styles.menuText}>Review Us</Text>
-                    <Text style={styles.menuArrow}>›</Text>
-                  </Pressable>
-                  <Pressable style={styles.menuItem} onPress={openPermissionsManager}>
-                    <MaterialIcons name="lock-outline" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                    <Text style={styles.menuText}>Permissions</Text>
-                    <Text style={styles.menuArrow}>›</Text>
-                  </Pressable>
-                  <Pressable style={styles.menuItem} onPress={openUserGuide}>
-                    <MaterialIcons name="help-outline" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                    <Text style={styles.menuText}>How to use Sanskar Compass</Text>
-                    <Text style={styles.menuArrow}>›</Text>
-                  </Pressable>
-                  <Pressable style={styles.menuItem}>
-                    <MaterialIcons name="school" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                    <Text style={styles.menuText}>Join SanskarVastu Course</Text>
-                    <Text style={styles.menuArrow}>›</Text>
-                  </Pressable>
-                  <Pressable style={styles.menuItem} onPress={() => setDrawerOpen(false)}>
-                    <MaterialIcons name="arrow-back" size={24} color="#ffffff" style={styles.menuIconStyle} />
-                    <Text style={styles.menuText}>Back</Text>
-                  </Pressable>
-                </View>
-              </ScrollView>
-            </Pressable>
+                  <Text style={styles.menuText}>About Us</Text>
+                  <Text style={styles.menuArrow}>›</Text>
+                </Pressable>
+                <Pressable style={styles.menuItem}>
+                  <MaterialIcons
+                    name="computer"
+                    size={24}
+                    color="#ffffff"
+                    style={styles.menuIconStyle}
+                  />
+                  <Text style={styles.menuText}>Access Our Website</Text>
+                  <Text style={styles.menuArrow}>›</Text>
+                </Pressable>
+                <Pressable style={styles.menuItem}>
+                  <MaterialIcons
+                    name="smartphone"
+                    size={24}
+                    color="#ffffff"
+                    style={styles.menuIconStyle}
+                  />
+                  <Text style={styles.menuText}>More Apps</Text>
+                  <Text style={styles.menuArrow}>›</Text>
+                </Pressable>
+                <Pressable style={styles.menuItem} onPress={shareApp}>
+                  <MaterialIcons
+                    name="share"
+                    size={24}
+                    color="#ffffff"
+                    style={styles.menuIconStyle}
+                  />
+                  <Text style={styles.menuText}>Share</Text>
+                  <Text style={styles.menuArrow}>›</Text>
+                </Pressable>
+                <Pressable style={styles.menuItem}>
+                  <MaterialIcons
+                    name="mail-outline"
+                    size={24}
+                    color="#ffffff"
+                    style={styles.menuIconStyle}
+                  />
+                  <Text style={styles.menuText}>Send Feedback</Text>
+                  <Text style={styles.menuArrow}>›</Text>
+                </Pressable>
+                <Pressable style={styles.menuItem}>
+                  <MaterialIcons
+                    name="star-outline"
+                    size={24}
+                    color="#ffffff"
+                    style={styles.menuIconStyle}
+                  />
+                  <Text style={styles.menuText}>Review Us</Text>
+                  <Text style={styles.menuArrow}>›</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.menuItem}
+                  onPress={openPermissionsManager}
+                >
+                  <MaterialIcons
+                    name="lock-outline"
+                    size={24}
+                    color="#ffffff"
+                    style={styles.menuIconStyle}
+                  />
+                  <Text style={styles.menuText}>Permissions</Text>
+                  <Text style={styles.menuArrow}>›</Text>
+                </Pressable>
+                <Pressable style={styles.menuItem} onPress={openUserGuide}>
+                  <MaterialIcons
+                    name="help-outline"
+                    size={24}
+                    color="#ffffff"
+                    style={styles.menuIconStyle}
+                  />
+                  <Text style={styles.menuText}>
+                    How to use Sanskar Compass
+                  </Text>
+                  <Text style={styles.menuArrow}>›</Text>
+                </Pressable>
+                <Pressable style={styles.menuItem}>
+                  <MaterialIcons
+                    name="school"
+                    size={24}
+                    color="#ffffff"
+                    style={styles.menuIconStyle}
+                  />
+                  <Text style={styles.menuText}>Join SanskarVastu Course</Text>
+                  <Text style={styles.menuArrow}>›</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.menuItem}
+                  onPress={() => setDrawerOpen(false)}
+                >
+                  <MaterialIcons
+                    name="arrow-back"
+                    size={24}
+                    color="#ffffff"
+                    style={styles.menuIconStyle}
+                  />
+                  <Text style={styles.menuText}>Back</Text>
+                </Pressable>
+              </View>
+            </ScrollView>
           </Pressable>
-        </Modal>
-      </View>
-    );
+        </Pressable>
+      </Modal>
+    </View>
+  );
 }

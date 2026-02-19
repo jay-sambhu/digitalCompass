@@ -1,10 +1,9 @@
-import React from "react";
-import { Text } from "react-native";
 import { Tabs } from "expo-router";
+import React from "react";
 
 export default function TabsLayout() {
   return (
-    <Tabs screenOptions={{ tabBarStyle: { display: 'none' } }}>
+    <Tabs screenOptions={{ tabBarStyle: { display: "none" } }}>
       <Tabs.Screen
         name="index"
         options={{
@@ -45,6 +44,14 @@ export default function TabsLayout() {
         options={{
           href: null,
           headerShown: false,
+        }}
+      />
+      <Tabs.Screen
+        name="map"
+        options={{
+          href: null,
+          headerShown: false,
+          title: "Map View",
         }}
       />
     </Tabs>

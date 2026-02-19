@@ -27,6 +27,9 @@ export const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.14)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.35)",
   },
   
   searchBar: {
@@ -346,6 +349,31 @@ export const styles = StyleSheet.create({
   cameraOverlayValue: {
     color: "#fff",
     fontSize: 12,
+  },
+  magStrengthBox: {
+    position: "absolute",
+    top: 88,
+    left: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "rgba(0,0,0,0.58)",
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
+    zIndex: 12,
+  },
+  magStrengthLabel: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  magStrengthVal: {
+    color: "#7dd3fc",
+    fontSize: 12,
+    fontWeight: "700",
   },
   
   center: { 

@@ -12,16 +12,15 @@ export const styles = StyleSheet.create({
     borderBottomColor: "#a01b26",
     zIndex: 2,
   },
-  topHeaderCompact: {
-    paddingVertical: 3,
-    height: 36,
-  },
   menuBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.14)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.35)",
   },
   searchBar: {
     flex: 1,
@@ -50,31 +49,39 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  topActionGroup: {
-    flex: 1,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 10,
-  },
-  topActionBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.14)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.3)",
-  },
 
-  quickRow: { marginTop: 12, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap", zIndex: 1, minHeight: 70 },
+  quickRow: {
+    marginTop: 12,
+    paddingHorizontal: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    flexWrap: "nowrap",
+    zIndex: 1,
+    minHeight: 70,
+  },
   quickRowCompact: { justifyContent: "space-around" },
   quickBtn: { alignItems: "center" },
-  quickLabel: { marginTop: 4, fontWeight: "600", fontSize: 11, color: "#000000" },
+  quickBtnActive: {
+    backgroundColor: "#BD202E",
+    borderRadius: 10,
+    paddingVertical: 6,
+  },
+  quickLabel: {
+    marginTop: 4,
+    fontWeight: "600",
+    fontSize: 11,
+    color: "#000000",
+  },
+  quickLabelActive: { color: "#ffffff" },
   degreeTitle: { fontWeight: "800" },
 
-  compassWrap: { ...StyleSheet.absoluteFillObject, alignItems: "center", justifyContent: "center", zIndex: 0 },
+  compassWrap: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 0,
+  },
   dialContainer: {
     alignItems: "center",
     justifyContent: "center",
@@ -125,57 +132,53 @@ export const styles = StyleSheet.create({
   mapControlBtnActive: {
     backgroundColor: "#BD202E",
   },
-  drawColorIndicator: {
-    position: "absolute",
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#ffff00",
-    right: -2,
-    top: -2,
-  },
-  drawColorLabel: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
-    backgroundColor: "rgba(189, 32, 46, 0.9)",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
   dial: { overflow: "hidden", alignSelf: "center" },
   needle: { position: "absolute" },
-  zoneStepItem: {
-    position: "absolute",
-    borderRadius: 999,
-    overflow: "hidden",
-  },
-  zoneStepCompositeImage: {
-    position: "absolute",
-    left: 0,
-    top: 0,
-  },
-  zoneStepItemActive: {
-    borderWidth: 1,
-    borderColor: "#BD202E",
-    backgroundColor: "rgba(189, 32, 46, 0.2)",
-  },
-  zoneStepImage: {
-    width: "100%",
-    height: "100%",
-  },
-  
-  infoRowBelow: { position: "absolute", left: 16, right: 16, flexDirection: "row", justifyContent: "space-between", gap: 10 },
-  infoBoxBelow: { flex: 1, backgroundColor: "transparent", padding: 0, borderRadius: 0 },
 
-  infoRow: { marginTop: 18, paddingHorizontal: 16, flexDirection: "row", justifyContent: "space-between", gap: 10, zIndex: 1 },
+  infoRowBelow: {
+    position: "absolute",
+    left: 16,
+    right: 16,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 10,
+    zIndex: 10,
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    borderRadius: 12,
+    padding: 12,
+  },
+  infoBoxBelow: {
+    flex: 1,
+    backgroundColor: "transparent",
+    padding: 8,
+    borderRadius: 8,
+  },
+
+  infoRow: {
+    marginTop: 18,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 10,
+    zIndex: 1,
+  },
   infoRowCompact: { flexDirection: "column" },
   infoBox: { flex: 1 },
   infoTitle: { fontWeight: "800", color: "#000" },
   infoValue: { marginTop: 4, color: "#000" },
   red: { color: "#000", fontWeight: "800" },
 
-  bottomNav: { paddingVertical: 14, borderTopWidth: 1, borderColor: "#CBD5E1", backgroundColor: "#ffffff", flexDirection: "row", justifyContent: "space-around", alignItems: "center", zIndex: 3, marginTop: "auto" },
+  bottomNav: {
+    paddingVertical: 14,
+    borderTopWidth: 1,
+    borderColor: "#CBD5E1",
+    backgroundColor: "#ffffff",
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    zIndex: 3,
+    marginTop: "auto",
+  },
   bottomNavOnMap: {
     position: "absolute",
     bottom: 0,
@@ -188,10 +191,19 @@ export const styles = StyleSheet.create({
   },
   navItem: { alignItems: "center", flex: 1 },
   navLabel: { marginTop: 4, color: "#000000", fontWeight: "700" },
-  captureBtn: { width: 60, height: 60, borderRadius: 30, backgroundColor: "#ffffff", borderWidth: 2, borderColor: "#CBD5E1", alignItems: "center", justifyContent: "center" },
+  captureBtn: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#ffffff",
+    borderWidth: 2,
+    borderColor: "#CBD5E1",
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
-  cameraContainer: { 
-    flex: 1, 
+  cameraContainer: {
+    flex: 1,
     backgroundColor: "#000",
     position: "relative",
   },
@@ -263,7 +275,7 @@ export const styles = StyleSheet.create({
   cameraOverlayRow: { flexDirection: "row", gap: 6 },
   cameraOverlayLabel: { color: "#fff", fontSize: 12, fontWeight: "700" },
   cameraOverlayValue: { color: "#fff", fontSize: 12 },
-  
+
   /* Top Center Degree */
   degreeTopCenter: {
     position: "absolute",
@@ -281,7 +293,7 @@ export const styles = StyleSheet.create({
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 4,
   },
-  
+
   /* Bottom Left - Geo Info */
   geoInfoBottom: {
     position: "absolute",
@@ -303,7 +315,7 @@ export const styles = StyleSheet.create({
     color: "#000",
     marginTop: 2,
   },
-  
+
   /* Bottom Right - Magnetic Field */
   magneticInfoBottom: {
     position: "absolute",
@@ -325,13 +337,36 @@ export const styles = StyleSheet.create({
     color: "#000",
     marginTop: 2,
   },
-  
-  cameraControls: { flexDirection: "row", justifyContent: "space-around", alignItems: "center", padding: 16, backgroundColor: "#000" },
-  camBtn: { paddingVertical: 10, paddingHorizontal: 16, backgroundColor: "#BD202E", borderRadius: 8 },
-  camBtnText: { color: "#fff", fontWeight: "600" },
-  capture: { width: 60, height: 60, borderRadius: 30, backgroundColor: "#fff", borderWidth: 4, borderColor: "#CBD5E1" },
 
-  cameraPermission: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12 },
+  cameraControls: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    padding: 16,
+    backgroundColor: "#000",
+  },
+  camBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: "#BD202E",
+    borderRadius: 8,
+  },
+  camBtnText: { color: "#fff", fontWeight: "600" },
+  capture: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#fff",
+    borderWidth: 4,
+    borderColor: "#CBD5E1",
+  },
+
+  cameraPermission: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+  },
   permissionText: { color: "#fff", fontSize: 16 },
 
   drawerOverlay: {
@@ -409,7 +444,21 @@ export const styles = StyleSheet.create({
   },
 
   previewContainer: { flex: 1, backgroundColor: "#000" },
-  previewControls: { flexDirection: "row", justifyContent: "space-around", alignItems: "center", padding: 16, backgroundColor: "#000", borderTopWidth: 1, borderTopColor: "#CBD5E1" },
-  previewBtn: { alignItems: "center", paddingVertical: 12, paddingHorizontal: 20, backgroundColor: "#BD202E", borderRadius: 8 },
+  previewControls: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    padding: 16,
+    backgroundColor: "#000",
+    borderTopWidth: 1,
+    borderTopColor: "#CBD5E1",
+  },
+  previewBtn: {
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: "#BD202E",
+    borderRadius: 8,
+  },
   previewBtnLabel: { fontSize: 12, fontWeight: "600", color: "#fff" },
 });
